@@ -1,10 +1,9 @@
 package org.usfirst.frc.team9104.robot;
 
 import edu.wpi.first.wpilibj.CameraServer;
-import edu.wpi.first.wpilibj.IterativeRobot;
 import edu.wpi.first.wpilibj.Ultrasonic;
 
-public class Robot extends IterativeRobot {
+public class UltraS {
 	Ultrasonic ultra = new Ultrasonic(1,0); 
 	
 	private double avgDistance = 0;
@@ -12,15 +11,15 @@ public class Robot extends IterativeRobot {
 	private double pdistance[] = new double[20];
 	private int index2 = 1;
 	
-	public void robotInit() {
+	public void RInit() {
 		ultra.setAutomaticMode(true);
 		CameraServer.getInstance().startAutomaticCapture();
 		
 		distance2 = ultra.getRangeInches();
 		avgDistance = distance2;
 	}
-
-	public void teleopPeriodic() {
+	
+	public void Update() {
 		distance2 = ultra.getRangeInches();
 		
 		if (index2 > pdistance.length-1) {
@@ -30,7 +29,11 @@ public class Robot extends IterativeRobot {
 		index2++;
 				
 		avgDistance = avg(pdistance);
-		System.out.println(roundPlaces(avgDistance,0));
+		//System.out.println(roundPlaces(avgDistance,0));
+	}
+	
+	public double getDistance() {
+		return avgDistance;
 	}
 	
 	private double avg(double[] avgA) {
@@ -39,8 +42,5 @@ public class Robot extends IterativeRobot {
 			cAvg += avgA[i];
 		}
 		return cAvg/avgA.length;
-	}
-	private double roundPlaces(double a, double places) {
-		return Math.round(a * Math.pow(10,places)) / Math.pow(10, places);
 	}
 }
