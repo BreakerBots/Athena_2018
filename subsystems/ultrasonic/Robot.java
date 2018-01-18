@@ -10,7 +10,7 @@ public class Robot extends IterativeRobot {
 	private double avgDistance = 0;
 	private double distance2 = 0;
 	private double pdistance[] = new double[20];
-	private int index2 = 0;
+	private int index2 = 1;
 	
 	public void robotInit() {
 		ultra.setAutomaticMode(true);
