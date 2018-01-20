@@ -1,6 +1,5 @@
-package Libraries;
+package org.usfirst.frc.team9104.robot;
 
-import edu.wpi.first.wpilibj.CameraServer;
 import edu.wpi.first.wpilibj.Ultrasonic;
 
 public class UltraS {
@@ -17,7 +16,8 @@ public class UltraS {
 	
 	public void RInit() {
 		ultra.setAutomaticMode(true);
-		CameraServer.getInstance().startAutomaticCapture();
+		ultra.setEnabled(true);
+		//CameraServer.getInstance().startAutomaticCapture();
 		
 		distance2 = ultra.getRangeInches();
 		avgDistance = distance2;
@@ -33,7 +33,6 @@ public class UltraS {
 		index2++;
 				
 		avgDistance = avg(pdistance);
-		//System.out.println(roundPlaces(avgDistance,0));
 	}
 	
 	public double getDistance() {
