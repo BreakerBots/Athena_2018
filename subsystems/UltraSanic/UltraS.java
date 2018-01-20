@@ -1,15 +1,19 @@
-package org.usfirst.frc.team9104.robot;
+package Libraries;
 
 import edu.wpi.first.wpilibj.CameraServer;
 import edu.wpi.first.wpilibj.Ultrasonic;
 
 public class UltraS {
-	Ultrasonic ultra = new Ultrasonic(1,0); 
+	Ultrasonic ultra; 
 	
 	private double avgDistance = 0;
 	private double distance2 = 0;
 	private double pdistance[] = new double[20];
 	private int index2 = 1;
+	
+	public UltraS(int ping, int echo) {
+		ultra = new Ultrasonic(ping, echo);
+	}
 	
 	public void RInit() {
 		ultra.setAutomaticMode(true);
