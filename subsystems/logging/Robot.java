@@ -14,6 +14,7 @@ import java.io.IOException;
 import com.ctre.phoenix.motorcontrol.can.WPI_TalonSRX;
 import com.kauailabs.navx.frc.AHRS;
 
+import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.I2C;
 import edu.wpi.first.wpilibj.IterativeRobot;
 import edu.wpi.first.wpilibj.Joystick;
@@ -39,8 +40,8 @@ public class Robot extends IterativeRobot {
 	boolean writing = false;
 	
 	Joystick joy = new Joystick(0);
-	WPI_TalonSRX left1 = new WPI_TalonSRX(11), left2= new WPI_TalonSRX(12);
-	WPI_TalonSRX right1 = new WPI_TalonSRX(13), right2 = new WPI_TalonSRX(14);
+	WPI_TalonSRX left1 = new WPI_TalonSRX(13), left2= new WPI_TalonSRX(14);
+	WPI_TalonSRX right1 = new WPI_TalonSRX(11), right2 = new WPI_TalonSRX(12);
 	
 	SpeedControllerGroup left = new SpeedControllerGroup(left1, left2);
 	SpeedControllerGroup right = new SpeedControllerGroup(right1, right2);
@@ -52,6 +53,8 @@ public class Robot extends IterativeRobot {
 	@Override
 	public void robotInit() {
 		
+		System.out.println("Running Robot Logging Program");
+		
 		long time = System.currentTimeMillis();
 		file_joy = new File("/media/sda/joy-"+time+".txt");
 		file_gyro = new File("/media/sda/gyro-"+time+".txt");
@@ -62,9 +65,11 @@ public class Robot extends IterativeRobot {
 			out_gyro = new FileWriter(file_gyro);
 			out_encoder = new FileWriter(file_encoder);
 
+			System.out.println("Successfully Loaded Files for gyro/encoder/joystick");
 			writing = true;
 		} catch (IOException e) {
 			e.printStackTrace();
+			System.out.println("IO Exception -- Failed to create all files for writing");
 		}
 		
 		gyro.enableLogging(true);
@@ -86,6 +91,7 @@ public class Robot extends IterativeRobot {
 	public void autonomousInit() {
 		if (writing) {
 			try {
+				System.out.println("Closing files");
 				out_joy.close();
 				out_gyro.close();
 				out_encoder.close();
@@ -94,7 +100,7 @@ public class Robot extends IterativeRobot {
 			}
 		}
 		
-	}
+	}//autonomousInit
 
 	/**
 	 * This function is called periodically during autonomous.
@@ -112,7 +118,7 @@ public class Robot extends IterativeRobot {
 		double y = joy.getRawAxis(1);
 		
 		double angle = gyro.getAngle();
-		int encoder = left1.getSelectedSensorPosition(0);
+		int encoder = right1.getSelectedSensorPosition(0);
 		
 		drive.arcadeDrive(y, x);
 		
@@ -122,6 +128,11 @@ public class Robot extends IterativeRobot {
 				out_joy.write(time+"--"+String.format("%f,%f\n", x, y));
 				out_gyro.write(time+"--"+String.format("%f\n", angle));
 				out_encoder.write(time+"--"+String.format("%d\n", encoder));
+				System.out.println("Logging values to files");
+				System.out.printf(time+"--"+String.format("%f,%f\t", x, y));
+				System.out.printf(time+"--"+String.format("%f\t", angle));
+				System.out.println(time+"--"+String.format("%d", encoder));
+				
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
@@ -132,6 +143,7 @@ public class Robot extends IterativeRobot {
 	public void disabledInit() {
 		if (writing) {
 			try {
+				System.out.println("Writing new-line to each file");
 				out_joy.write("\n");
 				out_gyro.write("\n");
 				out_encoder.write("\n");
