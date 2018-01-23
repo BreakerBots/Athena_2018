@@ -7,14 +7,12 @@
 
 package org.usfirst.frc.team5104.robot;
 
-import java.io.File;
-import java.io.FileWriter;
 import java.io.IOException;
+import java.util.Calendar;
 
 import com.ctre.phoenix.motorcontrol.can.WPI_TalonSRX;
 import com.kauailabs.navx.frc.AHRS;
 
-import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.I2C;
 import edu.wpi.first.wpilibj.IterativeRobot;
 import edu.wpi.first.wpilibj.Joystick;
@@ -35,9 +33,7 @@ public class Robot extends IterativeRobot {
 	 * used for any initialization code.
 	 */
 
-	File file_joy, file_gyro, file_encoder;
-	FileWriter out_joy, out_gyro, out_encoder;
-	boolean writing = false;
+	CSVFileWriter dataFile;
 	
 	Joystick joy = new Joystick(0);
 	WPI_TalonSRX left1 = new WPI_TalonSRX(13), left2= new WPI_TalonSRX(14);
@@ -55,22 +51,43 @@ public class Robot extends IterativeRobot {
 		
 		System.out.println("Running Robot Logging Program");
 		
-		long time = System.currentTimeMillis();
-		file_joy = new File("/media/sda/joy-"+time+".txt");
-		file_gyro = new File("/media/sda/gyro-"+time+".txt");
-		file_encoder = new File("/media/sda/encoder-"+time+".txt");
+		Calendar today = Calendar.getInstance();
+		String directory = "/media/sda/"
+							+today.get(Calendar.MONTH)+"-"
+							+today.get(Calendar.DAY_OF_MONTH)+"-"
+							+today.get(Calendar.YEAR)+"--"
+							+today.get(Calendar.HOUR)+":"
+							+today.get(Calendar.MINUTE)+":"
+							+today.get(Calendar.SECOND);
 		
 		try {
-			out_joy = new FileWriter(file_joy);
-			out_gyro = new FileWriter(file_gyro);
-			out_encoder = new FileWriter(file_encoder);
-
-			System.out.println("Successfully Loaded Files for gyro/encoder/joystick");
-			writing = true;
+			dataFile = new CSVFileWriter(directory,"robot_data");
+			System.out.println("Successfully created log file at: "+dataFile.getAbsolutePath());
 		} catch (IOException e) {
+			System.out.println("Failed to create log file at: "+dataFile.getAbsolutePath());
 			e.printStackTrace();
-			System.out.println("IO Exception -- Failed to create all files for writing");
 		}
+		
+		dataFile.addLogValue("gyro", new LogValue() {
+			public String getText() {
+				return ""+gyro.getAngle();
+			}
+		});
+		dataFile.addLogValue("left_encoder", new LogValue() {
+			public String getText() {
+				return ""+right1.getSelectedSensorPosition(0);
+			}
+		});
+		dataFile.addLogValue("joy_x", new LogValue() {
+			public String getText() {
+				return ""+joy.getRawAxis(0);
+			}
+		});
+		dataFile.addLogValue("joy_y", new LogValue() {
+			public String getText() {
+				return ""+joy.getRawAxis(1);
+			}
+		});
 		
 		gyro.enableLogging(true);
 		
@@ -89,17 +106,6 @@ public class Robot extends IterativeRobot {
 	 */
 	@Override
 	public void autonomousInit() {
-		if (writing) {
-			try {
-				System.out.println("Closing files");
-				out_joy.close();
-				out_gyro.close();
-				out_encoder.close();
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
-		}
-		
 	}//autonomousInit
 
 	/**
@@ -114,43 +120,21 @@ public class Robot extends IterativeRobot {
 	 */
 	@Override
 	public void teleopPeriodic() {
+		try {
+			dataFile.update(System.currentTimeMillis());
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		
 		double x = joy.getRawAxis(0);
 		double y = joy.getRawAxis(1);
 		
-		double angle = gyro.getAngle();
-		int encoder = right1.getSelectedSensorPosition(0);
-		
 		drive.arcadeDrive(y, x);
-		
-		if (writing) {
-			try {
-				long time = System.currentTimeMillis();
-				out_joy.write(time+"--"+String.format("%f,%f\n", x, y));
-				out_gyro.write(time+"--"+String.format("%f\n", angle));
-				out_encoder.write(time+"--"+String.format("%d\n", encoder));
-				System.out.println("Logging values to files");
-				System.out.printf(time+"--"+String.format("%f,%f\t", x, y));
-				System.out.printf(time+"--"+String.format("%f\t", angle));
-				System.out.println(time+"--"+String.format("%d", encoder));
-				
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
-		}
 		
 	}//teleopPeriodic
 	
 	public void disabledInit() {
-		if (writing) {
-			try {
-				System.out.println("Writing new-line to each file");
-				out_joy.write("\n");
-				out_gyro.write("\n");
-				out_encoder.write("\n");
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
-		}
+		
 	}//disabledInit
 
 	/**
