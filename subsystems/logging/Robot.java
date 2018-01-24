@@ -52,20 +52,20 @@ public class Robot extends IterativeRobot {
 		System.out.println("Running Robot Logging Program");
 		
 		Calendar today = Calendar.getInstance();
-		String directory = "/media/sda/"
-							+today.get(Calendar.MONTH)+"-"
-							+today.get(Calendar.DAY_OF_MONTH)+"-"
-							+today.get(Calendar.YEAR)+"--"
-							+today.get(Calendar.HOUR)+":"
-							+today.get(Calendar.MINUTE)+":"
-							+today.get(Calendar.SECOND);
+		String directory = "/media/sda/";
+//							+today.get(Calendar.MONTH)+"-"
+//							+today.get(Calendar.DAY_OF_MONTH)+"-"
+//							+today.get(Calendar.YEAR)+"--"
+//							+today.get(Calendar.HOUR)+":"
+//							+today.get(Calendar.MINUTE)+":"
+//							+today.get(Calendar.SECOND);
 		
 		try {
 			dataFile = new CSVFileWriter(directory,"robot_data");
 			System.out.println("Successfully created log file at: "+dataFile.getAbsolutePath());
 		} catch (IOException e) {
-			System.out.println("Failed to create log file at: "+dataFile.getAbsolutePath());
 			e.printStackTrace();
+			System.out.println("Failed to create log file at: "+dataFile.getAbsolutePath());
 		}
 		
 		dataFile.addLogValue("gyro", new LogValue() {

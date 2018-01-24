@@ -26,6 +26,8 @@ public class CSVFileWriter {
 		name = filename;
 		
 		file = new File(path+"/"+name);
+		//Create necessary parent directories
+		if (!file.getParentFile().mkdirs()) System.out.println("Failed to create parent directories");
 		writer = new FileWriter(file);
 		lineCount = 0;
 		
@@ -42,7 +44,9 @@ public class CSVFileWriter {
 		for (String title: titles) {
 			if (!first) writer.write(separator);
 			writer.write(title);
+			first = false;
 		}
+		writer.write("\n");
 	}//writeTitles
 	
 	public void update(long time) throws IOException{
@@ -50,10 +54,11 @@ public class CSVFileWriter {
 		if (lineCount == 0)
 			writeTitles();
 		
-		boolean first = true;
+		if (values.size() > 0) {
+			writer.write(""+time);
+		}
 		for (LogValue value : values) {
-			if (!first) writer.write(separator);
-			writer.write(value.getText());
+			writer.write(separator+value.getText());
 		}
 		
 		if (values.size() > 0) {
