@@ -7,9 +7,7 @@ import java.io.ObjectOutputStream;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.usfirst.frc.team5104.robot.LogValue;
-
-public abstract class LogFile {
+public class ObjectLog {
 	
 	String name;
 
@@ -19,9 +17,10 @@ public abstract class LogFile {
 	LogValue log;
 	List<Object> data;
 	
-	public LogFile(String fileName, LogValue log) {
+	public ObjectLog(String fileName, LogValue log) {
 		name = fileName;
 		this.log = log;
+		this.data = new ArrayList<Object>();
 	}//LogFile
 	
 	public void start() {
@@ -32,7 +31,7 @@ public abstract class LogFile {
 	
 	public void collect() {
 		data.add(log.get());
-	}
+	}//collect
 	
 	public void log(File directory) {
 		try {
@@ -41,18 +40,23 @@ public abstract class LogFile {
 			out = new ObjectOutputStream(fout);
 			
 			writeData(out);
+			System.out.println("Finished writing "+name+" data");
 			
 			out.close();
 			fout.close();
 		} catch (IOException e) {
+			System.out.println("Failed to write data out");
 			e.printStackTrace();
 		}
 	}//log
 	
+	public void clear() {
+		data.clear();
+		System.out.println("Cleared accumulated "+name+" data");
+	}//clear
+	
 	protected void writeData(ObjectOutputStream output) throws IOException {
 		output.writeObject(data);
 	}//writeData
-	
-	
 	
 }//LogFile

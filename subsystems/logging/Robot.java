@@ -7,89 +7,65 @@
 
 package org.usfirst.frc.team5104.robot;
 
-import java.io.IOException;
-import java.util.Calendar;
+import org.usfirst.frc.team5104.robot.java.LogValue;
+import org.usfirst.frc.team5104.robot.java.Logger;
 
 import com.ctre.phoenix.motorcontrol.can.WPI_TalonSRX;
-import com.kauailabs.navx.frc.AHRS;
 
-import edu.wpi.first.wpilibj.I2C;
 import edu.wpi.first.wpilibj.IterativeRobot;
 import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.SpeedControllerGroup;
 import edu.wpi.first.wpilibj.drive.DifferentialDrive;
 
-/**
- * The VM is configured to automatically run this class, and to call the
- * functions corresponding to each mode, as described in the IterativeRobot
- * documentation. If you change the name of this class or the package after
- * creating this project, you must also update the build.properties file in the
- * project.
- */
 public class Robot extends IterativeRobot {
 
-	/**
-	 * This function is run when the robot is first started up and should be
-	 * used for any initialization code.
-	 */
+	Logger logger;
 
-	CSVFileWriter dataFile;
-	
 	Joystick joy = new Joystick(0);
-	WPI_TalonSRX left1 = new WPI_TalonSRX(13), left2= new WPI_TalonSRX(14);
-	WPI_TalonSRX right1 = new WPI_TalonSRX(11), right2 = new WPI_TalonSRX(12);
+	WPI_TalonSRX left1 = new WPI_TalonSRX(11), left2= new WPI_TalonSRX(12);
+	WPI_TalonSRX right1 = new WPI_TalonSRX(13), right2 = new WPI_TalonSRX(14);
 	
 	SpeedControllerGroup left = new SpeedControllerGroup(left1, left2);
 	SpeedControllerGroup right = new SpeedControllerGroup(right1, right2);
 	
 	DifferentialDrive drive = new DifferentialDrive(left, right);
 	
-	AHRS gyro = new AHRS(I2C.Port.kMXP);
+//	AHRS gyro = new AHRS(I2C.Port.kMXP);
 	
 	@Override
 	public void robotInit() {
 		
 		System.out.println("Running Robot Logging Program");
 		
-		Calendar today = Calendar.getInstance();
-		String directory = "/media/sda/";
-//							+today.get(Calendar.MONTH)+"-"
-//							+today.get(Calendar.DAY_OF_MONTH)+"-"
-//							+today.get(Calendar.YEAR)+"--"
-//							+today.get(Calendar.HOUR)+":"
-//							+today.get(Calendar.MINUTE)+":"
-//							+today.get(Calendar.SECOND);
+		logger = new Logger("/media/sda/logs");
 		
-		try {
-			dataFile = new CSVFileWriter(directory,"robot_data");
-			System.out.println("Successfully created log file at: "+dataFile.getAbsolutePath());
-		} catch (IOException e) {
-			e.printStackTrace();
-			System.out.println("Failed to create log file at: "+dataFile.getAbsolutePath());
-		}
-		
-		dataFile.addLogValue("gyro", new LogValue() {
-			public String getText() {
-				return ""+gyro.getAngle();
+//		logger.logDouble("gyro", new LogValue() {
+//			public Object get() {
+//				return gyro.getAngle();
+//			}
+//		});
+		logger.logDouble("left_encoder", new LogValue() {
+			public Object get() {
+				return left1.getSelectedSensorPosition(0);
 			}
 		});
-		dataFile.addLogValue("left_encoder", new LogValue() {
-			public String getText() {
-				return ""+right1.getSelectedSensorPosition(0);
+		logger.logDouble("right_encoder", new LogValue() {
+			public Object get() {
+				return right1.getSelectedSensorPosition(0);
 			}
 		});
-		dataFile.addLogValue("joy_x", new LogValue() {
-			public String getText() {
-				return ""+joy.getRawAxis(0);
+		logger.logDouble("joy_x", new LogValue() {
+			public Object get() {
+				return joy.getRawAxis(0);
 			}
 		});
-		dataFile.addLogValue("joy_y", new LogValue() {
-			public String getText() {
-				return ""+joy.getRawAxis(1);
+		logger.logDouble("joy_y", new LogValue() {
+			public Object get() {
+				return joy.getRawAxis(1);
 			}
 		});
 		
-		gyro.enableLogging(true);
+//		gyro.enableLogging(true);
 		
 	}//robotInit
 
@@ -120,11 +96,8 @@ public class Robot extends IterativeRobot {
 	 */
 	@Override
 	public void teleopPeriodic() {
-		try {
-			dataFile.update(System.currentTimeMillis());
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
+		System.out.println("logging");
+		logger.collect();
 		
 		double x = joy.getRawAxis(0);
 		double y = joy.getRawAxis(1);
@@ -133,7 +106,10 @@ public class Robot extends IterativeRobot {
 		
 	}//teleopPeriodic
 	
+	@Override
 	public void disabledInit() {
+		System.out.println("Saving Log Files");
+		logger.log();
 		
 	}//disabledInit
 
