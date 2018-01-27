@@ -68,11 +68,16 @@ public class Logger {
 //		
 //	}//logString
 //	
+	public void logInt(String name, LogValue callback) {
+		ObjectLog file = new IntLog(name, callback);
+		logs.add(file);
+	}//logInt
+	
 	public void logLong(String name, LogValue callback) {
 		ObjectLog file = new LongLog(name, callback);
 		logs.add(file);
-	}//logInt
-//	
+	}//logLong
+
 	public void logDouble(String name, LogValue callback) {
 		ObjectLog file = new DoubleLog(name, callback);
 		logs.add(file);

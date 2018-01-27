@@ -10,6 +10,8 @@ public class Test {
 			public Object get() {
 				return System.currentTimeMillis();
 			}
+			
+			
 		});
 		System.out.println("Added log object");
 		

@@ -14,6 +14,8 @@ public class DoubleLog extends ObjectLog {
 		double[] array = new double[data.size()];
 		for (int i=0; i<data.size(); i++)
 			array[i] = (double) data.get(i);
+		
+		out.writeObject("double");
 		out.writeObject(array);
 	}//writeData
 	

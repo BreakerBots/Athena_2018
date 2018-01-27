@@ -12,6 +12,7 @@ import org.usfirst.frc.team5104.robot.java.Logger;
 
 import com.ctre.phoenix.motorcontrol.can.WPI_TalonSRX;
 
+import edu.wpi.first.wpilibj.ADXRS450_Gyro;
 import edu.wpi.first.wpilibj.IterativeRobot;
 import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.SpeedControllerGroup;
@@ -30,6 +31,7 @@ public class Robot extends IterativeRobot {
 	
 	DifferentialDrive drive = new DifferentialDrive(left, right);
 	
+	ADXRS450_Gyro gyro = new ADXRS450_Gyro();
 //	AHRS gyro = new AHRS(I2C.Port.kMXP);
 	
 	@Override
@@ -44,12 +46,18 @@ public class Robot extends IterativeRobot {
 //				return gyro.getAngle();
 //			}
 //		});
-		logger.logDouble("left_encoder", new LogValue() {
+		
+		logger.logLong("time", new LogValue() {
+			public Object get() {
+				return System.currentTimeMillis();
+			}
+		});
+		logger.logInt("left_encoder", new LogValue() {
 			public Object get() {
 				return left1.getSelectedSensorPosition(0);
 			}
 		});
-		logger.logDouble("right_encoder", new LogValue() {
+		logger.logInt("right_encoder", new LogValue() {
 			public Object get() {
 				return right1.getSelectedSensorPosition(0);
 			}
@@ -62,6 +70,11 @@ public class Robot extends IterativeRobot {
 		logger.logDouble("joy_y", new LogValue() {
 			public Object get() {
 				return joy.getRawAxis(1);
+			}
+		});
+		logger.logDouble("gyro", new LogValue() {
+			public Object get() {
+				return gyro.getAngle();
 			}
 		});
 		
@@ -102,7 +115,7 @@ public class Robot extends IterativeRobot {
 		double x = joy.getRawAxis(0);
 		double y = joy.getRawAxis(1);
 		
-		drive.arcadeDrive(y, x);
+		drive.arcadeDrive(y, -x);
 		
 	}//teleopPeriodic
 	

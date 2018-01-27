@@ -56,6 +56,7 @@ public class ObjectLog {
 	}//clear
 	
 	protected void writeData(ObjectOutputStream output) throws IOException {
+		output.writeObject("object");
 		output.writeObject(data);
 	}//writeData
 	
