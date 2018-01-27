@@ -8,7 +8,7 @@ import edu.wpi.first.wpilibj.ADXRS450_Gyro;
 import edu.wpi.first.wpilibj.IterativeRobot;
 import edu.wpi.first.wpilibj.Joystick;
 
-public class AresSimple extends IterativeRobot {
+public class Robot extends IterativeRobot {
 	TalonSRX talon1 = new TalonSRX(11);
 	TalonSRX talon2 = new TalonSRX(12);
 	TalonSRX talon3 = new TalonSRX(13);
