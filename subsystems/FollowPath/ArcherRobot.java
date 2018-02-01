@@ -1,5 +1,3 @@
-//encoders for Archer - commented TPI for Ares
-
 package org.usfirst.frc.team5104.robot;
 
 import com.ctre.phoenix.motorcontrol.ControlMode;
@@ -15,25 +13,28 @@ public class AresSimple extends IterativeRobot {
 	TalonSRX talon4 = new TalonSRX(14);
 
 	ADXRS450_Gyro gyro = new ADXRS450_Gyro();
-  
+	
 	double ticks = 20000; // number of ticks
 	double position;
 
-	double TPI = 231.21387283; //183; // ticks per inch
+	double TPI = 231.21387283; //183; // Archer, Ares ticks per inch
 	double startEncoderValue; // compensation
+	double startGyroValue;
 	
 	double currentAng;
 	double targetAng;
 	
 	double maxSpeed = 0.5; // percent of maximum speed
 	double pos; // current position of robot
-
+	
 	Joystick controller = new Joystick(0);
 	double axisX;
 	double axisY;
 
 	int stage; // stage of movement
 	boolean start=true; // start of stage
+	
+	SigmSpeed s;
 
 	// ---------------------------------------------------------
 
@@ -55,22 +56,26 @@ public class AresSimple extends IterativeRobot {
 	public void autonomousPeriodic() {
 		// go through each stage of motion
 		// move(24); // outside of the loop
-		turn(-90);
-		/*switch (stage) {
+		switch (stage) {
 		case 0:
-			move(120);
+			turn(90);
 			break;
 		case 1:
+			System.out.println("*****STAGE 1*****");
 			delay(800);
 			break;
+		//case 2: 
+			//System.out.println("*****STAGE 2*****");
+			//move(12);
+			//break;
 		case 2:
-			move(-100);
+			System.out.println("*****STAGE 3*****");
+			turn(-90);
 			break;
 		case 3:
 			end();
 			break;
 		}
-*/
 	}
 
 	// ---------------------------------------------------------
@@ -103,23 +108,23 @@ public class AresSimple extends IterativeRobot {
 	
 	public void move(double dist) {
 		dist = dist * TPI;
-		int kforward = 1; // change to -1 if the robot moves in reverse
-		SigmSpeed s = new SigmSpeed(dist/4, dist/4, dist);
+		int kforward = (int) (dist/(Math.abs(dist)));; // changes to move forward or backward
 
 		if (start) {
 			startEncoderValue = talon1.getSelectedSensorPosition(0);
+		s = new SigmSpeed(dist/4, dist/4, dist);
+			// straightAngle = gyro.getAngle();
+			// comp1 = talon3.getSelectedSensorPosition(0); //resetting position
 			// remember to fix roll over
+			// accDis = dist/4; //distance to accelerate and decelerate
 			start = false;
 		}
-		if (dist < 0) {
-			kforward = -1;
-			dist = Math.abs(dist);
-		}
-
-		position = Math.abs(talon1.getSelectedSensorPosition(0) - startEncoderValue);
-		if (Math.abs(position) < dist) {
-			// moving forward with acc/dec
+		if(dist > 0)
 			position = Math.abs(talon1.getSelectedSensorPosition(0) - startEncoderValue);
+		else
+			position = Math.abs(talon1.getSelectedSensorPosition(0) + startEncoderValue);
+		if (Math.abs(position) < Math.abs(dist)) {
+			// moving with acc/dec
 			System.out.println("position (ticks): " + position);
 			talon1.set(ControlMode.PercentOutput, -1 * kforward * s.getSpeed(position));
 			talon2.set(ControlMode.PercentOutput, -1 * kforward * s.getSpeed(position));
@@ -137,48 +142,48 @@ public class AresSimple extends IterativeRobot {
 	
 	//turning
 	public void turn(double deg) {
-		if(start) {
-			startEncoderValue = gyro.getAngle(); //resetting angle
-			maxSpeed = .5; //percent of maximum speed 
-			currentAng = gyro.getAngle(); //current angle of robot
+		int kforward = (int) (deg/(Math.abs(deg))); // changes to move forward or backward
+		
+		maxSpeed = 0.5;
+		
+		if (start) {
+			s = new SigmSpeed(deg/4, deg/4, deg);
+			startGyroValue  = gyro.getAngle();
 			start = false;
 		}
-		currentAng = gyro.getAngle();
-		if(deg > 0) {
-			System.out.println("Pos ang; gyro = " + currentAng);
-			targetAng = -deg + startEncoderValue;
-			if(currentAng > targetAng) {
-				talon1.set(ControlMode.PercentOutput, maxSpeed);
-				talon2.set(ControlMode.PercentOutput, maxSpeed);
-				talon3.set(ControlMode.PercentOutput, maxSpeed);
-				talon4.set(ControlMode.PercentOutput, maxSpeed);
-			} else {
-				//stop and next stage
-				talon1.set(ControlMode.PercentOutput, 0);
-				talon2.set(ControlMode.PercentOutput, 0);
-				talon3.set(ControlMode.PercentOutput, 0);
-				talon4.set(ControlMode.PercentOutput, 0);
-				stage++;
-			}
-		} else { 
-			System.out.println("Neg ang; gyro = " + currentAng);
-			targetAng = deg - startEncoderValue;
-			if(currentAng < Math.abs(targetAng)) {
-				talon1.set(ControlMode.PercentOutput, -maxSpeed);
-				talon2.set(ControlMode.PercentOutput, -maxSpeed);
-				talon3.set(ControlMode.PercentOutput, -maxSpeed);
-				talon4.set(ControlMode.PercentOutput, -maxSpeed);
-			} else {
-				//stop and next stage
-				talon1.set(ControlMode.PercentOutput, 0);
-				talon2.set(ControlMode.PercentOutput, 0);
-				talon3.set(ControlMode.PercentOutput, 0);
-				talon4.set(ControlMode.PercentOutput, 0);
-				stage++;
-			}
+		
+		currentAng = Math.abs(gyro.getAngle() - startGyroValue);
+		
+		if (Math.abs(currentAng) < Math.abs(deg)) {
+			// turning with acc/dec
+			double speed = kforward * clamp(maxSpeed * s.getSpeed(currentAng), .4, 1);
+			System.out.println("angle: " + currentAng + "speed: " + speed);
+			talon1.set(ControlMode.PercentOutput, speed);
+			talon2.set(ControlMode.PercentOutput, speed);
+			talon3.set(ControlMode.PercentOutput, speed);
+			talon4.set(ControlMode.PercentOutput, speed);
+		} else {
+			talon1.set(ControlMode.PercentOutput, 0);
+			talon2.set(ControlMode.PercentOutput, 0);
+			talon3.set(ControlMode.PercentOutput, 0);
+			talon4.set(ControlMode.PercentOutput, 0);
+			stage++;
+			start = true;
 		}
 	}
-  
+		
+	// -----------------------------------------------------------
+
+	private double clamp(double num, double min, double max) {
+		// ensures speed is within min and max
+		if (num < min) {
+			return min;
+		} else if (num > max) {
+			return max;
+		} else {
+			return num;
+		}
+	} 
 	// -------------------------------------------------------------
 
 	private void delay(int ms) {
@@ -188,6 +193,7 @@ public class AresSimple extends IterativeRobot {
 		while (nowTime - inTime < ms)
 			nowTime = (int) System.currentTimeMillis();
 		stage++;
+		// System.out.println(stage);
 	}
 
 	private void end()  {
