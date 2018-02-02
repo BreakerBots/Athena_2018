@@ -1,18 +1,21 @@
-package com.frc5104.main;
+package com.frc5104.main.subsystems;
 
 import com.ctre.phoenix.motorcontrol.ControlMode;
 import com.ctre.phoenix.motorcontrol.can.TalonSRX;
-import com.frc5104.main.subsystems.ButtonS;
 
 import edu.wpi.first.wpilibj.DoubleSolenoid;
 
 public class Squeezy {
 
-	static final double kCloseEffort = 0.7;
-	static final double kOpenEffort= -0.7;
+	public static final int MAIN_ID = 21;
+	public static final int LEFT_ID = 22;
+	public static final int RIGHT_ID = 23;
 	
-	static final double kIntakeEffort = 0.5;
-	static final double kEjectEffort = 0.5;
+	static final double kCloseEffort = 0.1;
+	static final double kOpenEffort= -0.1;
+	
+	static final double kIntakeEffort = 0.1;
+	static final double kEjectEffort = 0.1;
 	
 	enum SqueezyState {
 		EMPTY, INTAKE, CLOSING, HOLDING, LOADED, EJECT
@@ -34,18 +37,18 @@ public class Squeezy {
 			buttonCancel = new ButtonS(2);
 	
 	//Talon IDs start with 2_
-	TalonSRX leftSpin,
-			rightSpin,
-			squeezer;
+	TalonSRX squeezer,
+			leftSpin,
+			rightSpin;
 	
 	DoubleSolenoid lifter;
 	
 	private Squeezy () {
-		leftSpin  = new TalonSRX(21);
-		rightSpin = new TalonSRX(22);
-		squeezer  = new TalonSRX(23);
+		squeezer  = new TalonSRX(MAIN_ID);
+		leftSpin  = new TalonSRX(LEFT_ID);
+		rightSpin = new TalonSRX(RIGHT_ID);
 		
-		lifter = new DoubleSolenoid(0,1);
+		lifter = new DoubleSolenoid(2,3);
 		lifter.set(DoubleSolenoid.Value.kForward);
 	}//Squeezy
 	
@@ -94,6 +97,7 @@ public class Squeezy {
 	}//poll
 	
 	public void updateState() {
+		System.out.printf("Squeezy State: %10s\t",state.toString());
 		switch (state) {
 		case EMPTY:
 			raise();
@@ -142,32 +146,39 @@ public class Squeezy {
 	private void spinIn() {
 		leftSpin.set(ControlMode.PercentOutput, kIntakeEffort);
 		rightSpin.set(ControlMode.PercentOutput, kIntakeEffort);
+		System.out.printf("Spin Effort: %1.1f\t",kIntakeEffort);
 	}//spinIn
 	
 	private void spinOut() {
 		leftSpin.set(ControlMode.PercentOutput, kEjectEffort);
 		rightSpin.set(ControlMode.PercentOutput, kEjectEffort);
+		System.out.printf("Spin Effort: %1.1f\t",kEjectEffort);
 	}//spinOut
 	
 	private void spinStop() {
 		leftSpin.set(ControlMode.PercentOutput, 0);
 		rightSpin.set(ControlMode.PercentOutput, 0);
+		System.out.printf("Spin Effort: %1.1f\t", 0.0);
 	}//setSpinnerState
 	
 	private void open() {
 		squeezer.set(ControlMode.PercentOutput, kOpenEffort);
+		System.out.printf("Squeezer Effort: %1.1f\t",kOpenEffort);
 	}//open
 	
 	private void close() {
 		squeezer.set(ControlMode.PercentOutput, kCloseEffort);
+		System.out.printf("Squeezer Effort: %1.1f\t",kCloseEffort);
 	}//close
 	
 	private void raise() {
 		lifter.set(DoubleSolenoid.Value.kForward);
+		System.out.printf("Lifter Value: %s\t", DoubleSolenoid.Value.kForward.toString());
 	}//raise
 	
 	private void lower() {
 		lifter.set(DoubleSolenoid.Value.kReverse);
+		System.out.printf("Lifter Value: %s\t", DoubleSolenoid.Value.kReverse.toString());
 	}//lower
 	
 }//Squeezy

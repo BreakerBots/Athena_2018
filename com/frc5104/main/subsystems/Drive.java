@@ -2,6 +2,7 @@ package com.frc5104.main.subsystems;
 
 import com.ctre.phoenix.motorcontrol.can.WPI_TalonSRX;
 
+import edu.wpi.first.wpilibj.DoubleSolenoid;
 import edu.wpi.first.wpilibj.SpeedControllerGroup;
 import edu.wpi.first.wpilibj.drive.DifferentialDrive;
 
@@ -9,15 +10,17 @@ public class Drive {
 
 	static Drive m_instance = new Drive();
 	
-	WPI_TalonSRX talonLeftMain = new WPI_TalonSRX(13),
-			 talonRightMain = new WPI_TalonSRX(12),
-			 talonLeftFollower = new WPI_TalonSRX(11),
+	WPI_TalonSRX talonLeftMain = new WPI_TalonSRX(11),
+			 talonRightMain = new WPI_TalonSRX(13),
+			 talonLeftFollower = new WPI_TalonSRX(12),
 			 talonRightFollower = new WPI_TalonSRX(14);
 	
 	SpeedControllerGroup leftDrive = new SpeedControllerGroup(talonLeftMain, talonLeftFollower),
 						rightDrive = new SpeedControllerGroup(talonRightMain, talonRightFollower);
 	
 	DifferentialDrive drive = new DifferentialDrive(leftDrive, rightDrive);
+	
+	DoubleSolenoid gearShifters = new DoubleSolenoid(0,1);
 
 	private Drive() {}
 	
@@ -36,5 +39,24 @@ public class Drive {
 	public double getEncoderRight() {
 		return talonRightMain.getSelectedSensorPosition(0);
 	}//getEncoderRight
+	
+	public void shiftHigh() {
+		gearShifters.set(DoubleSolenoid.Value.kForward);
+	}//shiftHigh
+	
+	public void shiftLow() {
+		gearShifters.set(DoubleSolenoid.Value.kReverse);
+	}//setLow
+	
+	public void shiftHigh(boolean yes) {
+		if (yes)
+			shiftHigh();
+		else
+			shiftLow();
+	}//shiftHigh
+	
+	public void postValuesToNetworkTable() {
+
+	}//postValuesToNetworkTable
 	
 }//Drive
