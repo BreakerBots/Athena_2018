@@ -13,11 +13,18 @@ import com.ctre.phoenix.motorcontrol.can.TalonSRX;
 
 import Libraries.ButtonS;
 import Libraries.UltraS;
+import edu.wpi.first.wpilibj.ADXRS450_Gyro;
 import edu.wpi.first.wpilibj.IterativeRobot;
 import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import henrylogging.lib.LogValue;
+import henrylogging.lib.Logger;
 
 public class RecorderPlayerBack extends IterativeRobot {
+	
+	Logger logger = new Logger("/media/sda/paths");
+	ADXRS450_Gyro gyro = new ADXRS450_Gyro();
+	
 	//Declaring Talons and Setting Device Ids
 	TalonSRX talon1 = new TalonSRX(11);
 	TalonSRX talon2 = new TalonSRX(12);
@@ -66,6 +73,48 @@ public class RecorderPlayerBack extends IterativeRobot {
 	public void robotInit() {
 		//Initiate custom sanic object
 		sanic.RInit();	
+		
+		
+		logger.logLong("time", new LogValue() {
+			public Object get() {
+				return System.currentTimeMillis();
+			}
+		});
+		logger.logDouble("gyro", new LogValue() {
+			public Object get() {
+				return gyro.getAngle();
+			}
+		});
+		logger.logInt("left_encoder", new LogValue() {
+			public Object get() {
+				return talon1.getSelectedSensorPosition(0);
+			}
+		});
+		logger.logInt("right_encoder", new LogValue() {
+			public Object get() {
+				return talon3.getSelectedSensorPosition(0);
+			}
+		});
+		logger.logDouble("joy_x", new LogValue() {
+			public Object get() {
+				return controller.getRawAxis(0);
+			}
+		});
+		logger.logDouble("joy_y", new LogValue() {
+			public Object get() {
+				return controller.getRawAxis(1);
+			}
+		});
+		logger.logInt("state", new LogValue() {
+			public Object get() {
+				return state;
+			}
+		});
+		logger.logInt("state", new LogValue() {
+			public Object get() {
+				return index;
+			}
+		});
 	}
 	
 	public void teleopInit() {
@@ -73,6 +122,8 @@ public class RecorderPlayerBack extends IterativeRobot {
 	}
 		
 	public void teleopPeriodic() {
+		logger.collect();
+		
 		//Update all buttons and ultrasanic 
 		btnA.update(); btnB.update(); btnX.update();
 		sanic.Update();
@@ -217,5 +268,9 @@ public class RecorderPlayerBack extends IterativeRobot {
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
+	}
+	
+	public void disabledInit() {
+		logger.log();
 	}
 }
