@@ -3,6 +3,8 @@ package com.frc5104.main.subsystems;
 import com.ctre.phoenix.motorcontrol.ControlMode;
 import com.ctre.phoenix.motorcontrol.can.TalonSRX;
 
+import edu.wpi.first.networktables.NetworkTable;
+import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.wpilibj.DoubleSolenoid;
 
 public class Squeezy {
@@ -30,25 +32,26 @@ public class Squeezy {
 		return m_instance;
 	}//getInstance
 	
-	SqueezyState state = SqueezyState.HOLDING;
+	NetworkTable table = null;
+	
+	//An unreasonable starting value
+	private SqueezyState prevState = SqueezyState.EJECT;
+	SqueezyState state = SqueezyState.EMPTY;
 	
 	ButtonS buttonIntake = new ButtonS(3),
 			buttonEject = new ButtonS(1),
 			buttonCancel = new ButtonS(2);
 	
 	//Talon IDs start with 2_
-	TalonSRX squeezer,
-			leftSpin,
-			rightSpin;
+	TalonSRX squeezer  = new TalonSRX(MAIN_ID),
+			leftSpin  = new TalonSRX(LEFT_ID),
+			rightSpin = new TalonSRX(RIGHT_ID);
 	
-	DoubleSolenoid lifter;
+	DoubleSolenoid lifter = new DoubleSolenoid(2,3);
 	
+	SqueezySensors sensors = SqueezySensors.getInstance();
+
 	private Squeezy () {
-		squeezer  = new TalonSRX(MAIN_ID);
-		leftSpin  = new TalonSRX(LEFT_ID);
-		rightSpin = new TalonSRX(RIGHT_ID);
-		
-		lifter = new DoubleSolenoid(2,3);
 		lifter.set(DoubleSolenoid.Value.kForward);
 	}//Squeezy
 	
@@ -64,16 +67,20 @@ public class Squeezy {
 			break;
 		case INTAKE:
 			//UltraSonic: Move directly to holding when box is detected by motor stalls
-			if (buttonIntake.Pressed)
-				state = SqueezyState.CLOSING;
 			if (buttonCancel.Pressed)
 				state = SqueezyState.EMPTY;
+			if (sensors.detectBox())
+				state = SqueezyState.CLOSING;
+			if (buttonIntake.Pressed)
+				state = SqueezyState.CLOSING;
 			break;
 		case CLOSING: //Should not exist with Ultrasonic
-			if (detectClosedOnBox())
-				state = SqueezyState.HOLDING;
 			if (buttonCancel.Pressed)
 				state = SqueezyState.INTAKE;
+			if (!sensors.detectBox())
+				state = SqueezyState.INTAKE;
+			if (detectClosedOnBox())
+				state = SqueezyState.HOLDING;
 			break;
 		case HOLDING:
 			if (buttonEject.Pressed)
@@ -93,6 +100,11 @@ public class Squeezy {
 			state = SqueezyState.EMPTY;
 			break;
 		}//switch
+		
+		if (state != prevState) {
+			updateTable();
+			prevState = state;
+		}
 		
 	}//poll
 	
@@ -181,4 +193,42 @@ public class Squeezy {
 		System.out.printf("Lifter Value: %s\t", DoubleSolenoid.Value.kReverse.toString());
 	}//lower
 	
+	public void initTable(NetworkTable inst) {
+		if (inst == null) {
+			inst = NetworkTableInstance.getDefault().getTable("squeezy");
+		}
+		table = inst;
+	}
+	
+	public void updateTable() {
+		if (table != null) {
+			setString("prevState", prevState.toString());
+			setString("state", state.toString());
+			
+			setDouble("squeezer_voltage", squeezer.getMotorOutputVoltage());
+			setDouble("leftspin_voltage", leftSpin.getMotorOutputVoltage());
+			setDouble("rightspin_voltage", rightSpin.getMotorOutputVoltage());
+			
+			setDouble("squeezer_current", squeezer.getOutputCurrent());
+			setDouble("leftspin_current", leftSpin.getOutputCurrent());
+			setDouble("rightspin_current", rightSpin.getOutputCurrent());
+			
+			setString("lifter", lifter.get().toString());
+			
+			setBoolean("box_detected", detectBoxGone());
+		}
+	}//updateTable
+	
+	private void setString(String key, String value) {
+		table.getEntry(key).setString(value);
+	}//setString
+
+	private void setDouble(String key, double value) {
+		table.getEntry(key).setDouble(value);
+	}//setString
+
+	private void setBoolean(String key, boolean value) {
+		table.getEntry(key).setBoolean(value);
+	}//setString
+
 }//Squeezy

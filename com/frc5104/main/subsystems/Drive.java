@@ -18,9 +18,7 @@ public class Drive {
 	SpeedControllerGroup leftDrive = new SpeedControllerGroup(talonLeftMain, talonLeftFollower),
 						rightDrive = new SpeedControllerGroup(talonRightMain, talonRightFollower);
 	
-	DifferentialDrive drive = new DifferentialDrive(leftDrive, rightDrive);
-	
-	DoubleSolenoid gearShifters = new DoubleSolenoid(0,1);
+	DifferentialDrive drive = new DifferentialDrive(leftDrive, rightDrive);	
 
 	private Drive() {}
 	
@@ -39,21 +37,6 @@ public class Drive {
 	public double getEncoderRight() {
 		return talonRightMain.getSelectedSensorPosition(0);
 	}//getEncoderRight
-	
-	public void shiftHigh() {
-		gearShifters.set(DoubleSolenoid.Value.kForward);
-	}//shiftHigh
-	
-	public void shiftLow() {
-		gearShifters.set(DoubleSolenoid.Value.kReverse);
-	}//setLow
-	
-	public void shiftHigh(boolean yes) {
-		if (yes)
-			shiftHigh();
-		else
-			shiftLow();
-	}//shiftHigh
 	
 	public void postValuesToNetworkTable() {
 

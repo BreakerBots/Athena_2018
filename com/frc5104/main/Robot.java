@@ -1,12 +1,11 @@
 package com.frc5104.main;
 
 import com.frc5104.main.subsystems.Drive;
-import com.frc5104.main.subsystems.Elevator;
+import com.frc5104.main.subsystems.Shifters;
 import com.frc5104.main.subsystems.Squeezy;
 
 import edu.wpi.first.wpilibj.IterativeRobot;
 import edu.wpi.first.wpilibj.Joystick;
-import edu.wpi.first.wpilibj.networktables.NetworkTable;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
 public class Robot extends IterativeRobot {
@@ -15,11 +14,15 @@ public class Robot extends IterativeRobot {
 	
 	//Drive Squeezy Elevator Climber
 	Drive drive = Drive.getInstance();
+	Shifters shifters = Shifters.getInstance();
+	
 //	Squeezy squeezy = null;
 	Squeezy squeezy = Squeezy.getInstance();
-	Elevator elevator = Elevator.getInstance();
+	
+//	Elevator elevator = Elevator.getInstance();
 	
 	public void robotInit() {
+		squeezy.initTable(null);
 	}//robotInit
 	
 	public void autonomousInit() {
@@ -32,7 +35,7 @@ public class Robot extends IterativeRobot {
 	}//autonomousPeriodic
 	
 	public void teleopInit() {
-		drive.shiftLow();
+		shifters.shiftLow();
 	}//teleopInit
 	
 	public void teleopPeriodic() {
@@ -43,18 +46,19 @@ public class Robot extends IterativeRobot {
 		
 		drive.arcadeDrive(y,-x);
 		
+//		elevator.poll();
+//		elevator.update();
+		
+		if (Math.abs(drive.getEncoderLeft()+drive.getEncoderRight())/2 > 1300)
+			shifters.shiftHigh();
+		else if (Math.abs(drive.getEncoderLeft()+drive.getEncoderRight())/2 < 800)
+			shifters.shiftLow();
+
+		
 		if (squeezy != null) {
 			squeezy.poll();
 			squeezy.updateState();
 		}
-		
-		elevator.poll();
-		elevator.update();
-		
-		if (Math.abs(drive.getEncoderLeft()+drive.getEncoderRight())/2 > 1300)
-			drive.shiftHigh();
-		else if (Math.abs(drive.getEncoderLeft()+drive.getEncoderRight())/2 < 800)
-			drive.shiftLow();
 		
 	}//teleopPeriodic
 	
