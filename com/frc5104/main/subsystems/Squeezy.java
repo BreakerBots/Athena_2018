@@ -71,31 +71,29 @@ public class Squeezy {
 				state = SqueezyState.EMPTY;
 			if (sensors.detectBox())
 				state = SqueezyState.CLOSING;
-			if (buttonIntake.Pressed)
-				state = SqueezyState.CLOSING;
 			break;
 		case CLOSING: //Should not exist with Ultrasonic
 			if (buttonCancel.Pressed)
 				state = SqueezyState.INTAKE;
 			if (!sensors.detectBox())
 				state = SqueezyState.INTAKE;
-			if (detectClosedOnBox())
+			if (sensors.detectBoxHeld())
 				state = SqueezyState.HOLDING;
 			break;
 		case HOLDING:
 			if (buttonEject.Pressed)
 				state = SqueezyState.LOADED;
-			if (detectBoxGone())
+			if (sensors.detectBoxGone())
 				state = SqueezyState.EMPTY;
 			break;
 		case LOADED:
 			if (buttonEject.Pressed)
 				state = SqueezyState.EJECT;
-			if(detectBoxGone())
+			if(sensors.detectBoxGone())
 				state = SqueezyState.EMPTY;
 			break;
 		case EJECT:
-			if (detectBoxGone())
+			if (sensors.detectBoxGone())
 				state = SqueezyState.EMPTY;
 			state = SqueezyState.EMPTY;
 			break;
@@ -106,10 +104,12 @@ public class Squeezy {
 			prevState = state;
 		}
 		
+		postUltrasonicData();
+		
 	}//poll
 	
 	public void updateState() {
-		System.out.printf("Squeezy State: %10s\t",state.toString());
+//		System.out.printf("Squeezy State: %10s\t",state.toString());
 		switch (state) {
 		case EMPTY:
 			raise();
@@ -144,53 +144,43 @@ public class Squeezy {
 		}
 	}//updateState
 	
-	//------------ Detections -----------//
-
-	public boolean detectClosedOnBox() {
-		return true;
-	}//detectClosedOnBox
-	
-	public boolean detectBoxGone() {
-		return false;
-	}//detectBoxGone
-	
 	//--------- Squeezy Actions ---------//
 	private void spinIn() {
 		leftSpin.set(ControlMode.PercentOutput, kIntakeEffort);
 		rightSpin.set(ControlMode.PercentOutput, kIntakeEffort);
-		System.out.printf("Spin Effort: %1.1f\t",kIntakeEffort);
+//		System.out.printf("Spin Effort: %1.1f\t",kIntakeEffort);
 	}//spinIn
 	
 	private void spinOut() {
 		leftSpin.set(ControlMode.PercentOutput, kEjectEffort);
 		rightSpin.set(ControlMode.PercentOutput, kEjectEffort);
-		System.out.printf("Spin Effort: %1.1f\t",kEjectEffort);
+//		System.out.printf("Spin Effort: %1.1f\t",kEjectEffort);
 	}//spinOut
 	
 	private void spinStop() {
 		leftSpin.set(ControlMode.PercentOutput, 0);
 		rightSpin.set(ControlMode.PercentOutput, 0);
-		System.out.printf("Spin Effort: %1.1f\t", 0.0);
+//		System.out.printf("Spin Effort: %1.1f\t", 0.0);
 	}//setSpinnerState
 	
 	private void open() {
 		squeezer.set(ControlMode.PercentOutput, kOpenEffort);
-		System.out.printf("Squeezer Effort: %1.1f\t",kOpenEffort);
+//		System.out.printf("Squeezer Effort: %1.1f\t",kOpenEffort);
 	}//open
 	
 	private void close() {
 		squeezer.set(ControlMode.PercentOutput, kCloseEffort);
-		System.out.printf("Squeezer Effort: %1.1f\t",kCloseEffort);
+//		System.out.printf("Squeezer Effort: %1.1f\t",kCloseEffort);
 	}//close
 	
 	private void raise() {
 		lifter.set(DoubleSolenoid.Value.kForward);
-		System.out.printf("Lifter Value: %s\t", DoubleSolenoid.Value.kForward.toString());
+//		System.out.printf("Lifter Value: %s\t", DoubleSolenoid.Value.kForward.toString());
 	}//raise
 	
 	private void lower() {
 		lifter.set(DoubleSolenoid.Value.kReverse);
-		System.out.printf("Lifter Value: %s\t", DoubleSolenoid.Value.kReverse.toString());
+//		System.out.printf("Lifter Value: %s\t", DoubleSolenoid.Value.kReverse.toString());
 	}//lower
 	
 	public void initTable(NetworkTable inst) {
@@ -198,7 +188,22 @@ public class Squeezy {
 			inst = NetworkTableInstance.getDefault().getTable("squeezy");
 		}
 		table = inst;
-	}
+	}//initTable
+	
+	public void postUltrasonicData() {
+		if (table != null) {
+			setBoolean("detect_box", sensors.detectBox());
+			setBoolean("detect_box_gone", sensors.detectBoxGone());
+			setBoolean("detect_box_held", sensors.detectBoxHeld());
+			
+			double[] ultra_readings = sensors.getDistances();
+			Number[] data = new Number[3];
+			data[0] = ultra_readings[0];
+			data[1] = ultra_readings[1];
+			data[2] = ultra_readings[2];
+			table.getEntry("ultrasonic [C,L,R]").setNumberArray(data);
+		}
+	}//postUltrasonicData
 	
 	public void updateTable() {
 		if (table != null) {
@@ -214,9 +219,8 @@ public class Squeezy {
 			setDouble("rightspin_current", rightSpin.getOutputCurrent());
 			
 			setString("lifter", lifter.get().toString());
-			
-			setBoolean("box_detected", detectBoxGone());
 		}
+		
 	}//updateTable
 	
 	private void setString(String key, String value) {

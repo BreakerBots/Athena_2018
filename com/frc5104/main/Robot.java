@@ -3,6 +3,7 @@ package com.frc5104.main;
 import com.frc5104.main.subsystems.Drive;
 import com.frc5104.main.subsystems.Shifters;
 import com.frc5104.main.subsystems.Squeezy;
+import com.frc5104.main.subsystems.SqueezySensors;
 
 import edu.wpi.first.wpilibj.IterativeRobot;
 import edu.wpi.first.wpilibj.Joystick;
@@ -18,11 +19,13 @@ public class Robot extends IterativeRobot {
 	
 //	Squeezy squeezy = null;
 	Squeezy squeezy = Squeezy.getInstance();
+	SqueezySensors squeezySensors = SqueezySensors.getInstance();
 	
 //	Elevator elevator = Elevator.getInstance();
 	
 	public void robotInit() {
 		squeezy.initTable(null);
+		
 	}//robotInit
 	
 	public void autonomousInit() {
@@ -39,7 +42,8 @@ public class Robot extends IterativeRobot {
 	}//teleopInit
 	
 	public void teleopPeriodic() {
-		System.out.println("Encoder Position: "+drive.getEncoderRight());
+		squeezySensors.updateSensors();
+//		System.out.println("Encoder Position: "+drive.getEncoderRight());
 		
 		double x = joy.getRawAxis(0),
 				y = joy.getRawAxis(1);
@@ -61,5 +65,8 @@ public class Robot extends IterativeRobot {
 		}
 		
 	}//teleopPeriodic
+	
+	public void robotPeriodic() {
+	}
 	
 }//Robot
