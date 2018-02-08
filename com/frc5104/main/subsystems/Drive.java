@@ -8,8 +8,15 @@ import edu.wpi.first.wpilibj.drive.DifferentialDrive;
 
 public class Drive {
 
-	static Drive m_instance = new Drive();
+	static Drive m_instance = null;
 	
+	public static Drive getInstance() {
+		if (m_instance == null) {
+			m_instance = new Drive();
+		}
+		return m_instance;
+	}//getInstance
+
 	WPI_TalonSRX talonLeftMain = new WPI_TalonSRX(11),
 			 talonRightMain = new WPI_TalonSRX(13),
 			 talonLeftFollower = new WPI_TalonSRX(12),
@@ -26,9 +33,6 @@ public class Drive {
 		drive.arcadeDrive(moveVal, rotateVal);
 	}//arcadeDrive
 	
-	public static Drive getInstance() {
-		return m_instance;
-	}//getInstance
 	
 	public double getEncoderLeft() {
 		return talonLeftMain.getSelectedSensorPosition(0);

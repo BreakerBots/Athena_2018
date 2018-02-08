@@ -14,8 +14,8 @@ public class Robot extends IterativeRobot {
 	Joystick joy = new Joystick(0);
 	
 	//Drive Squeezy Elevator Climber
-	Drive drive = Drive.getInstance();
-	Shifters shifters = Shifters.getInstance();
+//	Drive drive = Drive.getInstance();
+//	Shifters shifters = Shifters.getInstance();
 	
 //	Squeezy squeezy = null;
 	Squeezy squeezy = Squeezy.getInstance();
@@ -38,7 +38,7 @@ public class Robot extends IterativeRobot {
 	}//autonomousPeriodic
 	
 	public void teleopInit() {
-		shifters.shiftLow();
+//		shifters.shiftLow();
 	}//teleopInit
 	
 	public void teleopPeriodic() {
@@ -48,20 +48,24 @@ public class Robot extends IterativeRobot {
 		double x = joy.getRawAxis(0),
 				y = joy.getRawAxis(1);
 		
-		drive.arcadeDrive(y,-x);
+//		drive.arcadeDrive(y,-x);
 		
 //		elevator.poll();
 //		elevator.update();
 		
-		if (Math.abs(drive.getEncoderLeft()+drive.getEncoderRight())/2 > 1300)
-			shifters.shiftHigh();
-		else if (Math.abs(drive.getEncoderLeft()+drive.getEncoderRight())/2 < 800)
-			shifters.shiftLow();
+//		if (Math.abs(drive.getEncoderLeft()+drive.getEncoderRight())/2 > 1300)
+//			shifters.shiftHigh();
+//		else if (Math.abs(drive.getEncoderLeft()+drive.getEncoderRight())/2 < 800)
+//			shifters.shiftLow();
 
 		
 		if (squeezy != null) {
 			squeezy.poll();
 			squeezy.updateState();
+		}
+		
+		if (squeezySensors != null) {
+			squeezySensors.updateSensors();
 		}
 		
 	}//teleopPeriodic

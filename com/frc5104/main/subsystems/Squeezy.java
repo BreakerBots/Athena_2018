@@ -14,11 +14,11 @@ public class Squeezy {
 	public static final int LEFT_ID = 0;
 	public static final int RIGHT_ID = 1;
 	
-	static final double kCloseEffort = 0.1;
-	static final double kOpenEffort= -0.1;
+	static final double kCloseEffort = 0.3;
+	static final double kOpenEffort  = -0.2;
 	
-	static final double kIntakeEffort = 0.1;
-	static final double kEjectEffort = 0.1;
+	static final double kIntakeEffort = -0.1;
+	static final double kEjectEffort = 1;
 	
 	enum SqueezyState {
 		EMPTY, INTAKE, CLOSING, HOLDING, LOADED, EJECT
@@ -48,12 +48,12 @@ public class Squeezy {
 	Talon leftSpin  = new Talon(LEFT_ID);
 	Talon rightSpin = new Talon(RIGHT_ID);
 	
-	DoubleSolenoid lifter = new DoubleSolenoid(2,3);
+//	DoubleSolenoid lifter = new DoubleSolenoid(2,3);
 	
 	SqueezySensors sensors = SqueezySensors.getInstance();
 
 	private Squeezy () {
-		lifter.set(DoubleSolenoid.Value.kForward);
+//		lifter.set(DoubleSolenoid.Value.kForward);
 	}//Squeezy
 	
 	public void poll() {
@@ -96,7 +96,8 @@ public class Squeezy {
 		case EJECT:
 			if (sensors.detectBoxGone())
 				state = SqueezyState.EMPTY;
-			state = SqueezyState.EMPTY;
+			if (buttonCancel.Pressed)
+				state = SqueezyState.EMPTY;
 			break;
 		}//switch
 		
@@ -150,7 +151,7 @@ public class Squeezy {
 //		leftSpin.set(ControlMode.PercentOutput, effort);
 //		rightSpin.set(ControlMode.PercentOutput, effort);
 		leftSpin.set(effort);
-		leftSpin.set(effort);
+		rightSpin.set(-effort);
 	}//setSpinners
 	
 	private void spinIn() {
@@ -169,22 +170,28 @@ public class Squeezy {
 	}//setSpinnerState
 	
 	private void open() {
-		squeezer.set(ControlMode.PercentOutput, kOpenEffort);
+		if (sensors.getOutsideLimit())
+			squeezer.set(ControlMode.PercentOutput, kOpenEffort);
+		else
+			squeezer.set(ControlMode.PercentOutput, 0);
 //		System.out.printf("Squeezer Effort: %1.1f\t",kOpenEffort);
 	}//open
 	
 	private void close() {
-		squeezer.set(ControlMode.PercentOutput, kCloseEffort);
+		if (sensors.getInsideLimit())
+			squeezer.set(ControlMode.PercentOutput, kCloseEffort);
+		else
+			squeezer.set(ControlMode.PercentOutput, 0);
 //		System.out.printf("Squeezer Effort: %1.1f\t",kCloseEffort);
 	}//close
 	
 	private void raise() {
-		lifter.set(DoubleSolenoid.Value.kForward);
+//		lifter.set(DoubleSolenoid.Value.kForward);
 //		System.out.printf("Lifter Value: %s\t", DoubleSolenoid.Value.kForward.toString());
 	}//raise
 	
 	private void lower() {
-		lifter.set(DoubleSolenoid.Value.kReverse);
+//		lifter.set(DoubleSolenoid.Value.kReverse);
 //		System.out.printf("Lifter Value: %s\t", DoubleSolenoid.Value.kReverse.toString());
 	}//lower
 	
@@ -223,7 +230,7 @@ public class Squeezy {
 //			setDouble("leftspin_current", leftSpin.getOutputCurrent());
 //			setDouble("rightspin_current", rightSpin.getOutputCurrent());
 			
-			setString("lifter", lifter.get().toString());
+//			setString("lifter", lifter.get().toString());
 		}
 		
 	}//updateTable
