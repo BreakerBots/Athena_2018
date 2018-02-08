@@ -6,12 +6,13 @@ import com.ctre.phoenix.motorcontrol.can.TalonSRX;
 import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.wpilibj.DoubleSolenoid;
+import edu.wpi.first.wpilibj.Talon;
 
 public class Squeezy {
 
-	public static final int MAIN_ID = 21;
-	public static final int LEFT_ID = 22;
-	public static final int RIGHT_ID = 23;
+	public static final int MAIN_ID = 11;
+	public static final int LEFT_ID = 0;
+	public static final int RIGHT_ID = 1;
 	
 	static final double kCloseEffort = 0.1;
 	static final double kOpenEffort= -0.1;
@@ -43,9 +44,9 @@ public class Squeezy {
 			buttonCancel = new ButtonS(2);
 	
 	//Talon IDs start with 2_
-	TalonSRX squeezer  = new TalonSRX(MAIN_ID),
-			leftSpin  = new TalonSRX(LEFT_ID),
-			rightSpin = new TalonSRX(RIGHT_ID);
+	TalonSRX squeezer  = new TalonSRX(MAIN_ID);
+	Talon leftSpin  = new Talon(LEFT_ID);
+	Talon rightSpin = new Talon(RIGHT_ID);
 	
 	DoubleSolenoid lifter = new DoubleSolenoid(2,3);
 	
@@ -145,21 +146,25 @@ public class Squeezy {
 	}//updateState
 	
 	//--------- Squeezy Actions ---------//
+	private void setSpinners(double effort) {
+//		leftSpin.set(ControlMode.PercentOutput, effort);
+//		rightSpin.set(ControlMode.PercentOutput, effort);
+		leftSpin.set(effort);
+		leftSpin.set(effort);
+	}//setSpinners
+	
 	private void spinIn() {
-		leftSpin.set(ControlMode.PercentOutput, kIntakeEffort);
-		rightSpin.set(ControlMode.PercentOutput, kIntakeEffort);
+		setSpinners(kIntakeEffort);
 //		System.out.printf("Spin Effort: %1.1f\t",kIntakeEffort);
 	}//spinIn
 	
 	private void spinOut() {
-		leftSpin.set(ControlMode.PercentOutput, kEjectEffort);
-		rightSpin.set(ControlMode.PercentOutput, kEjectEffort);
+		setSpinners(kEjectEffort);
 //		System.out.printf("Spin Effort: %1.1f\t",kEjectEffort);
 	}//spinOut
 	
 	private void spinStop() {
-		leftSpin.set(ControlMode.PercentOutput, 0);
-		rightSpin.set(ControlMode.PercentOutput, 0);
+		setSpinners(0);
 //		System.out.printf("Spin Effort: %1.1f\t", 0.0);
 	}//setSpinnerState
 	
@@ -211,12 +216,12 @@ public class Squeezy {
 			setString("state", state.toString());
 			
 			setDouble("squeezer_voltage", squeezer.getMotorOutputVoltage());
-			setDouble("leftspin_voltage", leftSpin.getMotorOutputVoltage());
-			setDouble("rightspin_voltage", rightSpin.getMotorOutputVoltage());
+//			setDouble("leftspin_voltage", leftSpin.getMotorOutputVoltage());
+//			setDouble("rightspin_voltage", rightSpin.getMotorOutputVoltage());
 			
 			setDouble("squeezer_current", squeezer.getOutputCurrent());
-			setDouble("leftspin_current", leftSpin.getOutputCurrent());
-			setDouble("rightspin_current", rightSpin.getOutputCurrent());
+//			setDouble("leftspin_current", leftSpin.getOutputCurrent());
+//			setDouble("rightspin_current", rightSpin.getOutputCurrent());
 			
 			setString("lifter", lifter.get().toString());
 		}
