@@ -1,7 +1,5 @@
 package com.frc5104.main;
 
-import com.frc5104.main.subsystems.Drive;
-import com.frc5104.main.subsystems.Shifters;
 import com.frc5104.main.subsystems.Squeezy;
 import com.frc5104.main.subsystems.SqueezySensors;
 
@@ -24,6 +22,8 @@ public class Robot extends IterativeRobot {
 //	Elevator elevator = Elevator.getInstance();
 	
 	public void robotInit() {
+		System.out.println("Running Athena code");
+		
 		squeezy.initTable(null);
 		
 	}//robotInit

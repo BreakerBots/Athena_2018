@@ -17,9 +17,6 @@ public class SqueezySensors {
 	FilteredUltraSonic leftUltra = new FilteredUltraSonic(2, 3);
 	FilteredUltraSonic rightUltra = new FilteredUltraSonic(4, 5);
 	
-	DigitalInput insideLimit = new DigitalInput(6);
-	DigitalInput outsideLimit = new DigitalInput(7);
-	
 	private SqueezySensors() {
 		centerUltra.init();
 		leftUltra.init();
@@ -34,7 +31,7 @@ public class SqueezySensors {
 	}//updateSensors
 
 	public boolean detectBox() {
-		if (leftUltra.getDistance() < 8 || rightUltra.getDistance() < 8)
+		if (leftUltra.getDistance() < 6 && rightUltra.getDistance() < 6)
 			return true;
 		else
 			return false;
@@ -62,19 +59,11 @@ public class SqueezySensors {
 	
 	public double[] getDistances() {
 		double[] distances = new double[3];
-		distances[0] = /*centerUltra.getDistance()*/System.currentTimeMillis();
+		distances[0] = centerUltra.getDistance();
 		distances[1] = leftUltra.getDistance();
 		distances[2] = rightUltra.getDistance();
 		
 		return distances;
 	}//getInstantDistances
 	
-	public boolean getInsideLimit() {
-		return insideLimit.get();
-	}//getInsideLimit
-
-	public boolean getOutsideLimit() {
-		return outsideLimit.get();
-	}//getInsideLimit
-
 }//SqueezySensors
