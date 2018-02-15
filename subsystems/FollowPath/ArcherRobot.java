@@ -1,3 +1,4 @@
+//Dead Reckoning - Driving Straight only
 package org.usfirst.frc.team5104.robot;
 
 import com.ctre.phoenix.motorcontrol.can.WPI_TalonSRX;
@@ -22,29 +23,45 @@ public class Robot extends IterativeRobot {
 	double axisX;
 	double TPI = 231.21387283; //Archer
 	//double TPI = 190.6005; // Ares ticks per inch
-	boolean start = true;
+	boolean start;
 	double encStart;
 	int kforward;
 	double curr;
 	SigmSpeed s;
 	double ang;
 	double angStart;
+	double curPos; 
+	double curAng;
+	int stage;
 
 	@Override
 	public void autonomousInit() {
 //		gyro.calibrate();
 		talon1.setSelectedSensorPosition(0, 0, 10); 
 		talon3.setSelectedSensorPosition(0, 0, 10);
+		start = true;
+		stage = -1;
 		delay(100);
 	}
 
 	@Override
 	public void autonomousPeriodic() {
-		move(-50);
+		//runs through following actions
+		switch(stage) {
+		case 0: move(-50); 
+		break;
+		case 1: move(50);
+		break;
+		case 2: move(-50);
+		break;
+		case 3: end(); 
+		break;
+		}
 	}
 
 	@Override
 	public void teleopPeriodic() {
+		//controller driving
 		axisY = controller.getRawAxis(1);
 		axisX = controller.getRawAxis(0);
 
@@ -52,22 +69,26 @@ public class Robot extends IterativeRobot {
 	}
 	
 	public void move(double dist) {
+		//drives straight for dist inches
 		if(start) {
-			encStart = talon1.getSelectedSensorPosition(0);
+			encStart = Math.abs(talon1.getSelectedSensorPosition(0));
 			angStart = gyro.getAngle();
-			dist = dist*TPI + encStart;
 			kforward = (int) (dist/Math.abs(dist));
 			start = false;
+			dist = Math.abs(dist*TPI);
 			s = new SigmSpeed(dist/4, dist/4, dist);
 		}
-		dist = Math.abs(dist*TPI + encStart);
-		curr = Math.abs(talon1.getSelectedSensorPosition(0));
+		dist = Math.abs(dist*TPI);
+		curr = Math.abs(talon1.getSelectedSensorPosition(0) - encStart);
 		if(curr < dist) {
+			System.out.println(curr);
 			ang = angStart - gyro.getAngle();
-			System.out.println(ang);
-			drive.arcadeDrive(clamp(s.getSpeed(curr), 0.4, 1), -ang/5);
+			drive.arcadeDrive(kforward*clamp(s.getSpeed(curr), 0.4, 1), -ang/5);
 		} else {
+			System.out.println("Next Stage");
 			drive.arcadeDrive(0, 0);
+			start = true;
+			delay(100);
 		}
 	}
 	
@@ -77,9 +98,10 @@ public class Robot extends IterativeRobot {
 		int nowTime = (int) System.currentTimeMillis();
 		while (nowTime - inTime < ms)
 			nowTime = (int) System.currentTimeMillis();
+		stage++;
 	}
 	
-	private double clamp(double num, double min, double max) {
+	public double clamp(double num, double min, double max) {
 		// ensures speed is within min and max
 		if (num < min) {
 			return min;
@@ -89,4 +111,8 @@ public class Robot extends IterativeRobot {
 			return num;
 		}
 	} 
+	
+	public void end() {
+		drive.arcadeDrive(0, 0);
+	}
 }
