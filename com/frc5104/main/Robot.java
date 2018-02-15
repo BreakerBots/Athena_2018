@@ -5,6 +5,7 @@ import com.frc5104.main.subsystems.SqueezySensors;
 
 import edu.wpi.first.wpilibj.IterativeRobot;
 import edu.wpi.first.wpilibj.Joystick;
+import edu.wpi.first.wpilibj.Talon;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
 public class Robot extends IterativeRobot {
@@ -15,16 +16,22 @@ public class Robot extends IterativeRobot {
 //	Drive drive = Drive.getInstance();
 //	Shifters shifters = Shifters.getInstance();
 	
-//	Squeezy squeezy = null;
-	Squeezy squeezy = Squeezy.getInstance();
-	SqueezySensors squeezySensors = SqueezySensors.getInstance();
+	Squeezy squeezy = null;
+	SqueezySensors squeezySensors = null;
+//	Squeezy squeezy = Squeezy.getInstance();
+//	SqueezySensors squeezySensors = SqueezySensors.getInstance();
 	
 //	Elevator elevator = Elevator.getInstance();
+	
+	PTO pto = PTO.getInstance();
+	long startTime = System.currentTimeMillis();
+	Talon ptoTalon = new Talon(0);
 	
 	public void robotInit() {
 		System.out.println("Running Athena code");
 		
-		squeezy.initTable(null);
+		if (squeezy != null)
+			squeezy.initTable(null);
 		
 	}//robotInit
 	
@@ -42,7 +49,6 @@ public class Robot extends IterativeRobot {
 	}//teleopInit
 	
 	public void teleopPeriodic() {
-		squeezySensors.updateSensors();
 //		System.out.println("Encoder Position: "+drive.getEncoderRight());
 		
 		double x = joy.getRawAxis(0),
@@ -59,14 +65,26 @@ public class Robot extends IterativeRobot {
 //			shifters.shiftLow();
 
 		
+		if (squeezySensors != null) {
+			squeezySensors.updateSensors();
+		}
 		if (squeezy != null) {
 			squeezy.poll();
 			squeezy.updateState();
 		}
 		
-		if (squeezySensors != null) {
-			squeezySensors.updateSensors();
+//		if (joy.getRawAxis(3) > 0.2) {
+		if ((System.currentTimeMillis() - startTime)%2000 > 1000) {
+//			elevator.disable();
+			pto.powerClimber();
+			System.out.println("Powering climber");
+		} else {
+//			elevator.enable();
+			pto.powerElevator();
+			System.out.println("Powering elevator");
 		}
+		
+		ptoTalon.set(SmartDashboard.getNumber("DB/Slider 2", 0));
 		
 	}//teleopPeriodic
 	
