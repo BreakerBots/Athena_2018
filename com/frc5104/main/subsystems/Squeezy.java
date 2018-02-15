@@ -14,14 +14,17 @@ public class Squeezy {
 	public static final int LEFT_ID = 0;
 	public static final int RIGHT_ID = 1;
 	
-	static final double kCloseEffort = 0.1;
+	static final double kHoldEffort = 0.1;
+	static final double kShootSqueezeEffort = 0.05;
+	static final double kCloseEffort = 0.2;
 	static final double kOpenEffort  = -0.1;
 	
-	static final double kIntakeEffort = -0.1;
-	static final double kEjectEffort = 1;
+	static final double kIntakeEffort = -0.4;
+	static final double kEjectEffort = 0.6;
 	
 	enum SqueezyState {
-		EMPTY, INTAKE, CLOSING, HOLDING, LOADED, EJECT
+		EMPTY, INTAKE, CLOSING, HOLDING, LOADED, EJECT,
+					UNJAM
 	}
 	
 	static Squeezy m_instance;
@@ -41,25 +44,27 @@ public class Squeezy {
 	
 	ButtonS buttonIntake = new ButtonS(3),
 			buttonEject = new ButtonS(1),
-			buttonCancel = new ButtonS(2);
+			buttonCancel = new ButtonS(2),
+			buttonUnjam = new ButtonS(8);
 	
 	//Talon IDs start with 2_
 	TalonSRX squeezer  = new TalonSRX(MAIN_ID);
 	Talon leftSpin  = new Talon(LEFT_ID);
 	Talon rightSpin = new Talon(RIGHT_ID);
 	
-//	DoubleSolenoid lifter = new DoubleSolenoid(2,3);
+	DoubleSolenoid lifter = new DoubleSolenoid(2,3);
 	
 	SqueezySensors sensors = SqueezySensors.getInstance();
 
 	private Squeezy () {
-//		lifter.set(DoubleSolenoid.Value.kForward);
+		raise();
 	}//Squeezy
 	
 	public void poll() {
 		buttonIntake.update();
 		buttonEject.update();
 		buttonCancel.update();
+		buttonUnjam.update();
 		
 		switch (state) {
 		case EMPTY:
@@ -75,7 +80,7 @@ public class Squeezy {
 			break;
 		case CLOSING: //Should not exist with Ultrasonic
 			if (buttonCancel.Pressed)
-				state = SqueezyState.INTAKE;
+				state = SqueezyState.UNJAM;
 			if (!sensors.detectBox())
 				state = SqueezyState.INTAKE;
 			if (sensors.detectBoxHeld())
@@ -95,11 +100,17 @@ public class Squeezy {
 			break;
 		case EJECT:
 			if (sensors.detectBoxGone())
-				state = SqueezyState.EMPTY;
+				state = SqueezyState.UNJAM;
 			if (buttonCancel.Pressed)
 				state = SqueezyState.EMPTY;
 			break;
+		case UNJAM:
+			if (squeezer.getSensorCollection().isRevLimitSwitchClosed())
+				state = SqueezyState.INTAKE;
+			break;
 		}//switch
+		if (buttonUnjam.Pressed)
+			state = SqueezyState.UNJAM;
 		
 		if (state != prevState) {
 			updateTable();
@@ -136,13 +147,17 @@ public class Squeezy {
 		case LOADED:
 			lower();
 			spinStop();
-			close();
+			hold();
 			break;
 		case EJECT:
 			lower();
 			spinOut();
-			close();
+			shootSqueeze();
 			break;
+		case UNJAM:
+			lower();
+			spinStop();
+			open();
 		}
 		
 	}//updateState
@@ -152,7 +167,7 @@ public class Squeezy {
 //		leftSpin.set(ControlMode.PercentOutput, effort);
 //		rightSpin.set(ControlMode.PercentOutput, effort);
 		leftSpin.set(effort);
-		rightSpin.set(-effort);
+		rightSpin.set(-3*effort/2);
 	}//setSpinners
 	
 	private void spinIn() {
@@ -179,18 +194,23 @@ public class Squeezy {
 		squeezer.set(ControlMode.PercentOutput, kCloseEffort);
 //		System.out.printf("Squeezer Effort: %1.1f\t",kCloseEffort);
 	}//close
+
+	private void shootSqueeze() {
+		squeezer.set(ControlMode.PercentOutput, kShootSqueezeEffort);
+//		System.out.printf("Squeezer Effort: %1.1f\t",kCloseEffort);
+	}//close
 	
 	private void hold() {
-		squeezer.set(ControlMode.PercentOutput, 0);
+		squeezer.set(ControlMode.PercentOutput, kHoldEffort);
 	}//hold
 	
 	private void raise() {
-//		lifter.set(DoubleSolenoid.Value.kForward);
+		lifter.set(DoubleSolenoid.Value.kReverse);
 //		System.out.printf("Lifter Value: %s\t", DoubleSolenoid.Value.kForward.toString());
 	}//raise
 	
 	private void lower() {
-//		lifter.set(DoubleSolenoid.Value.kReverse);
+		lifter.set(DoubleSolenoid.Value.kForward);
 //		System.out.printf("Lifter Value: %s\t", DoubleSolenoid.Value.kReverse.toString());
 	}//lower
 	
