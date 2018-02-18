@@ -1,7 +1,11 @@
 package com.frc5104.main;
 
+import com.ctre.phoenix.motorcontrol.ControlMode;
+import com.ctre.phoenix.motorcontrol.can.TalonSRX;
+import com.frc5104.main.subsystems.Drive;
 import com.frc5104.main.subsystems.Squeezy;
 import com.frc5104.main.subsystems.SqueezySensors;
+import com.frc5104.vision.VisionThread;
 
 import edu.wpi.first.wpilibj.IterativeRobot;
 import edu.wpi.first.wpilibj.Joystick;
@@ -10,33 +14,49 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
 public class Robot extends IterativeRobot {
 
+	BasicAuto auto;
+	VisionThread vision;
+	
 	Joystick joy = new Joystick(0);
 	
 	//Drive Squeezy Elevator Climber
-//	Drive drive = Drive.getInstance();
+//	Drive drive = null;
+	Drive drive = Drive.getInstance();
 //	Shifters shifters = Shifters.getInstance();
 	
-	Squeezy squeezy = null;
-	SqueezySensors squeezySensors = null;
-//	Squeezy squeezy = Squeezy.getInstance();
-//	SqueezySensors squeezySensors = SqueezySensors.getInstance();
+//	Squeezy squeezy = null;
+//	SqueezySensors squeezySensors = null;
+	Squeezy squeezy = Squeezy.getInstance();
+	SqueezySensors squeezySensors = SqueezySensors.getInstance();
 	
 //	Elevator elevator = Elevator.getInstance();
 	
-	PTO pto = PTO.getInstance();
+	PTO pto = null;
+//	PTO pto = PTO.getInstance();
 	long startTime = System.currentTimeMillis();
-	Talon ptoTalon = new Talon(0);
+	Talon ptoTalon = null;
+//	Talon ptoTalon = new Talon(0);
+	
+	//Elevator Talon(TEMP)
+	TalonSRX talonEl = new TalonSRX(9);
 	
 	public void robotInit() {
 		System.out.println("Running Athena code");
 		
 		if (squeezy != null)
 			squeezy.initTable(null);
+
+		vision = new VisionThread();
+		vision.start();
 		
 	}//robotInit
 	
 	public void autonomousInit() {
 		SmartDashboard.putNumber("DB/Slider 0", 4);
+		
+//		auto = new AutoPickupCube();
+//		
+//		auto.init();
 	}//autonomousInit
 	
 	public void autonomousPeriodic() {
@@ -54,7 +74,11 @@ public class Robot extends IterativeRobot {
 		double x = joy.getRawAxis(0),
 				y = joy.getRawAxis(1);
 		
-//		drive.arcadeDrive(y,-x);
+		if (drive != null)
+			drive.arcadeDrive(y,-x);
+		
+		//Elevator(TEMP)
+//		talonEl.set(ControlMode.PercentOutput, joy.getRawAxis(5));
 		
 //		elevator.poll();
 //		elevator.update();
@@ -74,17 +98,19 @@ public class Robot extends IterativeRobot {
 		}
 		
 //		if (joy.getRawAxis(3) > 0.2) {
-		if ((System.currentTimeMillis() - startTime)%2000 > 1000) {
-//			elevator.disable();
-			pto.powerClimber();
-			System.out.println("Powering climber");
-		} else {
-//			elevator.enable();
-			pto.powerElevator();
-			System.out.println("Powering elevator");
+		if (pto != null) {
+			if ((System.currentTimeMillis() - startTime)%2000 > 1000) {
+	//			elevator.disable();
+				pto.powerClimber();
+				System.out.println("Powering climber");
+			} else {
+	//			elevator.enable();
+				pto.powerElevator();
+				System.out.println("Powering elevator");
+			}
 		}
-		
-		ptoTalon.set(SmartDashboard.getNumber("DB/Slider 2", 0));
+		if (ptoTalon != null)
+			ptoTalon.set(SmartDashboard.getNumber("DB/Slider 2", 0));
 		
 	}//teleopPeriodic
 	

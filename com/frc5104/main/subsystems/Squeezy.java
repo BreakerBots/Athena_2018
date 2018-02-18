@@ -17,9 +17,9 @@ public class Squeezy {
 	static final double kHoldEffort = 0.1;
 	static final double kShootSqueezeEffort = 0.05;
 	static final double kCloseEffort = 0.2;
-	static final double kOpenEffort  = -0.1;
+	static final double kOpenEffort  = -0.15;
 	
-	static final double kIntakeEffort = -0.4;
+	static final double kIntakeEffort = -/*0.4*/0.2;
 	static final double kEjectEffort = 0.6;
 	
 	enum SqueezyState {
@@ -166,8 +166,8 @@ public class Squeezy {
 	private void setSpinners(double effort) {
 //		leftSpin.set(ControlMode.PercentOutput, effort);
 //		rightSpin.set(ControlMode.PercentOutput, effort);
-		leftSpin.set(effort);
-		rightSpin.set(-3*effort/2);
+		leftSpin.set(-effort);
+		rightSpin.set(effort);
 	}//setSpinners
 	
 	private void spinIn() {

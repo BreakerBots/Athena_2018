@@ -58,7 +58,7 @@ public class SqueezySensors {
 	}//detectBoxGone
 	
 	public boolean detectBoxHeld() {
-		if (centerUltra.getDistance() < 6)
+		if (centerUltra.getDistance() < /*6*/5.5)
 //			leftUltra.getDistance() < 2 &&
 //			rightUltra.getDistance() < 2)
 			return true;
