@@ -20,25 +20,22 @@ public class Robot extends IterativeRobot {
 	Joystick joy = new Joystick(0);
 	
 	//Drive Squeezy Elevator Climber
-//	Drive drive = null;
-	Drive drive = Drive.getInstance();
+	Drive drive = null;
+//	Drive drive = Drive.getInstance();
 //	Shifters shifters = Shifters.getInstance();
 	
-//	Squeezy squeezy = null;
-//	SqueezySensors squeezySensors = null;
-	Squeezy squeezy = Squeezy.getInstance();
-	SqueezySensors squeezySensors = SqueezySensors.getInstance();
+	Squeezy squeezy = null;
+	SqueezySensors squeezySensors = null;
+//	Squeezy squeezy = Squeezy.getInstance();
+//	SqueezySensors squeezySensors = SqueezySensors.getInstance();
 	
 //	Elevator elevator = Elevator.getInstance();
 	
 	PTO pto = null;
 //	PTO pto = PTO.getInstance();
 	long startTime = System.currentTimeMillis();
-	Talon ptoTalon = null;
-//	Talon ptoTalon = new Talon(0);
-	
-	//Elevator Talon(TEMP)
-	TalonSRX talonEl = new TalonSRX(9);
+//	Talon ptoTalon = null;
+	TalonSRX ptoTalon = new TalonSRX(9);
 	
 	public void robotInit() {
 		System.out.println("Running Athena code");
@@ -77,9 +74,6 @@ public class Robot extends IterativeRobot {
 		if (drive != null)
 			drive.arcadeDrive(y,-x);
 		
-		//Elevator(TEMP)
-//		talonEl.set(ControlMode.PercentOutput, joy.getRawAxis(5));
-		
 //		elevator.poll();
 //		elevator.update();
 		
@@ -109,8 +103,12 @@ public class Robot extends IterativeRobot {
 				System.out.println("Powering elevator");
 			}
 		}
-		if (ptoTalon != null)
-			ptoTalon.set(SmartDashboard.getNumber("DB/Slider 2", 0));
+		if (ptoTalon != null) {
+			double elevatorEffort = joy.getRawAxis(5);
+			if (-0.1 < elevatorEffort && elevatorEffort < 0.1)
+				elevatorEffort = 0;
+			ptoTalon.set(ControlMode.PercentOutput, elevatorEffort);
+		}
 		
 	}//teleopPeriodic
 	

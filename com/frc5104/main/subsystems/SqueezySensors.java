@@ -1,5 +1,7 @@
 package com.frc5104.main.subsystems;
 
+import com.frc5104.utilities.FilteredUltraSonic;
+
 public class SqueezySensors {
 
 	static SqueezySensors instance = null;
