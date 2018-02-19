@@ -5,11 +5,11 @@ import com.ctre.phoenix.motorcontrol.can.TalonSRX;
 import com.frc5104.main.subsystems.Drive;
 import com.frc5104.main.subsystems.Squeezy;
 import com.frc5104.main.subsystems.SqueezySensors;
+import com.frc5104.utilities.Deadband;
 import com.frc5104.vision.VisionThread;
 
 import edu.wpi.first.wpilibj.IterativeRobot;
 import edu.wpi.first.wpilibj.Joystick;
-import edu.wpi.first.wpilibj.Talon;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
 public class Robot extends IterativeRobot {
@@ -18,6 +18,7 @@ public class Robot extends IterativeRobot {
 	VisionThread vision;
 	
 	Joystick joy = new Joystick(0);
+	Deadband deadband = Deadband.getDefault();
 	
 	//Drive Squeezy Elevator Climber
 	Drive drive = null;
@@ -71,6 +72,9 @@ public class Robot extends IterativeRobot {
 		double x = joy.getRawAxis(0),
 				y = joy.getRawAxis(1);
 		
+		x = deadband.get(x);
+		y = deadband.get(y);
+		
 		if (drive != null)
 			drive.arcadeDrive(y,-x);
 		
@@ -105,8 +109,9 @@ public class Robot extends IterativeRobot {
 		}
 		if (ptoTalon != null) {
 			double elevatorEffort = joy.getRawAxis(5);
-			if (-0.1 < elevatorEffort && elevatorEffort < 0.1)
-				elevatorEffort = 0;
+			System.out.printf("%3.3f", elevatorEffort);
+			elevatorEffort = deadband.get(elevatorEffort);
+			System.out.printf("\t%3.3f\n",elevatorEffort);
 			ptoTalon.set(ControlMode.PercentOutput, elevatorEffort);
 		}
 		
