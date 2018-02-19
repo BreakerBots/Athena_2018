@@ -2,6 +2,12 @@ package com.frc5104.utilities;
 
 public class Deadband {
 
+	static final Deadband default_01 = new Deadband(0.1);
+	
+	public static Deadband getDefault() {
+		return default_01;
+	}//getDefault
+	
 	private boolean inverted = false;
 	
 	private double radius;
