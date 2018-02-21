@@ -3,6 +3,7 @@ package com.frc5104.main;
 import com.ctre.phoenix.motorcontrol.ControlMode;
 import com.ctre.phoenix.motorcontrol.can.TalonSRX;
 import com.frc5104.main.subsystems.Drive;
+import com.frc5104.main.subsystems.Elevator;
 import com.frc5104.main.subsystems.Squeezy;
 import com.frc5104.main.subsystems.SqueezySensors;
 import com.frc5104.utilities.Deadband;
@@ -25,27 +26,50 @@ public class Robot extends IterativeRobot {
 //	Drive drive = Drive.getInstance();
 //	Shifters shifters = Shifters.getInstance();
 	
-	Squeezy squeezy = null;
-	SqueezySensors squeezySensors = null;
-//	Squeezy squeezy = Squeezy.getInstance();
-//	SqueezySensors squeezySensors = SqueezySensors.getInstance();
+//	Squeezy squeezy = null;
+//	SqueezySensors squeezySensors = null;
+	Squeezy squeezy = Squeezy.getInstance();
+	SqueezySensors squeezySensors = SqueezySensors.getInstance();
 	
-//	Elevator elevator = Elevator.getInstance();
+	Elevator elevator = Elevator.getInstance();
 	
 	PTO pto = null;
 //	PTO pto = PTO.getInstance();
 	long startTime = System.currentTimeMillis();
-//	Talon ptoTalon = null;
-	TalonSRX ptoTalon = new TalonSRX(9);
+	TalonSRX ptoTalon = null;
+//	TalonSRX ptoTalon = new TalonSRX(/*Athena/Ares*//*9*/  /*Babyboard*/11);
+	
+	/* ------- PTO PID Values for Elevator -------
+	 * 
+	 * p == 0.16
+	 * i == 0.00002
+	 * d == 0.15
+	 * izone == 1000
+	 * 
+	 * fwd soft limit == 0
+	 * rev soft limit == -16150
+	 * 
+	 * ------- PTO PID Values for Squeezy -------
+	 * 
+	 * p == 0.01
+	 * i == 0.0001
+	 * d == 
+	 * izone == 3000
+	 * 
+	 * fwd soft limit == 0
+	 * rev soft limit == -100000
+	 * 
+	 * -------   						  -------
+	 */
 	
 	public void robotInit() {
 		System.out.println("Running Athena code");
 		
 		if (squeezy != null)
 			squeezy.initTable(null);
-
-		vision = new VisionThread();
-		vision.start();
+		
+		if (elevator != null)
+			elevator.initTable(null);
 		
 	}//robotInit
 	
@@ -69,14 +93,15 @@ public class Robot extends IterativeRobot {
 	public void teleopPeriodic() {
 //		System.out.println("Encoder Position: "+drive.getEncoderRight());
 		
-		double x = joy.getRawAxis(0),
-				y = joy.getRawAxis(1);
 		
-		x = deadband.get(x);
-		y = deadband.get(y);
-		
-		if (drive != null)
+		if (drive != null) {
+			double x = joy.getRawAxis(0),
+					y = joy.getRawAxis(1);
+			
+			x = deadband.get(x);
+			y = deadband.get(y);
 			drive.arcadeDrive(y,-x);
+		}
 		
 //		elevator.poll();
 //		elevator.update();
@@ -86,10 +111,6 @@ public class Robot extends IterativeRobot {
 //		else if (Math.abs(drive.getEncoderLeft()+drive.getEncoderRight())/2 < 800)
 //			shifters.shiftLow();
 
-		
-		if (squeezySensors != null) {
-			squeezySensors.updateSensors();
-		}
 		if (squeezy != null) {
 			squeezy.poll();
 			squeezy.updateState();
@@ -107,17 +128,52 @@ public class Robot extends IterativeRobot {
 				System.out.println("Powering elevator");
 			}
 		}
-		if (ptoTalon != null) {
-			double elevatorEffort = joy.getRawAxis(5);
-			System.out.printf("%3.3f", elevatorEffort);
-			elevatorEffort = deadband.get(elevatorEffort);
-			System.out.printf("\t%3.3f\n",elevatorEffort);
-			ptoTalon.set(ControlMode.PercentOutput, elevatorEffort);
+		
+		if (elevator != null) {
+			elevator.update();
 		}
+		
+		if (ptoTalon != null) {
+			double elevatorEffort = ptoTalon.getMotorOutputPercent();
+			if (SmartDashboard.getBoolean("pto_driven_by_joystick", true)) {
+				elevatorEffort = joy.getRawAxis(5);
+				elevatorEffort = deadband.get(elevatorEffort);
+				ptoTalon.set(ControlMode.PercentOutput, elevatorEffort);
+			} else {
+				ptoTalon.set(ControlMode.Position, SmartDashboard.getNumber("elevator_setpoint", 
+						ptoTalon.getSelectedSensorPosition(0)));
+			}
+
+			boolean lower = ptoTalon.getSensorCollection().isFwdLimitSwitchClosed();
+			boolean upper = ptoTalon.getSensorCollection().isRevLimitSwitchClosed();
+			if (lower) {
+				ptoTalon.setSelectedSensorPosition(0, 0, 10);
+			}
+			SmartDashboard.putBoolean("limits/lower-fwd", lower);
+			SmartDashboard.putBoolean("limits/upper-rev", upper);
+			
+			SmartDashboard.putNumber("pto_effort", elevatorEffort);
+			SmartDashboard.putNumber("pto_current", ptoTalon.getOutputCurrent());
+			SmartDashboard.putNumber("pto_voltage", ptoTalon.getMotorOutputVoltage());
+			
+			SmartDashboard.putNumber("elevator_pos", ptoTalon.getSelectedSensorPosition(0));
+			SmartDashboard.putNumber("elevator_vel", ptoTalon.getSelectedSensorVelocity(0));
+			
+			SmartDashboard.putNumber("i_accum", ptoTalon.getIntegralAccumulator(0));
+			if (SmartDashboard.getBoolean("clear_i_accum", false)) {
+				SmartDashboard.putBoolean("clear_i_accum", false);
+				ptoTalon.setIntegralAccumulator(0, 0, 10);
+			}
+		}
+		
 		
 	}//teleopPeriodic
 	
 	public void robotPeriodic() {
+	}
+	
+	public void testInit() {
+
 	}
 	
 }//Robot

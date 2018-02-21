@@ -1,5 +1,7 @@
 package com.frc5104.main;
 
+import com.frc5104.main.subsystems.Elevator;
+
 import edu.wpi.first.wpilibj.DoubleSolenoid;
 import edu.wpi.first.wpilibj.DoubleSolenoid.Value;
 
@@ -23,8 +25,12 @@ public class PTO {
 		solenoid.set(Value.kForward);
 	}//powerElevator
 	
-	public void powerClimber() {
-		solenoid.set(Value.kReverse);
+	public boolean powerClimber() {
+		if (!Elevator.isRaised()) {
+			solenoid.set(Value.kReverse);
+			return true;
+		}
+		return false;
 	}//powerClimber
 	
 }//PTO
