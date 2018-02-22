@@ -22,8 +22,8 @@ public class Robot extends IterativeRobot {
 	Deadband deadband = Deadband.getDefault();
 	
 	//Drive Squeezy Elevator Climber
-	Drive drive = null;
-//	Drive drive = Drive.getInstance();
+//	Drive drive = null;
+	Drive drive = Drive.getInstance();
 //	Shifters shifters = Shifters.getInstance();
 	
 //	Squeezy squeezy = null;
@@ -31,7 +31,8 @@ public class Robot extends IterativeRobot {
 	Squeezy squeezy = Squeezy.getInstance();
 	SqueezySensors squeezySensors = SqueezySensors.getInstance();
 	
-	Elevator elevator = Elevator.getInstance();
+	Elevator elevator = null;
+//	Elevator elevator = Elevator.getInstance();
 	
 	PTO pto = null;
 //	PTO pto = PTO.getInstance();
@@ -152,7 +153,8 @@ public class Robot extends IterativeRobot {
 			SmartDashboard.putBoolean("limits/lower-fwd", lower);
 			SmartDashboard.putBoolean("limits/upper-rev", upper);
 			
-			SmartDashboard.putNumber("pto_effort", elevatorEffort);
+			SmartDashboard.putNumber(""
+					+ "", elevatorEffort);
 			SmartDashboard.putNumber("pto_current", ptoTalon.getOutputCurrent());
 			SmartDashboard.putNumber("pto_voltage", ptoTalon.getMotorOutputVoltage());
 			

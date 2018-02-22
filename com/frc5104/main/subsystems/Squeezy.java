@@ -11,9 +11,9 @@ import edu.wpi.first.wpilibj.Talon;
 
 public class Squeezy {
 
-	public static final int MAIN_ID = 11;
-	public static final int LEFT_ID = 0;
-	public static final int RIGHT_ID = 1;
+	public static final int MAIN_ID = /*11*/21;
+	public static final int LEFT_ID = /*0*/22;
+	public static final int RIGHT_ID = /*1*/23;
 	
 	static final double kHoldEffort = -0.1;
 	static final double kShootSqueezeEffort = -0.05;
@@ -51,8 +51,8 @@ public class Squeezy {
 	
 	//Talon IDs start with 2_
 	TalonSRX squeezer  = new TalonSRX(MAIN_ID);
-	Talon leftSpin  = new Talon(LEFT_ID);
-	Talon rightSpin = new Talon(RIGHT_ID);
+	TalonSRX leftSpin  = new TalonSRX(LEFT_ID);
+	TalonSRX rightSpin = new TalonSRX(RIGHT_ID);
 	
 	DoubleSolenoid lifter = new DoubleSolenoid(2,3);
 	
@@ -178,8 +178,8 @@ public class Squeezy {
 	private void setSpinners(double effort) {
 //		leftSpin.set(ControlMode.PercentOutput, effort);
 //		rightSpin.set(ControlMode.PercentOutput, effort);
-		leftSpin.set(effort);
-		rightSpin.set(-effort);
+		leftSpin.set(ControlMode.PercentOutput, effort);
+		rightSpin.set(ControlMode.PercentOutput, -effort);
 	}//setSpinners
 	
 	private void spinIn() {

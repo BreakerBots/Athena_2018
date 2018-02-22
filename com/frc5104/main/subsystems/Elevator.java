@@ -14,7 +14,8 @@ public class Elevator {
 	public static final int SOFT_STOP_BOTTOM = 0;
 	public static final int SOFT_STOP_TOP = -16150;
 	
-	public static final int TALON_ID = 31;
+	public static final int TALON1_ID = 12;
+	public static final int TALON2_ID = 51;
 	public static final int AXIS_ID = 5;
 	
 	public static final double kRaiseEffort = 0.8;
@@ -32,7 +33,8 @@ public class Elevator {
 	}//getInstance
 
 	private Joystick joy = new Joystick(0);
-	private TalonSRX talon = new TalonSRX(TALON_ID);
+	private TalonSRX talon1 = new TalonSRX(TALON1_ID),
+					 talon2 = new TalonSRX(TALON2_ID);
 	private NetworkTable table = null;
 	
 	private double effort = kHoldEffort;
@@ -41,18 +43,21 @@ public class Elevator {
 	}//Elevator
 	
 	public void update() {
-		if (talon.getSensorCollection().isRevLimitSwitchClosed())
-			talon.setSelectedSensorPosition(0, 0, 10);
+		if (talon1.getSensorCollection().isRevLimitSwitchClosed())
+			talon1.setSelectedSensorPosition(0, 0, 10);
 
-		double elevatorEffort = talon.getMotorOutputPercent();
-		if (getBoolean("closed_loop_control", false)) {
+		double elevatorEffort = talon1.getMotorOutputPercent();
+		if (!getBoolean("closed_loop_control", false)) {
 			elevatorEffort = joy.getRawAxis(AXIS_ID);
 			elevatorEffort = Deadband.getDefault().get(elevatorEffort);
-			talon.set(ControlMode.PercentOutput, elevatorEffort);
+			talon1.set(ControlMode.PercentOutput, elevatorEffort);
+			talon2.set(ControlMode.PercentOutput, elevatorEffort);
 		} else {
-			talon.set(ControlMode.Position, getDouble("setpoint", 
-					talon.getSelectedSensorPosition(0)));
+			talon1.set(ControlMode.Position, getDouble("setpoint", 
+					talon1.getSelectedSensorPosition(0)));
 		}
+		
+		updateTables();
 	}//update
 	
 	//----- Elevator Actions ------//
@@ -70,15 +75,15 @@ public class Elevator {
 	
 	//----- Elevator Sensors ------//
 	public boolean getLowerLimit() {
-		return talon.getSensorCollection().isRevLimitSwitchClosed();
+		return talon1.getSensorCollection().isRevLimitSwitchClosed();
 	}//getLowerLimit
 	
 	public boolean getUpperLimit() {
-		return talon.getSensorCollection().isFwdLimitSwitchClosed();
+		return talon1.getSensorCollection().isFwdLimitSwitchClosed();
 	}//getUpperLimit
 	
 	public boolean isLowEnoughToDrop() {
-		return talon.getSelectedSensorPosition(0) > SOFT_STOP_BOTTOM - 2000;
+		return talon1.getSelectedSensorPosition(0) > SOFT_STOP_BOTTOM - 2000;
 	}//isLowEnoughToDrop
 	
 	public static boolean isRaised() {
@@ -102,26 +107,26 @@ public class Elevator {
 	}//initTable
 	
 	public void updateTables() {
-		boolean lower = talon.getSensorCollection().isFwdLimitSwitchClosed();
-		boolean upper = talon.getSensorCollection().isRevLimitSwitchClosed();
+		boolean lower = talon1.getSensorCollection().isFwdLimitSwitchClosed();
+		boolean upper = talon1.getSensorCollection().isRevLimitSwitchClosed();
 		if (lower) {
-			talon.setSelectedSensorPosition(0, 0, 10);
+			talon1.setSelectedSensorPosition(0, 0, 10);
 		}
 
 		setBoolean("limits/lower-fwd", lower);
 		setBoolean("limits/upper-rev", upper);
 		
-		setDouble("motor/effort", talon.getMotorOutputPercent());
-		setDouble("motor/voltage", talon.getMotorOutputVoltage());
-		setDouble("motor/current", talon.getOutputCurrent());
+		setDouble("motor/effort", talon1.getMotorOutputPercent());
+		setDouble("motor/voltage", talon1.getMotorOutputVoltage());
+		setDouble("motor/current", talon1.getOutputCurrent());
 		
-		setDouble("pid/position", talon.getSelectedSensorPosition(0));
-		setDouble("pid/velocity", talon.getSelectedSensorVelocity(0));
+		setDouble("pid/position", talon1.getSelectedSensorPosition(0));
+		setDouble("pid/velocity", talon1.getSelectedSensorVelocity(0));
 		
-		setDouble("pid/i_accum", talon.getIntegralAccumulator(0));
+		setDouble("pid/i_accum", talon1.getIntegralAccumulator(0));
 		if (getBoolean("pid/clear_i_accum", false)) {
 			setBoolean("pid/clear_i_accum", false);
-			talon.setIntegralAccumulator(0, 0, 10);
+			talon1.setIntegralAccumulator(0, 0, 10);
 		}
 	}//updateTables
 	
