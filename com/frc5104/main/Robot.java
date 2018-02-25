@@ -19,20 +19,20 @@ public class Robot extends IterativeRobot {
 	VisionThread vision;
 	//New comment/
 	Joystick joy = new Joystick(0);
-	Deadband deadband = Deadband.getDefault();
+	Deadband deadband = new Deadband(0.05);
 	
 	//Drive Squeezy Elevator Climber
-//	Drive drive = null;
-	Drive drive = Drive.getInstance();
+	Drive drive = null;
+//	Drive drive = Drive.getInstance();
 //	Shifters shifters = Shifters.getInstance();
 	
-//	Squeezy squeezy = null;
-//	SqueezySensors squeezySensors = null;
-	Squeezy squeezy = Squeezy.getInstance();
-	SqueezySensors squeezySensors = SqueezySensors.getInstance();
+	Squeezy squeezy = null;
+	SqueezySensors squeezySensors = null;
+//	Squeezy squeezy = Squeezy.getInstance();
+//	SqueezySensors squeezySensors = SqueezySensors.getInstance();
 	
-	Elevator elevator = null;
-//	Elevator elevator = Elevator.getInstance();
+//	Elevator elevator = null;
+	Elevator elevator = Elevator.getInstance();
 	
 	PTO pto = null;
 //	PTO pto = PTO.getInstance();

@@ -10,9 +10,14 @@ public class FilteredUltraSonic {
 	private double distances[];
 	private int index = 0;
 	
+//	public FilteredUltraSonic(int ping, int echo, int filterLength, int maxDistance) {
+//		ultra = new Ultrasonic(ping, echo);
+//		distances = new double[filterLength];
+//		
+//		maxDistance = maxDistance;
+//	}
+	
 	public FilteredUltraSonic(int ping, int echo, int filterLength) {
-		ultra = new Ultrasonic(ping, echo);
-		distances = new double[filterLength];
 	}//FilteredUltraSonic
 	
 	public FilteredUltraSonic(int ping, int echo) {

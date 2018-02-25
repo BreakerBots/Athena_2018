@@ -14,7 +14,7 @@ public class Elevator {
 	public static final int SOFT_STOP_BOTTOM = 0;
 	public static final int SOFT_STOP_TOP = -16150;
 	
-	public static final int TALON1_ID = 12;
+	public static final int TALON1_ID = 9;
 	public static final int TALON2_ID = 51;
 	public static final int AXIS_ID = 5;
 	
@@ -33,8 +33,8 @@ public class Elevator {
 	}//getInstance
 
 	private Joystick joy = new Joystick(0);
-	private TalonSRX talon1 = new TalonSRX(TALON1_ID),
-					 talon2 = new TalonSRX(TALON2_ID);
+	private TalonSRX talon1 = new TalonSRX(TALON1_ID);
+//					 talon2 = new TalonSRX(TALON2_ID);
 	private NetworkTable table = null;
 	
 	private double effort = kHoldEffort;
@@ -51,7 +51,7 @@ public class Elevator {
 			elevatorEffort = joy.getRawAxis(AXIS_ID);
 			elevatorEffort = Deadband.getDefault().get(elevatorEffort);
 			talon1.set(ControlMode.PercentOutput, elevatorEffort);
-			talon2.set(ControlMode.PercentOutput, elevatorEffort);
+//			talon2.set(ControlMode.PercentOutput, elevatorEffort);
 		} else {
 			talon1.set(ControlMode.Position, getDouble("setpoint", 
 					talon1.getSelectedSensorPosition(0)));
