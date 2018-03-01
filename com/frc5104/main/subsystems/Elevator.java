@@ -14,6 +14,7 @@ public class Elevator {
 	public static final int SOFT_STOP_BOTTOM = 0;
 	public static final int SOFT_STOP_TOP = -16150;
 	
+	public static final boolean TWO_TALONS = false;
 	public static final int TALON1_ID = 9;
 	public static final int TALON2_ID = 51;
 	public static final int AXIS_ID = 5;
@@ -33,13 +34,17 @@ public class Elevator {
 	}//getInstance
 
 	private Joystick joy = new Joystick(0);
-	private TalonSRX talon1 = new TalonSRX(TALON1_ID);
-//					 talon2 = new TalonSRX(TALON2_ID);
+	private TalonSRX talon1 = new TalonSRX(TALON1_ID),
+					 talon2;
 	private NetworkTable table = null;
 	
 	private double effort = kHoldEffort;
 	
 	private Elevator () {
+		if (TWO_TALONS) {
+			talon2 = new TalonSRX(TALON2_ID);
+			talon2.set(ControlMode.Follower, TALON1_ID);
+		}
 	}//Elevator
 	
 	public void update() {
@@ -51,7 +56,6 @@ public class Elevator {
 			elevatorEffort = joy.getRawAxis(AXIS_ID);
 			elevatorEffort = Deadband.getDefault().get(elevatorEffort);
 			talon1.set(ControlMode.PercentOutput, elevatorEffort);
-//			talon2.set(ControlMode.PercentOutput, elevatorEffort);
 		} else {
 			talon1.set(ControlMode.Position, getDouble("setpoint", 
 					talon1.getSelectedSensorPosition(0)));
@@ -119,6 +123,12 @@ public class Elevator {
 		setDouble("motor/effort", talon1.getMotorOutputPercent());
 		setDouble("motor/voltage", talon1.getMotorOutputVoltage());
 		setDouble("motor/current", talon1.getOutputCurrent());
+		
+		if (TWO_TALONS) {
+			setDouble("motor2/effort", talon2.getMotorOutputPercent());
+			setDouble("motor2/voltage", talon2.getMotorOutputVoltage());
+			setDouble("motor2/current", talon2.getOutputCurrent());
+		}
 		
 		setDouble("pid/position", talon1.getSelectedSensorPosition(0));
 		setDouble("pid/velocity", talon1.getSelectedSensorVelocity(0));

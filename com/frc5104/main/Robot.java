@@ -17,7 +17,7 @@ public class Robot extends IterativeRobot {
 
 	BasicAuto auto;
 	VisionThread vision;
-	//New comment/
+
 	Joystick joy = new Joystick(0);
 	Deadband deadband = new Deadband(0.05);
 	
@@ -37,7 +37,8 @@ public class Robot extends IterativeRobot {
 	PTO pto = null;
 //	PTO pto = PTO.getInstance();
 	long startTime = System.currentTimeMillis();
-	TalonSRX ptoTalon = new TalonSRX(9);
+	TalonSRX ptoTalon = null;
+//	TalonSRX ptoTalon = new TalonSRX(9);
 //	TalonSRX ptoTalon = new TalonSRX(/*Athena/Ares*//*9*/  /*Babyboard*/11);
 	
 	/* ------- PTO PID Values for Elevator -------
