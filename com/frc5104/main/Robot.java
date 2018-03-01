@@ -22,12 +22,12 @@ public class Robot extends IterativeRobot {
 	Deadband deadband = new Deadband(0.05);
 	
 	//Drive Squeezy Elevator Climber
-	Drive drive = null;
+	Drive drive = Drive.getInstance();
 //	Drive drive = Drive.getInstance();
 //	Shifters shifters = Shifters.getInstance();
 	
-	Squeezy squeezy = null;
-	SqueezySensors squeezySensors = null;
+	Squeezy squeezy = Squeezy.getInstance();
+	SqueezySensors squeezySensors = SqueezySensors.getInstance();
 //	Squeezy squeezy = Squeezy.getInstance();
 //	SqueezySensors squeezySensors = SqueezySensors.getInstance();
 	
@@ -37,7 +37,7 @@ public class Robot extends IterativeRobot {
 	PTO pto = null;
 //	PTO pto = PTO.getInstance();
 	long startTime = System.currentTimeMillis();
-	TalonSRX ptoTalon = null;
+	TalonSRX ptoTalon = new TalonSRX(9);
 //	TalonSRX ptoTalon = new TalonSRX(/*Athena/Ares*//*9*/  /*Babyboard*/11);
 	
 	/* ------- PTO PID Values for Elevator -------
@@ -89,6 +89,7 @@ public class Robot extends IterativeRobot {
 	
 	public void teleopInit() {
 //		shifters.shiftLow();
+		
 	}//teleopInit
 	
 	public void teleopPeriodic() {
@@ -137,7 +138,7 @@ public class Robot extends IterativeRobot {
 		if (ptoTalon != null) {
 			double elevatorEffort = ptoTalon.getMotorOutputPercent();
 			if (SmartDashboard.getBoolean("pto_driven_by_joystick", true)) {
-				elevatorEffort = joy.getRawAxis(5);
+				elevatorEffort = -joy.getRawAxis(5);
 				elevatorEffort = deadband.get(elevatorEffort);
 				ptoTalon.set(ControlMode.PercentOutput, elevatorEffort);
 			} else {

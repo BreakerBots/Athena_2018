@@ -18,10 +18,14 @@ public class FilteredUltraSonic {
 //	}
 	
 	public FilteredUltraSonic(int ping, int echo, int filterLength) {
+		ultra = new Ultrasonic(ping, echo);
+		distances = new double[filterLength];
 	}//FilteredUltraSonic
 	
 	public FilteredUltraSonic(int ping, int echo) {
-		this(ping, echo, 20);
+		//this(ping, echo, 20);
+		ultra = new Ultrasonic(ping, echo);
+		distances = new double[20];
 	}//FilteredUltraSonic
 	
 	public void init() {

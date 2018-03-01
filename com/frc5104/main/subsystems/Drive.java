@@ -27,7 +27,9 @@ public class Drive {
 	
 	DifferentialDrive drive = new DifferentialDrive(leftDrive, rightDrive);	
 
-	private Drive() {}
+	private Drive() {
+		drive.setDeadband(0);
+	}
 	
 	public void arcadeDrive(double moveVal, double rotateVal) {
 		drive.arcadeDrive(moveVal, rotateVal);
