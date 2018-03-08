@@ -15,7 +15,7 @@ public class Squeezy {
 	public static final int LEFT_ID = /*0*/22;
 	public static final int RIGHT_ID = /*1*/23;
 	
-	static final double kHoldEffort = -0.1;
+	static final double kHoldEffort = -0.15;
 	static final double kShootSqueezeEffort = -0.05;
 	static final double kCloseEffort = -0.2;
 	static final double kOpenEffort  = 0.15;
@@ -54,7 +54,7 @@ public class Squeezy {
 	TalonSRX leftSpin  = new TalonSRX(LEFT_ID);
 	TalonSRX rightSpin = new TalonSRX(RIGHT_ID);
 	
-	DoubleSolenoid lifter = new DoubleSolenoid(2,3);
+	//DoubleSolenoid lifter = new DoubleSolenoid(2,3);
 	
 	SqueezySensors sensors = SqueezySensors.getInstance();
 
@@ -221,13 +221,13 @@ public class Squeezy {
 	}//hold
 	
 	private void raise() {
-		if (squeezer.getSelectedSensorPosition(0) < -10000)
-			lifter.set(DoubleSolenoid.Value.kReverse);
+		//if (squeezer.getSelectedSensorPosition(0) < -10000)
+			//lifter.set(DoubleSolenoid.Value.kReverse);
 //		System.out.printf("Lifter Value: %s\t", DoubleSolenoid.Value.kForward.toString());
 	}//raise
 	
 	private void lower() {
-		lifter.set(DoubleSolenoid.Value.kForward);
+		//lifter.set(DoubleSolenoid.Value.kForward);
 //		System.out.printf("Lifter Value: %s\t", DoubleSolenoid.Value.kReverse.toString());
 	}//lower
 	

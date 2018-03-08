@@ -6,9 +6,11 @@ import com.frc5104.main.subsystems.Drive;
 import com.frc5104.main.subsystems.Elevator;
 import com.frc5104.main.subsystems.Squeezy;
 import com.frc5104.main.subsystems.SqueezySensors;
+import com.frc5104.utilities.ButtonS;
 import com.frc5104.utilities.Deadband;
 import com.frc5104.vision.VisionThread;
 
+import edu.wpi.first.wpilibj.DoubleSolenoid;
 import edu.wpi.first.wpilibj.IterativeRobot;
 import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
@@ -22,12 +24,12 @@ public class Robot extends IterativeRobot {
 	Deadband deadband = new Deadband(0.05);
 	
 	//Drive Squeezy Elevator Climber
-	Drive drive = Drive.getInstance();
+	Drive drive = null;
 //	Drive drive = Drive.getInstance();
 //	Shifters shifters = Shifters.getInstance();
 	
-	Squeezy squeezy = Squeezy.getInstance();
-	SqueezySensors squeezySensors = SqueezySensors.getInstance();
+	Squeezy squeezy = null;
+//	SqueezySensors squeezySensors = SqueezySensors.getInstance();
 //	Squeezy squeezy = Squeezy.getInstance();
 //	SqueezySensors squeezySensors = SqueezySensors.getInstance();
 	
@@ -40,6 +42,9 @@ public class Robot extends IterativeRobot {
 	TalonSRX ptoTalon = null;
 //	TalonSRX ptoTalon = new TalonSRX(9);
 //	TalonSRX ptoTalon = new TalonSRX(/*Athena/Ares*//*9*/  /*Babyboard*/11);
+	
+	ButtonS ptoShifter = new ButtonS(4);
+	DoubleSolenoid ptoSol = new DoubleSolenoid(4, 5);
 	
 	/* ------- PTO PID Values for Elevator -------
 	 * 
@@ -95,7 +100,9 @@ public class Robot extends IterativeRobot {
 	
 	public void teleopPeriodic() {
 //		System.out.println("Encoder Position: "+drive.getEncoderRight());
-		
+		ptoShifter.update(); if (ptoShifter.Pressed) { 
+			ptoSol.set(ptoSol.get() == DoubleSolenoid.Value.kReverse ? DoubleSolenoid.Value.kForward : DoubleSolenoid.Value.kReverse);
+		}
 		
 		if (drive != null) {
 			double x = joy.getRawAxis(0),
@@ -139,7 +146,7 @@ public class Robot extends IterativeRobot {
 		if (ptoTalon != null) {
 			double elevatorEffort = ptoTalon.getMotorOutputPercent();
 			if (SmartDashboard.getBoolean("pto_driven_by_joystick", true)) {
-				elevatorEffort = -joy.getRawAxis(5);
+				elevatorEffort = -(joy.getRawButton(5) ? 1: -1) + (joy.getRawButton(6) ? 1 : -1);
 				elevatorEffort = deadband.get(elevatorEffort);
 				ptoTalon.set(ControlMode.PercentOutput, elevatorEffort);
 			} else {

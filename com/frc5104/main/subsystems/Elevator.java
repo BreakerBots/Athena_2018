@@ -14,9 +14,9 @@ public class Elevator {
 	public static final int SOFT_STOP_BOTTOM = 0;
 	public static final int SOFT_STOP_TOP = -16150;
 	
-	public static final boolean TWO_TALONS = false;
-	public static final int TALON1_ID = 9;
-	public static final int TALON2_ID = 51;
+	public static final boolean TWO_TALONS = true;
+	public static final int TALON1_ID = 31;
+	public static final int TALON2_ID = 32;
 	public static final int AXIS_ID = 5;
 	
 	public static final double kRaiseEffort = 0.8;
@@ -48,12 +48,10 @@ public class Elevator {
 	}//Elevator
 	
 	public void update() {
-		if (talon1.getSensorCollection().isRevLimitSwitchClosed())
-			talon1.setSelectedSensorPosition(0, 0, 10);
 
 		double elevatorEffort = talon1.getMotorOutputPercent();
 		if (!getBoolean("closed_loop_control", false)) {
-			elevatorEffort = joy.getRawAxis(AXIS_ID);
+			elevatorEffort = -joy.getRawAxis(AXIS_ID);
 			elevatorEffort = Deadband.getDefault().get(elevatorEffort);
 			talon1.set(ControlMode.PercentOutput, elevatorEffort);
 		} else {
@@ -79,11 +77,11 @@ public class Elevator {
 	
 	//----- Elevator Sensors ------//
 	public boolean getLowerLimit() {
-		return talon1.getSensorCollection().isRevLimitSwitchClosed();
+		return talon1.getSensorCollection().isFwdLimitSwitchClosed();
 	}//getLowerLimit
 	
 	public boolean getUpperLimit() {
-		return talon1.getSensorCollection().isFwdLimitSwitchClosed();
+		return talon1.getSensorCollection().isRevLimitSwitchClosed();
 	}//getUpperLimit
 	
 	public boolean isLowEnoughToDrop() {

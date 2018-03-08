@@ -18,16 +18,16 @@ public class PTO {
 		return m_instance;
 	}//getInstance
 	
-	DoubleSolenoid solenoid = new DoubleSolenoid(SWITCH_ID, NULL_ID);
+	//DoubleSolenoid solenoid = new DoubleSolenoid(SWITCH_ID, NULL_ID);
 	
 	
 	public void powerElevator () {
-		solenoid.set(Value.kForward);
+		//solenoid.set(Value.kForward);
 	}//powerElevator
 	
 	public boolean powerClimber() {
 		if (!Elevator.isRaised()) {
-			solenoid.set(Value.kReverse);
+			//solenoid.set(Value.kReverse);
 			return true;
 		}
 		return false;
