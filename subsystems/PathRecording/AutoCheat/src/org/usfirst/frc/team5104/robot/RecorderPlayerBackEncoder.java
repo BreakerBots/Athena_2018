@@ -63,8 +63,7 @@ public class RecorderPlayerBackEncoder extends IterativeRobot {
 	//Encoder Variables
 	int esumL = 0, esumR = 0;
 	int CurrentTick = 0;
-	ArrayList<Double> xSpeed = new ArrayList<Double>();
-	ArrayList<Double> ySpeed = new ArrayList<Double>();
+	int eLa = 0; int eRa = 0;
 	
 	//Declaring custom ultrasanic object and double for saving it's distance.
 	UltraS sanic = new UltraS(1, 0);
@@ -123,11 +122,11 @@ public class RecorderPlayerBackEncoder extends IterativeRobot {
 		
 		//State Machine
 		if (btnA.Pressed) { 
-			if (state == 0 || state == 2 || state == 3) { state = 1; recorder = new double[1800][5]; index = 0; sRcd = false; esumL = 0; esumR = 0; xSpeed.clear(); ySpeed.clear();}
+			if (state == 0 || state == 2 || state == 3) { state = 1; recorder = new double[1800][5]; index = 0; sRcd = false; esumL = 0; esumR = 0; eLa = talon1.getSelectedSensorPosition(0); eRa = talon3.getSelectedSensorPosition(0); }
 			else { state = 0; WriteFile(); }
 		}
 		if (btnB.Pressed) {
-			if (state == 0 || state == 1 || state == 3) { state = 2; index = 0; ReadFile(); esumL = 0; esumR = 0;
+			if (state == 0 || state == 1 || state == 3) { state = 2; index = 0; ReadFile(); esumL = 0; esumR = 0; eLa = talon1.getSelectedSensorPosition(0); eRa = talon3.getSelectedSensorPosition(0);
 				if(state==1){WriteFile();}}
 			else { state = 0; }
 		}
@@ -152,20 +151,16 @@ public class RecorderPlayerBackEncoder extends IterativeRobot {
 				axisY = -controller.getRawAxis(1) * vSpeed;
 				axisX =  controller.getRawAxis(0) * vSpeed;
 				
-				esumL += talon1.getSelectedSensorPosition(0);  esumR += talon3.getSelectedSensorPosition(0);
-				xSpeed.add(axisX / vSpeed); ySpeed.add(axisY / vSpeed);
+				esumL += talon1.getSelectedSensorPosition(0) - eLa;  esumR += talon3.getSelectedSensorPosition(0) - eRa;
 				
-				CurrentTick++; if (CurrentTick >= 1) {
+				CurrentTick++; if (CurrentTick >= 10) {
 					CurrentTick = 0;
 					
-					recorder[(int) index][0] = avg(xSpeed);
-					recorder[(int) index][1] = avg(ySpeed);
-					recorder[(int) index][2] = 0;
 					recorder[(int) index][3] = esumL;
 					recorder[(int) index][4] = esumR;
 					index++;
 					
-					esumL = 0; esumR = 0; xSpeed.clear(); ySpeed.clear();
+					esumL = 0; esumR = 0;
 				}
 				
 				
@@ -200,26 +195,26 @@ public class RecorderPlayerBackEncoder extends IterativeRobot {
 //					System.out.println("UltraSanic: Stopped  due to object detection.");
 //				}
 //				else {
-					axisX = recorder[(int) index][0] * vSpeed;
-					axisY = recorder[(int) index][1] * vSpeed;
-					
-					esumL += talon1.getSelectedSensorPosition(0);  esumR += talon3.getSelectedSensorPosition(0);
+					esumL += talon1.getSelectedSensorPosition(0) - eLa;  esumR += talon3.getSelectedSensorPosition(0) - eRa;
 
-					if (Math.abs(esumL) >= Math.abs(recorder[(int) index][3])) {
+					
+
+					
+					if (true) {
 //						talon1.set(ControlMode.PercentOutput, 0);
 //						talon2.set(ControlMode.PercentOutput, 0);
 					}
 					else {
-						talon1.set(ControlMode.PercentOutput, (-axisY-axisX)  / talon1.getBusVoltage());
-						talon2.set(ControlMode.PercentOutput, (-axisY-axisX)  / talon1.getBusVoltage());
+						talon1.set(ControlMode.MotionMagic, recorder[(int) index][3]);
+						talon2.set(ControlMode.MotionMagic, recorder[(int) index][3]);
 					} 
 					if (Math.abs(esumR) >= Math.abs(recorder[(int) index][4])) {
 //						talon3.set(ControlMode.PercentOutput, 0);
 //						talon4.set(ControlMode.PercentOutput, 0);
 					}
 					else {
-						talon3.set(ControlMode.PercentOutput, ( axisY-axisX)  / talon1.getBusVoltage());
-						talon4.set(ControlMode.PercentOutput, ( axisY-axisX)  / talon1.getBusVoltage());   
+						talon3.set(ControlMode.MotionMagic, recorder[(int) index][4]);
+						talon4.set(ControlMode.MotionMagic, recorder[(int) index][4]); 
 					}
 					
 					if ((Math.abs(esumL) >= Math.abs(recorder[(int) index][3])) && (Math.abs(esumR) >= Math.abs(recorder[(int) index][4]))) {
@@ -233,8 +228,6 @@ public class RecorderPlayerBackEncoder extends IterativeRobot {
 		else if (state == 3) {
 			//Deleted
 		}
-		talon1.setSelectedSensorPosition(0, 0, 0);
-		talon3.setSelectedSensorPosition(0, 0, 0);
 	}
 
 	public void ReadFile() {

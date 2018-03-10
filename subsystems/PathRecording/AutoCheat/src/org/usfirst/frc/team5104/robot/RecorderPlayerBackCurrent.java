@@ -14,15 +14,20 @@ import com.ctre.phoenix.motorcontrol.can.TalonSRX;
 import Libraries.ButtonS;
 import Libraries.UltraS;
 import edu.wpi.first.wpilibj.ADXRS450_Gyro;
+import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.GenericHID.RumbleType;
 import edu.wpi.first.wpilibj.IterativeRobot;
 import edu.wpi.first.wpilibj.Joystick;
+import edu.wpi.first.wpilibj.PowerDistributionPanel;
+import edu.wpi.first.wpilibj.Timer;
+import edu.wpi.first.wpilibj.hal.PDPJNI;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import henrylogging.lib.LogValue;
 import henrylogging.lib.Logger;
 
 public class RecorderPlayerBackCurrent extends IterativeRobot {
 	
-	Logger logger = new Logger("/media/sda/paths");
+//	Logger logger = new Logger("/media/sda/paths");
 	ADXRS450_Gyro gyro = new ADXRS450_Gyro();
 	
 	//Declaring Talons and Setting Device Ids
@@ -54,6 +59,7 @@ public class RecorderPlayerBackCurrent extends IterativeRobot {
 	//Index used for moving through the "recorder" array.
 	double index = 0;
 	double vSpeed = 10;
+	double batteryVolage = 0;
 	//State variable used for representing posistion in state machine
 	int state = 0;
 	//Boolean used to not start recording unless there is something to record. (Stops the idle and the beginning of the recording)
@@ -70,18 +76,19 @@ public class RecorderPlayerBackCurrent extends IterativeRobot {
 	ObjectInputStream oi;
 	//Path used to declare directory and name of saved recoding file.
 	String path = "/media/sda/" + "PathRecording.txt";
+	private double batteryVoltage;
 	
 	public void robotInit() {
 		//Initiate custom sanic object
 		sanic.RInit();	
 		
-		logger.logLong("time", new LogValue() { public Object get() { return System.currentTimeMillis(); } });
-		logger.logDouble("gyro", new LogValue() {public Object get() {return gyro.getAngle();}});
-		logger.logInt("left_encoder", new LogValue() {public Object get() {return talon1.getSelectedSensorPosition(0);}});
-		logger.logInt("right_encoder", new LogValue() {public Object get() {return talon3.getSelectedSensorPosition(0);}});
-		logger.logDouble("joy_x", new LogValue() {public Object get() {return controller.getRawAxis(0);}});
-		logger.logDouble("joy_y", new LogValue() {public Object get() {return controller.getRawAxis(1);}});
-		logger.logInt("index", new LogValue() {public Object get() {return index;}});
+//		logger.logLong("time", new LogValue() { public Object get() { return System.currentTimeMillis(); } });
+//		logger.logDouble("gyro", new LogValue() {public Object get() {return gyro.getAngle();}});
+//		logger.logInt("left_encoder", new LogValue() {public Object get() {return talon1.getSelectedSensorPosition(0);}});
+//		logger.logInt("right_encoder", new LogValue() {public Object get() {return talon3.getSelectedSensorPosition(0);}});
+//		logger.logDouble("joy_x", new LogValue() {public Object get() {return controller.getRawAxis(0);}});
+//		logger.logDouble("joy_y", new LogValue() {public Object get() {return controller.getRawAxis(1);}});
+//		logger.logInt("index", new LogValue() {public Object get() {return index;}});
 	}
 	
 	public void teleopInit() {
@@ -92,9 +99,10 @@ public class RecorderPlayerBackCurrent extends IterativeRobot {
 		SmartDashboard.putString("DB/String 7", "10");
 	}
 		
+	
 	public void teleopPeriodic() {
-		logger.collect();
-		
+//		logger.collect();
+						
 		//Update all buttons and ultrasanic 
 		btnA.update(); btnB.update(); btnX.update();
 		sanic.Update();
@@ -112,24 +120,25 @@ public class RecorderPlayerBackCurrent extends IterativeRobot {
 		if (state == 0) { stateName = "Default"; }
 		if (state == 1) { stateName = "Recording"; }
 		if (state == 2) { stateName = "Playback"; }
-		if (state == 3) { stateName = "Reverse Playback"; }
+		if (state == 3) { stateName = "Braked"; }
 		
 		//State Machine
 		if (btnA.Pressed) { 
-			if (state == 0 || state == 2 || state == 3) { state = 1; recorder = new double[1800][3]; index = 0; sRcd = false; }
+			if (state == 0 || state == 2 || state == 3) { state = 1; recorder = new double[1800][3]; index = 0; sRcd = false; batteryVoltage = getBatteryVoltage(); }
 			else { state = 0; WriteFile(); }
 		}
 		if (btnB.Pressed) {
-			if (state == 0 || state == 1 || state == 3) { state = 2; index = 0; ReadFile(); 
+			if (state == 0 || state == 1 || state == 3) { state = 2; index = 0; ReadFile(); batteryVoltage = getBatteryVoltage();
 				if(state==1){WriteFile();}}
 			else { state = 0; }
 		}
 		if (btnX.Pressed) {
-			if (state == 0 || state == 1 || state == 2) { state = 3; ReadFile(); 
+			if (state == 0 || state == 1 || state == 2) { state = 3;
 				if(state==1){WriteFile();}}
 			else { state = 0; }
 		}
 		
+		batteryVoltage = 10;
 		
 		//Add Time and State To Dashboard.
 		SmartDashboard.putString("DB/String 5", stateName);
@@ -148,10 +157,10 @@ public class RecorderPlayerBackCurrent extends IterativeRobot {
 				recorder[(int) index][2] = sanDist;
 				index++;
 				
-				talon1.set(ControlMode.PercentOutput, (-axisY-axisX)  / talon1.getBusVoltage());
-				talon2.set(ControlMode.PercentOutput, (-axisY-axisX)  / talon1.getBusVoltage());
-				talon3.set(ControlMode.PercentOutput, ( axisY-axisX)  / talon1.getBusVoltage());
-				talon4.set(ControlMode.PercentOutput, ( axisY-axisX)  / talon1.getBusVoltage());
+				talon1.set(ControlMode.PercentOutput, (-axisY-axisX)  / batteryVoltage);
+				talon2.set(ControlMode.PercentOutput, (-axisY-axisX)  / batteryVoltage);
+				talon3.set(ControlMode.PercentOutput, ( axisY-axisX)  / batteryVoltage);
+				talon4.set(ControlMode.PercentOutput, ( axisY-axisX)  / batteryVoltage);
 			}
 			else if (!sRcd) { 
 				if (controller.getRawAxis(1) != 0 && controller.getRawAxis(0) != 0) {
@@ -164,10 +173,10 @@ public class RecorderPlayerBackCurrent extends IterativeRobot {
 			axisY = -controller.getRawAxis(1) * vSpeed;
 			axisX =  controller.getRawAxis(0) * vSpeed;
 				
-			talon1.set(ControlMode.PercentOutput, (-axisY-axisX)  / talon1.getBusVoltage());
-			talon2.set(ControlMode.PercentOutput, (-axisY-axisX)  / talon1.getBusVoltage());
-			talon3.set(ControlMode.PercentOutput, ( axisY-axisX)  / talon1.getBusVoltage());
-			talon4.set(ControlMode.PercentOutput, ( axisY-axisX)  / talon1.getBusVoltage());
+			talon1.set(ControlMode.PercentOutput, (-axisY-axisX)  / batteryVoltage);
+			talon2.set(ControlMode.PercentOutput, (-axisY-axisX)  / batteryVoltage);
+			talon3.set(ControlMode.PercentOutput, ( axisY-axisX)  / batteryVoltage);
+			talon4.set(ControlMode.PercentOutput, ( axisY-axisX)  / batteryVoltage);
 		}
 		else if (state == 2) {
 			if (index < recorder.length) {
@@ -183,10 +192,10 @@ public class RecorderPlayerBackCurrent extends IterativeRobot {
 					axisY = recorder[(int) index][1] * vSpeed;
 					index++;
 					
-					talon1.set(ControlMode.PercentOutput, (-axisY-axisX)  / talon1.getBusVoltage());
-					talon2.set(ControlMode.PercentOutput, (-axisY-axisX)  / talon1.getBusVoltage());
-					talon3.set(ControlMode.PercentOutput, ( axisY-axisX)  / talon1.getBusVoltage());
-					talon4.set(ControlMode.PercentOutput, ( axisY-axisX)  / talon1.getBusVoltage());   
+					talon1.set(ControlMode.PercentOutput, (-axisY-axisX)  / batteryVoltage);
+					talon2.set(ControlMode.PercentOutput, (-axisY-axisX)  / batteryVoltage);
+					talon3.set(ControlMode.PercentOutput, ( axisY-axisX)  / batteryVoltage);
+					talon4.set(ControlMode.PercentOutput, ( axisY-axisX)  / batteryVoltage);
 				}
 			}
 			else { state = 0; }
@@ -240,7 +249,20 @@ public class RecorderPlayerBackCurrent extends IterativeRobot {
 		}
 	}
 	
-	public void disabledInit() {
-		logger.log();
+//	public void disabledInit() {
+//		logger.log();
+//	}
+	
+	private double getBatteryVoltage() {
+		talon1.set(ControlMode.PercentOutput, 0);
+		talon2.set(ControlMode.PercentOutput, 0);
+		talon3.set(ControlMode.PercentOutput, 0);
+		talon4.set(ControlMode.PercentOutput, 0);
+		
+		controller.setRumble(RumbleType.kRightRumble, 1);
+		Timer.delay(0.1);
+		controller.setRumble(RumbleType.kRightRumble, 0);
+
+		return DriverStation.getInstance().getBatteryVoltage();
 	}
 }
