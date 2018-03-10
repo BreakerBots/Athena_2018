@@ -1,4 +1,4 @@
-package com.frc5104.recording;
+package com.frc5104.logging;
 
 import java.io.File;
 import java.io.FileWriter;
@@ -80,7 +80,7 @@ public class CSVFileWriter {
 		writer.write(endline);
 	}//writeTitles
 	
-	public void updateAtTime(long time) throws IOException{
+	public void collectAtTime(long time) {
 		tickTime = time;
 		
 		for (Data d: data) {

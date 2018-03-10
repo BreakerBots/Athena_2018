@@ -5,11 +5,12 @@ import java.util.Calendar;
 
 import com.ctre.phoenix.motorcontrol.ControlMode;
 import com.ctre.phoenix.motorcontrol.can.TalonSRX;
+import com.frc5104.logging.CSVFileReader;
+import com.frc5104.logging.CSVFileWriter;
+import com.frc5104.logging.LogDouble;
 import com.frc5104.main.subsystems.Drive;
 import com.frc5104.main.subsystems.Elevator;
 import com.frc5104.main.subsystems.Squeezy;
-import com.frc5104.recording.CSVFileWriter;
-import com.frc5104.recording.LogDouble;
 import com.frc5104.utilities.ButtonS;
 import com.frc5104.utilities.Deadband;
 import com.frc5104.vision.VisionThread;
@@ -29,8 +30,11 @@ public class RobotRecorder extends IterativeRobot {
 	}
 	RecorderState recorderState = RecorderState.kUser;
 
-	CSVFileWriter recorder;
 	File recorderFile;
+	CSVFileWriter recorder;
+	
+	//------------- Playback ----------------//
+	CSVFileReader reader;
 	
 	//---------------------------------------//
 	
@@ -283,5 +287,17 @@ public class RobotRecorder extends IterativeRobot {
 	public void closeRecorderFile() {
 		recorder.writeValuesToFile();
 	}//closeRecorderFile
+	
+	public void loadPlaybackFile() {
+		reader = new CSVFileReader(recorderFile);
+	}//loadPlaybackFile
+	
+	public void playback() {
+		reader.readLine();
+		double x = reader.get("joy_x");
+		double y = reader.get("joy_y");
+		
+		drive.arcadeDrive(y, x);
+	}//playback
 	
 }//Robot
