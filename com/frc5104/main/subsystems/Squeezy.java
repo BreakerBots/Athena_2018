@@ -49,7 +49,7 @@ public class Squeezy {
 			buttonCancel = new ButtonS(2),
 			buttonUnjam = new ButtonS(8);
 	
-	//Talon IDs start with 2_
+	//Talon IDs fall are contained in [20,30)
 	TalonSRX squeezer  = new TalonSRX(MAIN_ID);
 	TalonSRX leftSpin  = new TalonSRX(LEFT_ID);
 	TalonSRX rightSpin = new TalonSRX(RIGHT_ID);

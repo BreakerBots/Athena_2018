@@ -1,10 +1,15 @@
 package com.frc5104.main;
 
+import java.io.File;
+import java.util.Calendar;
+
 import com.ctre.phoenix.motorcontrol.ControlMode;
 import com.ctre.phoenix.motorcontrol.can.TalonSRX;
 import com.frc5104.main.subsystems.Drive;
 import com.frc5104.main.subsystems.Elevator;
 import com.frc5104.main.subsystems.Squeezy;
+import com.frc5104.recording.CSVFileWriter;
+import com.frc5104.recording.LogDouble;
 import com.frc5104.utilities.ButtonS;
 import com.frc5104.utilities.Deadband;
 import com.frc5104.vision.VisionThread;
@@ -14,8 +19,21 @@ import edu.wpi.first.wpilibj.IterativeRobot;
 import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
-public class Robot extends IterativeRobot {
+public class RobotRecorder extends IterativeRobot {
 
+	
+	//------------ Recording ----------------//
+	public static final String root = "/home/lvuser/aresPaths";
+	enum RecorderState {
+		kUser, kRecording, kPlayback
+	}
+	RecorderState recorderState = RecorderState.kUser;
+
+	CSVFileWriter recorder;
+	File recorderFile;
+	
+	//---------------------------------------//
+	
 	BasicAuto auto;
 	VisionThread vision;
 
@@ -96,9 +114,47 @@ public class Robot extends IterativeRobot {
 //		shifters.shiftLow();
 		
 	}//teleopInit
-	
+
 	public void teleopPeriodic() {
+		int pov = joy.getPOV();
+		
+		SmartDashboard.putString("String 0", "POV: "+joy.getPOV());
+		SmartDashboard.putString("String 1", recorderState.toString());
+		
+		switch (recorderState) {
+		case kUser:
+			userTeleop();
+			if (pov == 270) {
+				System.out.println("Started Recording");
+				recorderState = RecorderState.kRecording;
+				initRecorderFile();
+				setupRecorderData();
+			}
+			if (pov == 90) {
+				System.out.println("Started Playback");
+				recorderState = RecorderState.kPlayback;
+				loadPlaybackFile();
+			}
+			break;
+		case kRecording:
+			userTeleop();
+			recorder.collectAtTime(System.currentTimeMillis());
+			
+			if (pov == 180) {
+				System.out.println("Stopped Recording");
+				recorderState = RecorderState.kUser;
+				closeRecorderFile();
+			}
+			break;
+		case kPlayback:
+			playback();
+			break;
+		}
+	}//teleopPeriodic
+	
+	public void userTeleop() {
 //		System.out.println("Encoder Position: "+drive.getEncoderRight());
+		
 		ptoShifter.update(); if (ptoShifter.Pressed) { 
 			ptoSol.set(ptoSol.get() == DoubleSolenoid.Value.kReverse ? DoubleSolenoid.Value.kForward : DoubleSolenoid.Value.kReverse);
 		}
@@ -175,15 +231,57 @@ public class Robot extends IterativeRobot {
 				ptoTalon.setIntegralAccumulator(0, 0, 10);
 			}
 		}
-		
-		
 	}//teleopPeriodic
 	
-	public void robotPeriodic() {
-	}
-	
-	public void testInit() {
+	public void initRecorderFile() {
+		Calendar today = Calendar.getInstance();
+		int month	= today.get(Calendar.MONTH),
+			day		= today.get(Calendar.DAY_OF_MONTH),
+			year	= today.get(Calendar.YEAR);
+		int hour	= today.get(Calendar.HOUR),
+			minute	= today.get(Calendar.MINUTE),
+			second	= today.get(Calendar.SECOND);
 
-	}
+		/* Creates a new directory for the day */
+		File date = new File(root, String.format("%d-%d-%d",month,day,year));
+		if (date.mkdir())
+			System.out.println("Successfully created this date's directory");
+		else
+			System.out.println("Failed to create this date's directory");
+
+		String fileName = SmartDashboard.getString("DB/String 5", "robotPath");
+		if (fileName.equals("")) {
+			fileName = "robot_path";
+		}
+		
+		int index = 0;
+		File pathFile = new File(date, fileName);
+		while (pathFile.exists()) {
+			pathFile = new File(date, fileName+"_"+index);
+			index++;
+		}
+		
+		SmartDashboard.putString("DB/String 5", pathFile.getName());
+		
+		recorder = new CSVFileWriter(pathFile);
+		
+	}//initRecorderFile
+	
+	public void setupRecorderData() {
+		recorder.addLogDouble("joy_x", new LogDouble() {
+			public double get() {
+				return joy.getRawAxis(0);
+			}
+		});
+		recorder.addLogDouble("joy_y", new LogDouble() {
+			public double get() {
+				return -joy.getRawAxis(1);
+			}
+		});
+	}//setupRecorderData
+	
+	public void closeRecorderFile() {
+		recorder.writeValuesToFile();
+	}//closeRecorderFile
 	
 }//Robot
