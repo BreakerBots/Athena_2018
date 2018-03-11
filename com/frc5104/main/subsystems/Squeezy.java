@@ -54,7 +54,7 @@ public class Squeezy {
 	TalonSRX leftSpin  = new TalonSRX(LEFT_ID);
 	TalonSRX rightSpin = new TalonSRX(RIGHT_ID);
 	
-	//DoubleSolenoid lifter = new DoubleSolenoid(2,3);
+	//DoubleSolenoid lifter = new DoubleSolenoid(0,1);
 	
 	SqueezySensors sensors = SqueezySensors.getInstance();
 

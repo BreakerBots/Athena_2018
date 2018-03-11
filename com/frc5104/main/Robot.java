@@ -4,7 +4,9 @@ import com.ctre.phoenix.motorcontrol.ControlMode;
 import com.ctre.phoenix.motorcontrol.can.TalonSRX;
 import com.frc5104.main.subsystems.Drive;
 import com.frc5104.main.subsystems.Elevator;
+import com.frc5104.main.subsystems.Shifters;
 import com.frc5104.main.subsystems.Squeezy;
+import com.frc5104.main.subsystems.SqueezySensors;
 import com.frc5104.utilities.ButtonS;
 import com.frc5104.utilities.Deadband;
 import com.frc5104.vision.VisionThread;
@@ -23,14 +25,15 @@ public class Robot extends IterativeRobot {
 	Deadband deadband = new Deadband(0.05);
 	
 	//Drive Squeezy Elevator Climber
-	Drive drive = null;
-//	Drive drive = Drive.getInstance();
-//	Shifters shifters = Shifters.getInstance();
+//	Drive drive = null;
+	Drive drive = Drive.getInstance();
+	Shifters shifters = Shifters.getInstance();
+	ButtonS shifterButton = new ButtonS(5);
 	
-	Squeezy squeezy = null;
+//	Squeezy squeezy = null;
+	Squeezy squeezy = Squeezy.getInstance();
 //	SqueezySensors squeezySensors = SqueezySensors.getInstance();
-//	Squeezy squeezy = Squeezy.getInstance();
-//	SqueezySensors squeezySensors = SqueezySensors.getInstance();
+	SqueezySensors squeezySensors = SqueezySensors.getInstance();
 	
 //	Elevator elevator = null;
 	Elevator elevator = Elevator.getInstance();
@@ -45,6 +48,8 @@ public class Robot extends IterativeRobot {
 	ButtonS ptoShifter = new ButtonS(4);
 	DoubleSolenoid ptoSol = new DoubleSolenoid(4, 5);
 	
+	
+	DoubleSolenoid squeezyUpDown = new DoubleSolenoid(0,1);
 	/* ------- PTO PID Values for Elevator -------
 	 * 
 	 * p == 0.16
@@ -77,6 +82,8 @@ public class Robot extends IterativeRobot {
 		if (elevator != null)
 			elevator.initTable(null);
 		
+		squeezyUpDown.set(DoubleSolenoid.Value.kForward);
+		
 	}//robotInit
 	
 	public void autonomousInit() {
@@ -93,7 +100,8 @@ public class Robot extends IterativeRobot {
 	}//autonomousPeriodic
 	
 	public void teleopInit() {
-//		shifters.shiftLow();
+		if (shifters != null)
+			shifters.shiftLow();
 		
 	}//teleopInit
 	
@@ -104,26 +112,40 @@ public class Robot extends IterativeRobot {
 		}
 		
 		if (drive != null) {
-			double x = joy.getRawAxis(0),
+			double x = -joy.getRawAxis(0),
 					y = joy.getRawAxis(1);
 			
-			x = deadband.get(x);
-			y = deadband.get(y);
-			drive.arcadeDrive(y,-x);
+//			x = deadband.get(x);
+//			y = deadband.get(y);
+			drive.arcadeDrive(y,x);
 		}
 		
-//		elevator.poll();
-//		elevator.update();
+		shifterButton.update();
+		if (shifterButton.Pressed)
+			shifters.toggle();
 		
-//		if (Math.abs(drive.getEncoderLeft()+drive.getEncoderRight())/2 > 1300)
-//			shifters.shiftHigh();
-//		else if (Math.abs(drive.getEncoderLeft()+drive.getEncoderRight())/2 < 800)
-//			shifters.shiftLow();
+		if (elevator != null) {
+			elevator.update();
+		}
 
 		if (squeezy != null) {
 			squeezy.poll();
 			squeezy.updateState();
 		}
+		
+		if (joy.getPOV() == 90) {
+			System.out.println("DOWN!");
+			squeezyUpDown.set(DoubleSolenoid.Value.kForward);
+		}
+		if (joy.getPOV() == 180) {
+			System.out.println("UP!");
+			squeezyUpDown.set(DoubleSolenoid.Value.kReverse);
+		}
+//		if (Math.abs(drive.getEncoderLeft()+drive.getEncoderRight())/2 > 1300)
+//			shifters.shiftHigh();
+//		else if (Math.abs(drive.getEncoderLeft()+drive.getEncoderRight())/2 < 800)
+//			shifters.shiftLow();
+
 		
 //		if (joy.getRawAxis(3) > 0.2) {
 		if (pto != null) {
@@ -138,9 +160,6 @@ public class Robot extends IterativeRobot {
 			}
 		}
 		
-		if (elevator != null) {
-			elevator.update();
-		}
 		
 		if (ptoTalon != null) {
 			double elevatorEffort = ptoTalon.getMotorOutputPercent();
