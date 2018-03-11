@@ -131,8 +131,8 @@ public class RobotRecorder extends IterativeRobot {
 	public void teleopPeriodic() {
 		int pov = joy.getPOV();
 		
-		SmartDashboard.putString("String 0", "POV: "+joy.getPOV());
-		SmartDashboard.putString("String 1", recorderState.toString());
+		SmartDashboard.putString("DB/String 0", "POV: "+joy.getPOV());
+		SmartDashboard.putString("DB/String 1", recorderState.toString());
 		
 		switch (recorderState) {
 		case kUser:
@@ -288,18 +288,19 @@ public class RobotRecorder extends IterativeRobot {
 		SmartDashboard.putString("DB/String 5", pathFile.getName());
 		
 		recorder = new CSVFileWriter(pathFile);
+		recorderFile = pathFile;
 		
 	}//initRecorderFile
 	
 	public void setupRecorderData() {
 		recorder.addLogDouble("joy_x", new LogDouble() {
 			public double get() {
-				return joy.getRawAxis(0);
+				return -joy.getRawAxis(0);
 			}
 		});
 		recorder.addLogDouble("joy_y", new LogDouble() {
 			public double get() {
-				return -joy.getRawAxis(1);
+				return joy.getRawAxis(1);
 			}
 		});
 	}//setupRecorderData

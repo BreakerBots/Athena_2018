@@ -133,14 +133,14 @@ public class Robot extends IterativeRobot {
 			squeezy.updateState();
 		}
 		
-		if (joy.getPOV() == 90) {
-			System.out.println("DOWN!");
-			squeezyUpDown.set(DoubleSolenoid.Value.kForward);
-		}
-		if (joy.getPOV() == 180) {
-			System.out.println("UP!");
-			squeezyUpDown.set(DoubleSolenoid.Value.kReverse);
-		}
+//		if (joy.getPOV() == 90) {
+//			System.out.println("DOWN!");
+//			squeezyUpDown.set(DoubleSolenoid.Value.kForward);
+//		}
+//		if (joy.getPOV() == 180) {
+//			System.out.println("UP!");
+//			squeezyUpDown.set(DoubleSolenoid.Value.kReverse);
+//		}
 //		if (Math.abs(drive.getEncoderLeft()+drive.getEncoderRight())/2 > 1300)
 //			shifters.shiftHigh();
 //		else if (Math.abs(drive.getEncoderLeft()+drive.getEncoderRight())/2 < 800)

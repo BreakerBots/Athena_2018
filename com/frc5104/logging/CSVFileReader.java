@@ -24,6 +24,7 @@ public class CSVFileReader {
 			scanner = new Scanner(file);
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
+			System.out.println("File failed: "+file.getAbsolutePath());
 		}
 		separator = splitString;
 		
