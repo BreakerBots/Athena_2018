@@ -38,7 +38,12 @@ public class Elevator {
 					 talon2;
 	private NetworkTable table = null;
 	
-	private double effort = kHoldEffort;
+	enum Control {
+		kPosition, kEffort
+	}
+	Control controlMode = Control.kEffort;
+	public double effort = 0;
+	public double position = 0;
 	
 	private Elevator () {
 		if (TWO_TALONS) {
@@ -47,33 +52,40 @@ public class Elevator {
 		}
 	}//Elevator
 	
-	public void update() {
-
-		double elevatorEffort = talon1.getMotorOutputPercent();
+	public void setEffort(double effort) {
+		controlMode = Control.kEffort;
+		this.effort = effort;
+		
+		update();
+	}//setEffort
+	
+	public void setPosition(double position) {
+		controlMode = Control.kPosition;
+		this.position = position;
+		
+		update();
+	}//setPosition
+	
+	public void userControl() {
 		if (!getBoolean("closed_loop_control", false)) {
-			elevatorEffort = -joy.getRawAxis(AXIS_ID);
-			elevatorEffort = Deadband.getDefault().get(elevatorEffort);
-			talon1.set(ControlMode.PercentOutput, elevatorEffort);
+			effort = -joy.getRawAxis(AXIS_ID);
+			effort = Deadband.getDefault().get(effort);
+			talon1.set(ControlMode.PercentOutput, effort);
 		} else {
 			talon1.set(ControlMode.Position, getDouble("setpoint", 
 					talon1.getSelectedSensorPosition(0)));
 		}
-		
+		update();
 		updateTables();
+	}//userControl
+
+	private void update() {
+		if (controlMode == Control.kEffort) {
+			talon1.set(ControlMode.PercentOutput, effort);
+		} else if (controlMode == Control.kPosition) {
+			talon1.set(ControlMode.Position, position);
+		}
 	}//update
-	
-	//----- Elevator Actions ------//
-	public void raise () {
-		effort = kRaiseEffort;
-	}//raise
-	
-	public void lower() {
-		effort = kLowerEffort;
-	}//lower
-	
-	public void hold() {
-		effort = kHoldEffort;
-	}//hold
 	
 	//----- Elevator Sensors ------//
 	public boolean getLowerLimit() {
@@ -83,6 +95,10 @@ public class Elevator {
 	public boolean getUpperLimit() {
 		return talon1.getSensorCollection().isRevLimitSwitchClosed();
 	}//getUpperLimit
+	
+	public int getEncoderPosition() {
+		return talon1.getSelectedSensorPosition(0);
+	}//getEncoderPosition
 	
 	public boolean isLowEnoughToDrop() {
 		return talon1.getSelectedSensorPosition(0) > SOFT_STOP_BOTTOM - 2000;

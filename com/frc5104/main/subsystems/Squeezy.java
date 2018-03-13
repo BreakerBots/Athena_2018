@@ -20,11 +20,11 @@ public class Squeezy {
 	static final double kCloseEffort = -0.2;
 	static final double kOpenEffort  = 0.15;
 	
-	static final double kIntakeEffort = -/*0.4*/0.2;
+	static final double kIntakeEffort = -/*0.4*//*3-12-18 0.2*/0.2;
 	static final double kPinchEffort = -0.1;
 	static final double kEjectEffort = 0.6;
 	
-	enum SqueezyState {
+	public enum SqueezyState {
 		EMPTY, INTAKE, CLOSING, HOLDING, LOADED, EJECT,
 					UNJAM
 	}
@@ -44,6 +44,9 @@ public class Squeezy {
 	private SqueezyState prevState = SqueezyState.EJECT;
 	SqueezyState state = SqueezyState.EMPTY;
 	
+	public enum ButtonType {
+		kIntake, kEject, kCancel, kUnjam
+	}
 	ButtonS buttonIntake = new ButtonS(3),
 			buttonEject = new ButtonS(1),
 			buttonCancel = new ButtonS(2),
@@ -66,15 +69,35 @@ public class Squeezy {
 		raise();
 	}//Squeezy
 	
-	public void poll() {
+	public void pollButtons() {
 		buttonIntake.update();
 		buttonEject.update();
 		buttonCancel.update();
 		buttonUnjam.update();
+	}//pollButtons
+	
+	public void forceButtonOn(ButtonType buttonType) {
+		switch (buttonType) {
+		case kIntake:
+			buttonIntake.Pressed = true;
+			break;
+		case kEject:
+			buttonEject.Pressed = true;
+			break;
+		case kCancel:
+			buttonCancel.Pressed = true;
+			break;
+		case kUnjam:
+			buttonUnjam.Pressed = true;
+			break;
+		}
+	}//forceButtonOn
 		
+	public void updateState() {
 		sensors.updateSensors();
+
 		if (squeezer.getSensorCollection().isFwdLimitSwitchClosed())
-			squeezer.setSelectedSensorPosition(0, 0, 10);
+		squeezer.setSelectedSensorPosition(0, 0, 10);
 		
 		switch (state) {
 		case EMPTY:
@@ -85,13 +108,13 @@ public class Squeezy {
 			//UltraSonic: Move directly to holding when box is detected by motor stalls
 			if (buttonCancel.Pressed)
 				state = SqueezyState.EMPTY;
-			if (sensors.detectBox())
+			if (sensors.detectBox() && squeezer.getSelectedSensorPosition(0) > -90000)
 				state = SqueezyState.CLOSING;
 			break;
 		case CLOSING: //Should not exist with Ultrasonic
 			if (buttonCancel.Pressed)
 				state = SqueezyState.UNJAM;
-			if (!sensors.detectBox())
+			if (!(sensors.detectBox() && squeezer.getSelectedSensorPosition(0) > -90000))
 				state = SqueezyState.INTAKE;
 			if (sensors.detectBoxHeld())
 				state = SqueezyState.HOLDING;
@@ -130,10 +153,14 @@ public class Squeezy {
 		postUltrasonicData();
 		postSqueezerData();
 		
+		buttonIntake.Pressed = false;
+		buttonEject.Pressed = false;
+		buttonCancel.Pressed = false;
+		buttonUnjam.Pressed = false;
 		
 	}//poll
 	
-	public void updateState() {
+	public void update() {
 //		System.out.printf("Squeezy State: %10s\t",state.toString());
 		switch (state) {
 		case EMPTY:
@@ -173,6 +200,19 @@ public class Squeezy {
 		}
 		
 	}//updateState
+	
+	//--------- Squeezy States ----------//
+	public void forceState(SqueezyState newState) {
+		state = newState;
+	}//forceState
+	
+	public boolean isInState (SqueezyState checkState) {
+		return state == checkState;
+	}//isInState
+	
+	public boolean hasCube() {
+		return state == SqueezyState.HOLDING || state == SqueezyState.LOADED;
+	}//hasCube
 	
 	//--------- Squeezy Actions ---------//
 	private void setSpinners(double effort) {

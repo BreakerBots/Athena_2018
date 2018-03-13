@@ -15,8 +15,9 @@ public class CSVFileReader {
 	String separator;
 	
 	List<String> titles;
-	Map<String, Double> map;
-	double[] rawValues;
+	Map<String, ArrayList<Double>> map;
+	int size;
+//	double[] rawValues;
 	
 	public CSVFileReader (File readFile, String splitString) {
 		file = readFile;
@@ -30,14 +31,14 @@ public class CSVFileReader {
 		
 		titles = new ArrayList<String>();
 		
-		map = new HashMap<String, Double>();
+		map = new HashMap<String, ArrayList<Double>>();
 		String firstLine = scanner.nextLine();
 		for (String title: firstLine.split(separator)) {
 			titles.add(title);
-			map.put(title, -1.0);
+			map.put(title, new ArrayList<Double>());
 		}
 		
-		rawValues = new double[titles.size()];
+//		rawValues = new double[titles.size()];
 		
 	}//CSVFileReader
 	
@@ -45,22 +46,52 @@ public class CSVFileReader {
 		this(readFile, ", ");
 	}//CSVFileReader
 	
-	public void readLine() {
-		String line = scanner.nextLine();
-		String[] values = line.split(separator);
-		for (int i=0; i<values.length; i++) {
-			double value = Double.parseDouble(values[i]);
-			map.put(titles.get(i), value);
-			rawValues[i] = value;
+	public void readFile() {
+		String line;
+		size = 0;
+		
+		long start = System.currentTimeMillis();
+		
+		while (scanner.hasNextLine()) {
+			line = scanner.nextLine();
+			String[] values = line.split(separator);
+			for (int i=0; i<values.length; i++) {
+				double value = Double.parseDouble(values[i]);
+				map.get(titles.get(i)).add(value);
+			}
+			size++;
 		}
+		
+		long end = System.currentTimeMillis();
+		
+		System.out.printf("Reading from {%s} took %.2f seconds\n", file.getName(), (end-start)/1000.0);
+		
+	}//readFile
+	/*
+	public boolean readLine() {
+//		if (!scanner.hasNextLine()) return false;
+//		
+//		String line = scanner.nextLine();
+//		String[] values = line.split(separator);
+//		for (int i=0; i<values.length; i++) {
+//			double value = Double.parseDouble(values[i]);
+//			map.put(titles.get(i), value);
+//			rawValues[i] = value;
+//		}
+		return true;
 	}//readLine
+	*/
 	
-	public double get(String key) {
-		return map.get(key);
+	public double get(String key, int index) {
+		return map.get(key).get(index);
 	}//get by key
 	
-	public double get(int index) {
-		return rawValues[index];
-	}//get by index
+	public int size() {
+		return size;
+	}//size
+	
+//	public double get(int index, int arrayIndex) {
+//		return rawValues[index];
+//	}//get by index
 	
 }//CSVFileReader

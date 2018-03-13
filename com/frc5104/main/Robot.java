@@ -125,22 +125,23 @@ public class Robot extends IterativeRobot {
 			shifters.toggle();
 		
 		if (elevator != null) {
-			elevator.update();
+			elevator.userControl();
 		}
 
 		if (squeezy != null) {
-			squeezy.poll();
+			squeezy.pollButtons();
 			squeezy.updateState();
+			squeezy.update();
 		}
 		
-//		if (joy.getPOV() == 90) {
-//			System.out.println("DOWN!");
-//			squeezyUpDown.set(DoubleSolenoid.Value.kForward);
-//		}
-//		if (joy.getPOV() == 180) {
-//			System.out.println("UP!");
-//			squeezyUpDown.set(DoubleSolenoid.Value.kReverse);
-//		}
+		if (joy.getPOV() == 180) {
+			System.out.println("DOWN!");
+			squeezyUpDown.set(DoubleSolenoid.Value.kForward);
+		}
+		if (joy.getPOV() == 0) {
+			System.out.println("UP!");
+			squeezyUpDown.set(DoubleSolenoid.Value.kReverse);
+		}
 //		if (Math.abs(drive.getEncoderLeft()+drive.getEncoderRight())/2 > 1300)
 //			shifters.shiftHigh();
 //		else if (Math.abs(drive.getEncoderLeft()+drive.getEncoderRight())/2 < 800)

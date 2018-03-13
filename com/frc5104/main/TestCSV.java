@@ -41,12 +41,17 @@ public class TestCSV {
 		
 		reader = new CSVFileReader(file);
 
-		
-		for (int i=0; i<100; i++) {
-			reader.readLine();
+		reader.readFile();
 
-			System.out.printf("X: %12.0f   Y: %12.0f\n", reader.get("x"), reader.get("y"));
+		for (int i=0; i<reader.size(); i++) {
+			double xValue = reader.get("x", i);
+			double yValue = reader.get("y", i);
+			System.out.printf("X: %12.0f   Y: %12.0f\n", xValue, yValue);		
 		}
+//		for (int i=0; i<100; i++) {
+//
+//			System.out.printf("X: %12.0f   Y: %12.0f\n", reader.get("x"), reader.get("y"));
+//		}
 		
 		
 	}//main

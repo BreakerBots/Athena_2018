@@ -18,8 +18,11 @@ import com.frc5104.utilities.Deadband;
 import com.frc5104.vision.VisionThread;
 
 import edu.wpi.first.wpilibj.DoubleSolenoid;
+import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.IterativeRobot;
 import edu.wpi.first.wpilibj.Joystick;
+import edu.wpi.first.wpilibj.Timer;
+import edu.wpi.first.wpilibj.GenericHID.RumbleType;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
 public class RobotRecorder extends IterativeRobot {
@@ -34,9 +37,11 @@ public class RobotRecorder extends IterativeRobot {
 
 	File recorderFile;
 	CSVFileWriter recorder;
+	double batteryVoltage;
 	
 	//------------- Playback ----------------//
 	CSVFileReader reader;
+	int playbackIndex;
 	
 	//---------------------------------------//
 	
@@ -126,13 +131,19 @@ public class RobotRecorder extends IterativeRobot {
 		if (shifters != null)
 			shifters.shiftLow();
 		
+		recorderState = RecorderState.kUser;
+		
+		getBatteryVoltage();
+		
 	}//teleopInit
 	
 	public void teleopPeriodic() {
 		int pov = joy.getPOV();
 		
-		SmartDashboard.putString("DB/String 0", "POV: "+joy.getPOV());
+		SmartDashboard.putString("DB/String 0", "POV: "+pov);
 		SmartDashboard.putString("DB/String 1", recorderState.toString());
+		
+//		System.out.println(recorderState.toString() + "\t" + pov);
 		
 		switch (recorderState) {
 		case kUser:
@@ -140,13 +151,17 @@ public class RobotRecorder extends IterativeRobot {
 			if (pov == 270) {
 				System.out.println("Started Recording");
 				recorderState = RecorderState.kRecording;
+				getBatteryVoltage();
 				initRecorderFile();
 				setupRecorderData();
 			}
 			if (pov == 90) {
 				System.out.println("Started Playback");
 				recorderState = RecorderState.kPlayback;
+				getBatteryVoltage();
 				loadPlaybackFile();
+				
+				playbackIndex = 0;
 			}
 			break;
 		case kRecording:
@@ -160,14 +175,16 @@ public class RobotRecorder extends IterativeRobot {
 			}
 			break;
 		case kPlayback:
-			playback();
+			if (!playback()) {
+				recorderState = RecorderState.kUser;
+				getBatteryVoltage();
+			}
 			break;
 		}
 	}//teleopPeriodic
 	
 	public void userTeleop() {
 //		System.out.println("Encoder Position: "+drive.getEncoderRight());
-		
 		ptoShifter.update(); if (ptoShifter.Pressed) { 
 			ptoSol.set(ptoSol.get() == DoubleSolenoid.Value.kReverse ? DoubleSolenoid.Value.kForward : DoubleSolenoid.Value.kReverse);
 		}
@@ -178,7 +195,8 @@ public class RobotRecorder extends IterativeRobot {
 			
 //			x = deadband.get(x);
 //			y = deadband.get(y);
-			drive.arcadeDrive(y,x);
+			drive.arcadeDrive(y*10/batteryVoltage,x*10/batteryVoltage);
+//			drive.arcadeDrive(y, x);
 		}
 		
 		shifterButton.update();
@@ -186,22 +204,22 @@ public class RobotRecorder extends IterativeRobot {
 			shifters.toggle();
 		
 		if (elevator != null) {
-			elevator.update();
+			elevator.userControl();
 		}
 
 		if (squeezy != null) {
-			squeezy.poll();
-			squeezy.updateState();
+			squeezy.pollButtons();
+			squeezy.update();
 		}
 		
-		if (joy.getPOV() == 90) {
-			System.out.println("DOWN!");
-			squeezyUpDown.set(DoubleSolenoid.Value.kForward);
-		}
-		if (joy.getPOV() == 180) {
-			System.out.println("UP!");
-			squeezyUpDown.set(DoubleSolenoid.Value.kReverse);
-		}
+//		if (joy.getPOV() == 90) {
+//			System.out.println("DOWN!");
+//			squeezyUpDown.set(DoubleSolenoid.Value.kForward);
+//		}
+//		if (joy.getPOV() == 180) {
+//			System.out.println("UP!");
+//			squeezyUpDown.set(DoubleSolenoid.Value.kReverse);
+//		}
 //		if (Math.abs(drive.getEncoderLeft()+drive.getEncoderRight())/2 > 1300)
 //			shifters.shiftHigh();
 //		else if (Math.abs(drive.getEncoderLeft()+drive.getEncoderRight())/2 < 800)
@@ -303,6 +321,16 @@ public class RobotRecorder extends IterativeRobot {
 				return joy.getRawAxis(1);
 			}
 		});
+		recorder.addLogDouble("elevator_effort", new LogDouble() {
+			public double get() {
+				return elevator.effort;
+			}
+		});
+		recorder.addLogDouble("elevator_position", new LogDouble() {
+			public double get() {
+				return elevator.getEncoderPosition();
+			}
+		});
 	}//setupRecorderData
 	
 	public void closeRecorderFile() {
@@ -313,12 +341,30 @@ public class RobotRecorder extends IterativeRobot {
 		reader = new CSVFileReader(recorderFile);
 	}//loadPlaybackFile
 	
-	public void playback() {
-		reader.readLine();
-		double x = reader.get("joy_x");
-		double y = reader.get("joy_y");
+	public boolean playback() {
+		System.out.println("Playback!");
 		
-		drive.arcadeDrive(y, x);
+		double x = reader.get("joy_x", playbackIndex);
+		double y = reader.get("joy_y", playbackIndex);
+		double elevatorEffort = reader.get("elevator_effort", playbackIndex);
+		
+		drive.arcadeDrive(y*10/batteryVoltage, x*10/batteryVoltage);
+		elevator.setEffort(elevatorEffort);
+		
+		playbackIndex++;
+		return playbackIndex == reader.size();
 	}//playback
+	
+	private void getBatteryVoltage() {
+		drive.arcadeDrive(0, 0);
+		
+		joy.setRumble(RumbleType.kRightRumble, 1);
+		Timer.delay(0.1);
+		joy.setRumble(RumbleType.kRightRumble, 0);
+
+		batteryVoltage = DriverStation.getInstance().getBatteryVoltage();
+		SmartDashboard.putString("DB/String 4", ""+batteryVoltage);
+		System.out.println("Measured Battery Voltage at: "+batteryVoltage);
+	}
 	
 }//Robot
