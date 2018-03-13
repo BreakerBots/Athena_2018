@@ -28,7 +28,7 @@ public class TalonFactory {
 			taloni.configVoltageCompSaturation(0, 0);
 			taloni.configVoltageMeasurementFilter(32, 0);
 			taloni.configSelectedFeedbackSensor(FeedbackDevice.QuadEncoder, 0, 0);
-			taloni.configSelectedFeedbackSensor(RemoteFeedbackDevice.None, 0, 0);
+			//taloni.configSelectedFeedbackSensor(RemoteFeedbackDevice.None, 0, 0);
 			//taloni.configSelectedFeedbackCoefficient(1.0);
 			//taloni.configRemoteFeedbackFilter(off 0);
 			//taloni.configSensorTerm	Quad (0) for all term types);

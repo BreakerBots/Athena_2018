@@ -19,9 +19,7 @@ public class Turn extends Command {
     	robot.turnController.reset();
     	
     	robot.ahrs.reset();
-    	robot.ahrs.getPressure();
-    	robot.ahrs.getAltitude();
-    	robot.turnController.setSetpoint(target);
+    	robot.turnController.setSetpoint( (/*robot.ahrs.getAngle()*/ + target) );
 
     	robot.turnController.enable();
     	

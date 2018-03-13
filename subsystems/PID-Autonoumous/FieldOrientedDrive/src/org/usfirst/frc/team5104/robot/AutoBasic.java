@@ -17,21 +17,7 @@ public class AutoBasic extends CommandGroup {
 //	    move(21.735);
 //	    turn(-90);
 //	    move(23.5);
-    	move(120);
-    	delay(150);
-    	turn(-90);
-    	delay(150);
-    	move(240);
-    	delay(150);
-    	turn(-90);
-    	delay(150);
-    	move(120);
-    	delay(150);
-    	turn(-90);
-    	delay(150);
-    	move(240);
-    	delay(150);
-    	turn(-90);
+    	turn(90);
     }
     
     public void move(double inches) {

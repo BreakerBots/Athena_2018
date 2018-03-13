@@ -7,14 +7,11 @@
 
 package org.usfirst.frc.team5104.robot;
 
-import java.io.IOException;
-
 import com.ctre.phoenix.motorcontrol.can.TalonSRX;
 import com.kauailabs.navx.frc.AHRS;
 
 import Libraries.ButtonS;
 import Libraries.CustomDrive;
-import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.IterativeRobot;
 import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.PIDController;
@@ -23,7 +20,6 @@ import edu.wpi.first.wpilibj.PIDSource;
 import edu.wpi.first.wpilibj.PIDSourceType;
 import edu.wpi.first.wpilibj.SPI.Port;
 import edu.wpi.first.wpilibj.command.Scheduler;
-import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
 public class Robot extends IterativeRobot {
@@ -35,22 +31,22 @@ public class Robot extends IterativeRobot {
 
 	
 	//Archer
-	double TPI = 231;
+//	double TPI = 231;
 	//Ares
-//	double TPI = 180;
+	double TPI = 270;
 	
 	double rotateToAngleRate;
 	double moveToDistance;
 	
 	//Turning PID Values
-	static double tP = 0.0007;
-	static double tI = 0.002;
-	static double tD = 0.02;
+	static double tP = 0.07;
+	static double tI = 0.0;
+	static double tD = 0.0;
 	static double tF = 0.00;
-	static double tToleranceDegrees = /*2.5*/ 25;
+	static double tToleranceDegrees = /*2.5*/ 2;
 	
 	//Moving Forward PID Values
-	static double mP = 0.0007;
+	static double mP = 0.07;
 	static double mI = 0.000002;
 	static double mD = 0.00002;
 	static double mF = 0.00;
@@ -111,9 +107,9 @@ public class Robot extends IterativeRobot {
 		//Pull up paths
 		Scheduler.getInstance().add(new AutoBasic(this));
 		
-		mP = SmartDashboard.getNumber("DB/Slider 0", mP);
-		mI = SmartDashboard.getNumber("DB/Slider 1", mI);
-		mD = SmartDashboard.getNumber("DB/Slider 2", mD);
+		tP = SmartDashboard.getNumber("DB/Slider 0", tP);
+		tI = SmartDashboard.getNumber("DB/Slider 1", tI);
+		tD = SmartDashboard.getNumber("DB/Slider 2", tD);
 	}
 	
 	public void autonomousPeriodic() {
