@@ -1,5 +1,7 @@
 package com.frc5104.main.subsystems;
 
+import com.ctre.phoenix.motorcontrol.ControlMode;
+import com.ctre.phoenix.motorcontrol.can.TalonSRX;
 import com.ctre.phoenix.motorcontrol.can.WPI_TalonSRX;
 
 import edu.wpi.first.wpilibj.DoubleSolenoid;
@@ -22,19 +24,20 @@ public class Drive {
 			 talonLeftFollower = new WPI_TalonSRX(12),
 			 talonRightFollower = new WPI_TalonSRX(14);
 	
-	SpeedControllerGroup leftDrive = new SpeedControllerGroup(talonLeftMain, talonLeftFollower),
-						rightDrive = new SpeedControllerGroup(talonRightMain, talonRightFollower);
+//	SpeedControllerGroup leftDrive = new SpeedControllerGroup(talonLeftMain, talonLeftFollower),
+//						rightDrive = new SpeedControllerGroup(talonRightMain, talonRightFollower);
 	
-	DifferentialDrive drive = new DifferentialDrive(leftDrive, rightDrive);	
+	DifferentialDrive drive = new DifferentialDrive(talonLeftMain, talonRightMain);	
 
 	private Drive() {
 		drive.setDeadband(0);
+		talonLeftFollower.set(ControlMode.Follower, 11);
+		talonRightFollower.set(ControlMode.Follower, 13);
 	}
 	
 	public void arcadeDrive(double moveVal, double rotateVal) {
 		drive.arcadeDrive(moveVal, rotateVal);
 	}//arcadeDrive
-	
 	
 	public double getEncoderLeft() {
 		return talonLeftMain.getSelectedSensorPosition(0);

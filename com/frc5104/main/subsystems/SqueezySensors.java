@@ -2,6 +2,8 @@ package com.frc5104.main.subsystems;
 
 import com.frc5104.utilities.FilteredUltraSonic;
 
+import edu.wpi.first.wpilibj.Joystick;
+
 public class SqueezySensors {
 
 	static SqueezySensors instance = null;
@@ -13,18 +15,18 @@ public class SqueezySensors {
 		return instance;
 	}//getInstance
 	
-	FilteredUltraSonic centerUltra = new FilteredUltraSonic(0, 1, 50);
+//	FilteredUltraSonic centerUltra = new FilteredUltraSonic(0, 1, 50);
 	FilteredUltraSonic leftUltra = new FilteredUltraSonic(2, 3);
 	FilteredUltraSonic rightUltra = new FilteredUltraSonic(4, 5);
 	
 	private SqueezySensors() {
-		centerUltra.init();
+//		centerUltra.init();
 		leftUltra.init();
 		rightUltra.init();
 	}//SqueezySensors
 	
 	public void updateSensors() {
-		centerUltra.update();
+//		centerUltra.update();
 		leftUltra.update();
 		rightUltra.update();
 		
@@ -49,7 +51,8 @@ public class SqueezySensors {
 	}//detectBox
 	
 	public boolean detectBoxGone() {
-		if (centerUltra.getDistance() > 11.5)
+		if (!new Joystick(0).getRawButton(6))
+//		if (centerUltra.getDistance() > 11.5)
 			return true;
 		else
 			return false;
@@ -60,7 +63,8 @@ public class SqueezySensors {
 	}//detectBoxGone
 	
 	public boolean detectBoxHeld() {
-		if (centerUltra.getDistance() < /*6*//*5.5*//*New 3d plate*/3)
+		if (new Joystick(0).getRawButton(6))/*3-11-18*/
+//		if (centerUltra.getDistance() < /*6*//*5.5*//*New 3d plate*/3)
 //			leftUltra.getDistance() < 2 &&
 //			rightUltra.getDistance() < 2)
 			return true;
@@ -70,7 +74,7 @@ public class SqueezySensors {
 	
 	public double[] getDistances() {
 		double[] distances = new double[3];
-		distances[0] = centerUltra.getDistance();
+//		distances[0] = centerUltra.getDistance();
 		distances[1] = leftUltra.getDistance();
 		distances[2] = rightUltra.getDistance();
 		
