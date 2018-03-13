@@ -9,6 +9,7 @@ import com.frc5104.main.subsystems.Squeezy;
 import com.frc5104.main.subsystems.SqueezySensors;
 import com.frc5104.utilities.ButtonS;
 import com.frc5104.utilities.Deadband;
+import com.frc5104.utilities.TalonFactory;
 import com.frc5104.vision.VisionThread;
 
 import edu.wpi.first.wpilibj.DoubleSolenoid;
@@ -84,6 +85,12 @@ public class Robot extends IterativeRobot {
 		
 		squeezyUpDown.set(DoubleSolenoid.Value.kForward);
 		
+		int[] talonIDs = new int[] {11, 12, 13, 14 //drive
+									,21, 22, 23    //squeezy
+									,31, 32        //elevator
+				};
+		TalonFactory talonFactory = new TalonFactory(talonIDs);
+		talonFactory.init();
 	}//robotInit
 	
 	public void autonomousInit() {
