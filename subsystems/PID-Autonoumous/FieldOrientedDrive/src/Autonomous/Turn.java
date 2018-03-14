@@ -1,45 +1,42 @@
-package org.usfirst.frc.team5104.robot;
+package Autonomous;
 
+import Subsystems.CustomDrive;
 import edu.wpi.first.wpilibj.command.Command;
 
-/**
- *
- */
 public class Turn extends Command {
-	Robot robot;
 	double target;
 
-    public Turn(Robot robot, double degrees) {
-        this.robot = robot;
+    public Turn(double degrees) {
         target = degrees;
     }
 
     // Called just before this Command runs the first time
     protected void initialize() {
-    	robot.turnController.reset();
+    	PIDauto.getInstance().turnController.reset();
     	
-    	robot.ahrs.reset();
-    	robot.turnController.setSetpoint( (/*robot.ahrs.getAngle()*/ + target) );
+    	PIDauto.getInstance().ahrs.reset();
+    	PIDauto.getInstance().turnController.setSetpoint( (/*PIDauto.getInstance().ahrs.getAngle()*/ + target) );
 
-    	robot.turnController.enable();
+    	PIDauto.getInstance().turnController.enable();
     	
     }
 
     // Called repeatedly when this Command is scheduled to run
     protected void execute() {
-    	robot.drive.arcadeDrive(0, robot.rotateToAngleRate);
-    	System.out.println("Turn Error: " + robot.turnController.getError());
+    	CustomDrive.getInstance().arcadeDrive(0, PIDauto.getInstance().rotateToAngleRate);
+    	
+    	System.out.println("Turn Error: " + PIDauto.getInstance().turnController.getError());
     }
 
     // Make this return true when this Command no longer needs to run execute()
     protected boolean isFinished() {
-        return robot.turnController.onTarget();
+        return PIDauto.getInstance().turnController.onTarget();
     }
 
     // Called once after isFinished returns true
     protected void end() {
     	
-    	robot.drive.arcadeDrive(0, 0);
+    	CustomDrive.getInstance().arcadeDrive(0, 0);
     	
     }
 
