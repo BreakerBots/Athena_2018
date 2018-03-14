@@ -1,4 +1,10 @@
-package com.frc5104.autonomous;
+package com.frc5104.autopaths;
+
+import com.frc5104.autocommands.Delay;
+import com.frc5104.autocommands.EjectSqueezy;
+import com.frc5104.autocommands.Move;
+import com.frc5104.autocommands.MoveElevator;
+import com.frc5104.autocommands.PIDTurn;
 
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.command.CommandGroup;

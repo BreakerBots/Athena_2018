@@ -1,21 +1,23 @@
-package com.frc5104.autonomous;
+package com.frc5104.autopaths;
+
+import com.frc5104.autocommands.Delay;
+import com.frc5104.autocommands.EjectSqueezy;
+import com.frc5104.autocommands.Move;
+import com.frc5104.autocommands.MoveElevator;
+import com.frc5104.autocommands.PIDTurn;
 
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.command.CommandGroup;
 
-public class CenterToRight extends CommandGroup {
+public class Left extends CommandGroup {
 	String gameData; 
 	String position = DriverStation.getInstance().getLocation() == 0 ? "L" : (DriverStation.getInstance().getLocation() == 2 ? "R" : "M");
 	
-    public CenterToRight() {    	
+    public Left() {    	
     	elevator(-5000);
-    	move(25);
+    	move(100);
     	delay(100);
-    	turn(30);
-    	delay(100);
-    	move(44);
-    	delay(100);
-    	turn(-25);
+    	turn(90);
     	move(20);
     	addSequential(new EjectSqueezy(0.15));
     }

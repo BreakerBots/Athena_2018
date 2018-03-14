@@ -2,7 +2,7 @@ package com.frc5104.main;
 
 import com.ctre.phoenix.motorcontrol.ControlMode;
 import com.ctre.phoenix.motorcontrol.can.TalonSRX;
-import com.frc5104.autonomous.Left;
+import com.frc5104.autopaths.Left;
 import com.frc5104.main.subsystems.Drive;
 import com.frc5104.main.subsystems.Elevator;
 import com.frc5104.main.subsystems.Shifters;
