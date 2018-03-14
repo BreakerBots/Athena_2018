@@ -27,9 +27,6 @@ public class Elevator {
 	//Values
 	public static final int SOFT_STOP_BOTTOM = 0;
 	public static final int SOFT_STOP_TOP = -16150;
-	public static final double kRaiseEffort = 0.8;
-	public static final double kLowerEffort = 0.5;
-	public static final double kHoldEffort = 0;
 
 	//Talons
 	private TalonSRX talonE1 = new TalonSRX(31);
