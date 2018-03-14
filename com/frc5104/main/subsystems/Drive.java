@@ -47,6 +47,11 @@ public class Drive {
 		return talonRightMain.getSelectedSensorPosition(0);
 	}//getEncoderRight
 	
+	public void resetEncoders() {
+		talonLeftMain.setSelectedSensorPosition(0, 0, 10);
+		talonRightMain.setSelectedSensorPosition(0, 0, 10);
+	}//resetEncoders
+	
 	public void postValuesToNetworkTable() {
 
 	}//postValuesToNetworkTable

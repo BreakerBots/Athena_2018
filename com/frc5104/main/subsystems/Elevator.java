@@ -66,6 +66,14 @@ public class Elevator {
 		update();
 	}//setPosition
 	
+	public int getError() {
+		return talon1.getClosedLoopError(0);
+	}//getError
+	
+	public boolean onTarget() {
+		return Math.abs(talon1.getSelectedSensorPosition(0) - position) < 200;
+	}//onTarget
+	
 	public void userControl() {
 		if (!getBoolean("closed_loop_control", false)) {
 			effort = -joy.getRawAxis(AXIS_ID);

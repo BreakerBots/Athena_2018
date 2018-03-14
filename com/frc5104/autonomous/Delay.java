@@ -1,34 +1,32 @@
-package com.frc5104.commands;
+package com.frc5104.autonomous;
 
-import com.frc5104.main.subsystems.Squeezy;
-
+import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.command.Command;
 
 /**
  *
  */
-public class EjectSqueezy extends Command {
+public class Delay extends Command {
+	long startTime;
+	int delay;
 
-	Squeezy squeezy = Squeezy.getInstance();
-	
-    public EjectSqueezy() {
-        // Use requires() here to declare subsystem dependencies
-        // eg. requires(chassis);
+    public Delay(int milliseconds) {
+        delay = milliseconds;
     }
 
     // Called just before this Command runs the first time
     protected void initialize() {
-    	squeezy.forceState(Squeezy.SqueezyState.EJECT);
+    	startTime = System.currentTimeMillis();
     }
 
     // Called repeatedly when this Command is scheduled to run
     protected void execute() {
-    	
+    	System.out.println("Delay");
     }
 
     // Make this return true when this Command no longer needs to run execute()
     protected boolean isFinished() {
-        return true;
+    	return (System.currentTimeMillis() >= startTime + delay);
     }
 
     // Called once after isFinished returns true
