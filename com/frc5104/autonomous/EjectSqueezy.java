@@ -8,13 +8,19 @@ import edu.wpi.first.wpilibj.command.Command;
 public class EjectSqueezy extends Command {
 
 	Squeezy squeezy;
+	double ejectEffort;
+	double previousEffort;
 	
-    public EjectSqueezy() {
+    public EjectSqueezy(double squeezyEffort) {
     	squeezy = Squeezy.getInstance();
+    	ejectEffort = squeezyEffort;
     }
 
     protected void initialize() {
     	squeezy.forceState(Squeezy.SqueezyState.EJECT);
+    	
+    	previousEffort = Squeezy.kEjectEffort;
+    	Squeezy.kEjectEffort = ejectEffort;
     }
 
     protected void execute() {
@@ -31,6 +37,7 @@ public class EjectSqueezy extends Command {
 
     protected void end() {
     	squeezy.forceState(SqueezyState.EMPTY);
+    	Squeezy.kEjectEffort = previousEffort;
     }
 
     protected void interrupted() {

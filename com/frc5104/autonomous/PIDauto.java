@@ -1,6 +1,7 @@
 package com.frc5104.autonomous;
 
 import com.ctre.phoenix.motorcontrol.can.TalonSRX;
+import com.frc5104.main.subsystems.Drive;
 import com.kauailabs.navx.frc.AHRS;
 
 import edu.wpi.first.wpilibj.PIDController;
@@ -15,6 +16,7 @@ public class PIDauto {
 	public static PIDauto getInstance() {
 		if (m_instance == null) {
 			m_instance = new PIDauto();
+			m_instance.init();
 		}
 		return m_instance;
 	} private PIDauto() {  }
@@ -23,8 +25,8 @@ public class PIDauto {
 	AHRS ahrs = new AHRS(Port.kMXP);
 	
 	//Drive
-	TalonSRX talonL = new TalonSRX(11);
-    TalonSRX talonR = new TalonSRX(13);
+//	TalonSRX talonL = new TalonSRX(11);
+//    TalonSRX talonR = new TalonSRX(13);
 	
     //PID Controllers
 	PIDController turnController;
@@ -33,14 +35,14 @@ public class PIDauto {
 	//Archer
 //	double TPI = 231;
 	//Ares
-	double TPI = 273.357142857;
+	double TPI = /*- 3-13-18 went backward*/273.357142857;
 	
 	double rotateToAngleRate;
 	double moveToDistance; double movesDistance;
 	
 	//Turning PID Values
-	static double tP = 1.7;
-	static double tI = 0.0002;
+	static double tP = 0.05;
+	static double tI = 0.0003;
 	static double tD = 0.000002;
 	static double tF = 0.00;
 	static double tToleranceDegrees = 2;
@@ -48,12 +50,13 @@ public class PIDauto {
 	//Moving Forward PID Values
 	static double mP = 4E-5;
 	static double mI = 1E-6;
+//	static double mI = 0;
 	static double mD = 0.0001;
 	static double mF = 0.00;
 	static double mToleranceTicks = 80.0;
 	
 	//Move Straight PID Values
-	static double msP = 0.0001;
+	static double msP = 0.0003;
 	static double msI = 0.0;
 	static double msD = 0.0;
 	static double msF = 0.00;
@@ -69,16 +72,16 @@ public class PIDauto {
 				return PIDSourceType.kDisplacement;
 			}
 			public double pidGet() {
-				return ahrs.getAngle();
+				return ahrs.getYaw();
 			}}, new PIDOutput() {
 			public void pidWrite(double output) {
-				rotateToAngleRate = output;
+				rotateToAngleRate = -output;
 			}
 		});
-	    turnController.setInputRange(-180.0f,  180.0f);
-	    turnController.setOutputRange(-1.0, 1.0);
+//	    turnController.setInputRange(-180.0f,  180.0f);
+	    turnController.setOutputRange(-0.5, 0.5);
 	    turnController.setAbsoluteTolerance(tToleranceDegrees);
-	    turnController.setContinuous(true);
+//	    turnController.setContinuous(true);
 	    
 	    //Moving
 	    moveController = new PIDController(mP, mI, mD, mF, new PIDSource() {
@@ -88,7 +91,8 @@ public class PIDauto {
 				return PIDSourceType.kDisplacement;
 			}
 			public double pidGet() {
-				return talonL.getSelectedSensorPosition(0);
+//				return -/*3-13-18 went backward*/talonL.getSelectedSensorPosition(0);
+				return -Drive.getInstance().getEncoderLeft();
 			}}, new PIDOutput() {
 				@Override
 				public void pidWrite(double output) {
@@ -98,9 +102,10 @@ public class PIDauto {
 	    moveController.setOutputRange(-1.0, 1.0);
 	    moveController.setAbsoluteTolerance(mToleranceTicks);
 	    
-	    talonL.setSelectedSensorPosition(0, 0, 10);
-		talonR.setSelectedSensorPosition(0, 0, 10);
-		
+//	    talonL.setSelectedSensorPosition(0, 0, 10);
+//		talonR.setSelectedSensorPosition(0, 0, 10);
+		Drive.getInstance().resetEncoders();
+	    
 		//Move Straight
 		movesController = new PIDController(msP, msI, msD, msF, new PIDSource() {
 			public void setPIDSourceType(PIDSourceType pidSource) {
@@ -115,9 +120,9 @@ public class PIDauto {
 				movesDistance = output;
 			}
 		});
-	    movesController.setInputRange(-180.0f,  180.0f);
+//	    movesController.setInputRange(-180.0f,  180.0f);
+//	    movesController.setContinuous(true);
 	    movesController.setOutputRange(-1.0, 1.0);
 	    movesController.setAbsoluteTolerance(msToleranceDegrees);
-	    movesController.setContinuous(true);
 	}
 }

@@ -3,15 +3,21 @@ package com.frc5104.autonomous;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.command.CommandGroup;
 
-public class AutoBasic extends CommandGroup {
+public class CenterToRight extends CommandGroup {
 	String gameData; 
 	String position = DriverStation.getInstance().getLocation() == 0 ? "L" : (DriverStation.getInstance().getLocation() == 2 ? "R" : "M");
 	
-    public AutoBasic() {    	
-    	elevator(-3000);
-    	move(70);
+    public CenterToRight() {    	
+    	elevator(-5000);
+    	move(25);
     	delay(100);
-    	turn(90);
+    	turn(30);
+    	delay(100);
+    	move(44);
+    	delay(100);
+    	turn(-25);
+    	move(20);
+    	addSequential(new EjectSqueezy(0.15));
     }
     
     public void move(double inches) {

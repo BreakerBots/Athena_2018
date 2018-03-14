@@ -15,8 +15,8 @@ public class Turn extends Command {
     protected void initialize() {
     	PIDauto.getInstance().turnController.reset();
     	
-    	PIDauto.getInstance().ahrs.reset();
-    	PIDauto.getInstance().turnController.setSetpoint( (/*PIDauto.getInstance().ahrs.getAngle()*/ + target) );
+//    	PIDauto.getInstance().ahrs.reset();
+    	PIDauto.getInstance().turnController.setSetpoint( (PIDauto.getInstance().ahrs.getYaw() + target) );
 
     	PIDauto.getInstance().turnController.enable();
     	
@@ -25,7 +25,13 @@ public class Turn extends Command {
     // Called repeatedly when this Command is scheduled to run
     protected void execute() {
     	Drive.getInstance().arcadeDrive(0, PIDauto.getInstance().rotateToAngleRate);
-    	System.out.println("Turn Error: " + PIDauto.getInstance().turnController.getError());
+    	System.out.println("Turn Error: " + PIDauto.getInstance().turnController.getError()
+    					+ "Turn Output: " + PIDauto.getInstance().turnController.get());
+    	
+//    	if (PIDauto.getInstance().turnController.getError() > 20) {
+//    		PIDauto.getInstance().turnController.reset();
+//    		PIDauto.getInstance().turnController.enable();
+//    	}
     }
 
     // Make this return true when this Command no longer needs to run execute()

@@ -2,7 +2,7 @@ package com.frc5104.main;
 
 import com.ctre.phoenix.motorcontrol.ControlMode;
 import com.ctre.phoenix.motorcontrol.can.TalonSRX;
-import com.frc5104.autonomous.AutoBasic;
+import com.frc5104.autonomous.CenterToLeft;
 import com.frc5104.main.subsystems.Drive;
 import com.frc5104.main.subsystems.Elevator;
 import com.frc5104.main.subsystems.Shifters;
@@ -20,6 +20,12 @@ import edu.wpi.first.wpilibj.command.Scheduler;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
 public class Robot extends IterativeRobot {
+
+	int[] talonIDs = new int[] {11, 12, 13, 14 //drive
+			,21, 22, 23    //squeezy
+			,31, 32        //elevator
+	};
+	TalonFactory talonFactory = new TalonFactory(talonIDs);
 
 	BasicAuto auto;
 	VisionThread vision;
@@ -89,23 +95,19 @@ public class Robot extends IterativeRobot {
 		
 	    drive.resetEncoders();
 		
-		int[] talonIDs = new int[] {11, 12, 13, 14 //drive
-									,21, 22, 23    //squeezy
-									,31, 32        //elevator
-				};
-		TalonFactory talonFactory = new TalonFactory(talonIDs);
-		talonFactory.init();
+		
 	}//robotInit
 	
 	public void autonomousInit() {
 		SmartDashboard.putNumber("DB/Slider 0", 4);
 		
-		Scheduler.getInstance().add(new AutoBasic());
+		Scheduler.getInstance().add(new CenterToLeft());
 //		
 	}//autonomousInit
 	
 	public void autonomousPeriodic() {
 		Scheduler.getInstance().run();
+		squeezy.update();
 	}//autonomousPeriodic
 	
 	public void teleopInit() {

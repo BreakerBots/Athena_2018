@@ -22,7 +22,7 @@ public class Squeezy {
 	
 	static final double kIntakeEffort = -/*0.4*//*3-12-18 0.2*/0.2;
 	static final double kPinchEffort = -0.1;
-	static final double kEjectEffort = 0.6;
+	public static double kEjectEffort = 0.6;
 	
 	public enum SqueezyState {
 		EMPTY, INTAKE, CLOSING, HOLDING, LOADED, EJECT,
@@ -42,7 +42,7 @@ public class Squeezy {
 	
 	//An unreasonable starting value
 	private SqueezyState prevState = SqueezyState.EJECT;
-	SqueezyState state = SqueezyState.EMPTY;
+	SqueezyState state = SqueezyState.HOLDING;
 	
 	public enum ButtonType {
 		kIntake, kEject, kCancel, kUnjam

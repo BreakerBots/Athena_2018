@@ -50,6 +50,9 @@ public class Elevator {
 			talon2 = new TalonSRX(TALON2_ID);
 			talon2.set(ControlMode.Follower, TALON1_ID);
 		}
+		
+		talon1.config_kP(0, 2, 10);
+		talon1.config_IntegralZone(0, 2000, 10);
 	}//Elevator
 	
 	public void setEffort(double effort) {
@@ -78,9 +81,9 @@ public class Elevator {
 		if (!getBoolean("closed_loop_control", false)) {
 			effort = -joy.getRawAxis(AXIS_ID);
 			effort = Deadband.getDefault().get(effort);
-			talon1.set(ControlMode.PercentOutput, effort);
+			setEffort(effort);
 		} else {
-			talon1.set(ControlMode.Position, getDouble("setpoint", 
+			setPosition(getDouble("setpoint", 
 					talon1.getSelectedSensorPosition(0)));
 		}
 		update();
@@ -92,6 +95,7 @@ public class Elevator {
 			talon1.set(ControlMode.PercentOutput, effort);
 		} else if (controlMode == Control.kPosition) {
 			talon1.set(ControlMode.Position, position);
+			System.out.println("Elevator Effort: "+talon1.getMotorOutputPercent());
 		}
 	}//update
 	

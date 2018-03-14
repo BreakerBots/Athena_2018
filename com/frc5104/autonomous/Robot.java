@@ -103,7 +103,7 @@ public class Robot extends IterativeRobot {
 	
 	public void autonomousInit() {
 		//Pull up paths
-		Scheduler.getInstance().add(new AutoBasic());
+		Scheduler.getInstance().add(new Left());
 		
 		tP = SmartDashboard.getNumber("DB/Slider 0", tP);
 		tI = SmartDashboard.getNumber("DB/Slider 1", tI);
