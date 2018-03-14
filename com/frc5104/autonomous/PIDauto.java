@@ -25,7 +25,6 @@ public class PIDauto {
 	
 	//Start
 	AHRS ahrs = new AHRS(Port.kMXP);
-	ADXRS450_Gyro analogGyro = new ADXRS450_Gyro();
 	
 	//Drive
 //	TalonSRX talonL = new TalonSRX(11);
@@ -75,15 +74,12 @@ public class PIDauto {
 				return PIDSourceType.kDisplacement;
 			}
 			public double pidGet() {
-//				return ahrs.getYaw();
-				return analogGyro.getAngle();
+				return ahrs.getAngle();
 			}}, new PIDOutput() {
 			public void pidWrite(double output) {
 				rotateToAngleRate = -output;
 			}
 		});
-		
-		if (SmartDashboard.getBoolean("RESET_GYRO", false)) analogGyro.calibrate();
 		
 //	    turnController.setInputRange(-180.0f,  180.0f);
 	    turnController.setOutputRange(-0.5, 0.5);
@@ -109,8 +105,6 @@ public class PIDauto {
 	    moveController.setOutputRange(-1.0, 1.0);
 	    moveController.setAbsoluteTolerance(mToleranceTicks);
 	    
-//	    talonL.setSelectedSensorPosition(0, 0, 10);
-//		talonR.setSelectedSensorPosition(0, 0, 10);
 		Drive.getInstance().resetEncoders();
 	    
 		//Move Straight

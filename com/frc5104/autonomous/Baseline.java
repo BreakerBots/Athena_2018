@@ -7,7 +7,7 @@ public class Baseline extends CommandGroup {
 	String gameData; 
 	String position = DriverStation.getInstance().getLocation() == 0 ? "L" : (DriverStation.getInstance().getLocation() == 2 ? "R" : "M");
 	
-    public Baseline() {    	
+    public Baseline() {
     	elevator(-5000);
     	move(100);
     }
@@ -17,7 +17,7 @@ public class Baseline extends CommandGroup {
     }
     
     public void turn(double degrees) {
-    	addSequential(new Turn(degrees));
+    	addSequential(new PIDTurn(degrees));
     }
     
     public void elevator(double ticks) {

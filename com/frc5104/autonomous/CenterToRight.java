@@ -25,7 +25,7 @@ public class CenterToRight extends CommandGroup {
     }
     
     public void turn(double degrees) {
-    	addSequential(new Turn(degrees));
+    	addSequential(new PIDTurn(degrees));
     }
     
     public void elevator(double ticks) {

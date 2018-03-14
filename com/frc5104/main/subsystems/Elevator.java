@@ -19,11 +19,21 @@ public class Elevator {
 	public static final int TALON2_ID = 32;
 	public static final int AXIS_ID = 5;
 	
-	public static final double kRaiseEffort = 0.8;
-	public static final double kLowerEffort = 0.5;
-	public static final double kHoldEffort = 0;
-		// Constant effort to hold up elevator
-		// Might change w/ Power Cube
+	public enum Stage {
+		kBottom(0),
+		kPortal(-3000),
+		kSwitch(-5000),
+		kLowerScale(13000),
+		kTop(-16500);
+		
+		int position;
+		Stage (int position){
+			this.position = position;
+		}
+		public int getPosition() {
+			return this.position;
+		}
+	}//Stage
 	
 	static Elevator m_instance = null;
 	

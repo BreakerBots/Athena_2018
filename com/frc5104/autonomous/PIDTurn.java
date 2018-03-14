@@ -4,10 +4,10 @@ import com.frc5104.main.subsystems.Drive;
 
 import edu.wpi.first.wpilibj.command.Command;
 
-public class Turn extends Command {
+public class PIDTurn extends Command {
 	double target;
-
-    public Turn(double degrees) {
+		
+    public PIDTurn(double degrees) {
         target = degrees;
     }
 
@@ -15,15 +15,15 @@ public class Turn extends Command {
     protected void initialize() {
     	PIDauto.getInstance().turnController.reset();
     	
-//    	PIDauto.getInstance().ahrs.reset();
+    	PIDauto.getInstance().ahrs.reset();
     	double angle = 0;
     	for (int i=0; i<5; i++)
-    		angle = PIDauto.getInstance().analogGyro.getAngle();
+    		angle = PIDauto.getInstance().ahrs.getAngle();
     	PIDauto.getInstance().turnController.setSetpoint( (angle + target) );
 
     	PIDauto.getInstance().turnController.enable();
     	
-    }
+    }//initialize
 
     // Called repeatedly when this Command is scheduled to run
     protected void execute() {
