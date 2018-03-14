@@ -2,7 +2,7 @@ package com.frc5104.main;
 
 import com.ctre.phoenix.motorcontrol.ControlMode;
 import com.ctre.phoenix.motorcontrol.can.TalonSRX;
-import com.frc5104.autonomous.CenterToLeft;
+import com.frc5104.autonomous.Left;
 import com.frc5104.main.subsystems.Drive;
 import com.frc5104.main.subsystems.Elevator;
 import com.frc5104.main.subsystems.Shifters;
@@ -101,7 +101,7 @@ public class Robot extends IterativeRobot {
 	public void autonomousInit() {
 		SmartDashboard.putNumber("DB/Slider 0", 4);
 		
-		Scheduler.getInstance().add(new CenterToLeft());
+		Scheduler.getInstance().add(new Left());
 //		
 	}//autonomousInit
 	

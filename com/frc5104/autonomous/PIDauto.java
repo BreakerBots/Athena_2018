@@ -4,11 +4,13 @@ import com.ctre.phoenix.motorcontrol.can.TalonSRX;
 import com.frc5104.main.subsystems.Drive;
 import com.kauailabs.navx.frc.AHRS;
 
+import edu.wpi.first.wpilibj.ADXRS450_Gyro;
 import edu.wpi.first.wpilibj.PIDController;
 import edu.wpi.first.wpilibj.PIDOutput;
 import edu.wpi.first.wpilibj.PIDSource;
 import edu.wpi.first.wpilibj.PIDSourceType;
 import edu.wpi.first.wpilibj.SPI.Port;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
 public class PIDauto {
 	
@@ -23,6 +25,7 @@ public class PIDauto {
 	
 	//Start
 	AHRS ahrs = new AHRS(Port.kMXP);
+	ADXRS450_Gyro analogGyro = new ADXRS450_Gyro();
 	
 	//Drive
 //	TalonSRX talonL = new TalonSRX(11);
@@ -41,7 +44,7 @@ public class PIDauto {
 	double moveToDistance; double movesDistance;
 	
 	//Turning PID Values
-	static double tP = 0.05;
+	static double tP = 0.06/*0.05*/;
 	static double tI = 0.0003;
 	static double tD = 0.000002;
 	static double tF = 0.00;
@@ -72,12 +75,16 @@ public class PIDauto {
 				return PIDSourceType.kDisplacement;
 			}
 			public double pidGet() {
-				return ahrs.getYaw();
+//				return ahrs.getYaw();
+				return analogGyro.getAngle();
 			}}, new PIDOutput() {
 			public void pidWrite(double output) {
 				rotateToAngleRate = -output;
 			}
 		});
+		
+		if (SmartDashboard.getBoolean("RESET_GYRO", false)) analogGyro.calibrate();
+		
 //	    turnController.setInputRange(-180.0f,  180.0f);
 	    turnController.setOutputRange(-0.5, 0.5);
 	    turnController.setAbsoluteTolerance(tToleranceDegrees);

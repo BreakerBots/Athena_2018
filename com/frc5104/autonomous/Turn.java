@@ -16,7 +16,10 @@ public class Turn extends Command {
     	PIDauto.getInstance().turnController.reset();
     	
 //    	PIDauto.getInstance().ahrs.reset();
-    	PIDauto.getInstance().turnController.setSetpoint( (PIDauto.getInstance().ahrs.getYaw() + target) );
+    	double angle = 0;
+    	for (int i=0; i<5; i++)
+    		angle = PIDauto.getInstance().analogGyro.getAngle();
+    	PIDauto.getInstance().turnController.setSetpoint( (angle + target) );
 
     	PIDauto.getInstance().turnController.enable();
     	
