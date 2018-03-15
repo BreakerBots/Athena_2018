@@ -2,7 +2,7 @@ package com.frc5104.main;
 
 import com.ctre.phoenix.motorcontrol.ControlMode;
 import com.ctre.phoenix.motorcontrol.can.TalonSRX;
-import com.frc5104.autopaths.AutoManager;
+import com.frc5104.autopaths.AutoSelector;
 import com.frc5104.autopaths.Baseline;
 import com.frc5104.main.subsystems.Drive;
 import com.frc5104.main.subsystems.Elevator;
@@ -100,7 +100,7 @@ public class Robot extends IterativeRobot {
 	}//robotInit
 	
 	public void autonomousInit() {
-		auto = AutoManager.getAuto();
+		auto = AutoSelector.getAuto();
 		Scheduler.getInstance().add(auto);
 	}//autonomousInit
 	
