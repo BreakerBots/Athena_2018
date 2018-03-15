@@ -121,10 +121,10 @@ public class Robot extends IterativeRobot {
 	public void teleopPeriodic() {
 		controller.update();
 		
-//		if (controller.getPressed(Button.LB))
-//			elevator.moveDown();
-//		else if (controller.getPressed(Button.RB))
-//			elevator.moveUp();
+		if (controller.getPressed(Button.LB))
+			elevator.moveDown();
+		else if (controller.getPressed(Button.RB))
+			elevator.moveUp();
 		
 //		System.out.println("Encoder Position: "+drive.getEncoderRight());
 		ptoShifter.update(); if (ptoShifter.Pressed) { 

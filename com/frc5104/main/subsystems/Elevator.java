@@ -64,8 +64,8 @@ public class Elevator {
 		talon1.configReverseSoftLimitEnable(true, 10);
 		talon1.configReverseSoftLimitThreshold(SOFT_STOP_TOP, 10);
 
-		talon1.configForwardSoftLimitEnable(true, 10);
-		talon1.configForwardSoftLimitThreshold(SOFT_STOP_BOTTOM, 10);
+		talon1.configForwardSoftLimitEnable(false, 10);
+//		talon1.configForwardSoftLimitThreshold(SOFT_STOP_BOTTOM, 10);
 
 		
 		talon1.config_kP(0, 2, 10);
