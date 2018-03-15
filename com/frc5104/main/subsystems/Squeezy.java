@@ -15,7 +15,7 @@ public class Squeezy {
 	public static final int LEFT_ID = /*0*/22;
 	public static final int RIGHT_ID = /*1*/23;
 	
-	static final double kHoldEffort = -0.15;
+	static final double kHoldEffort = -0.25;
 	static final double kShootSqueezeEffort = -0.05;
 	static final double kCloseEffort = -0.2;
 	static final double kOpenEffort  = 0.15;
@@ -66,7 +66,9 @@ public class Squeezy {
 			//OTHERWISE, the finely tuned closed-loop control becomes
 			//chaotic and accelerates away from the setpoint
 		squeezer.setSensorPhase(true);
-		raise();
+		state = SqueezyState.HOLDING;
+		updateState();
+		update();
 	}//Squeezy
 	
 	public void pollButtons() {
