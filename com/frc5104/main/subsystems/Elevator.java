@@ -23,7 +23,7 @@ public class Elevator {
 		kBottom(0),
 		kPortal(-3000),
 		kSwitch(-5000),
-		kLowerScale(13000),
+		kLowerScale(-13000),
 		kTop(-16500);
 		
 		int position;
@@ -53,7 +53,6 @@ public class Elevator {
 	}
 	Control controlMode = Control.kEffort;
 	public double effort = 0;
-	public int position;
 	Stage currentStage;
 	
 	private Elevator () {
@@ -62,10 +61,19 @@ public class Elevator {
 			talon2.set(ControlMode.Follower, TALON1_ID);
 		}
 		
+		talon1.configReverseSoftLimitEnable(true, 10);
+		talon1.configReverseSoftLimitThreshold(SOFT_STOP_TOP, 10);
+
+		talon1.configForwardSoftLimitEnable(true, 10);
+		talon1.configForwardSoftLimitThreshold(SOFT_STOP_BOTTOM, 10);
+
+		
 		talon1.config_kP(0, 2, 10);
 		talon1.config_IntegralZone(0, 2000, 10);
 		
 		currentStage = Stage.kBottom;
+		setEffort(0);
+//		setPosition(currentStage);
 	}//Elevator
 	
 	public void setEffort(double effort) {
@@ -77,22 +85,38 @@ public class Elevator {
 	
 	public void setPosition(Stage stage) {
 		controlMode = Control.kPosition;
-		this.position = stage.getCounts();
+		this.currentStage = stage;
 		
 		update();
 	}//setPosition
+	
+	public void moveUp() {
+		int newStage = currentStage.ordinal() + 1;
+		if (newStage >= Stage.values().length)
+			newStage = Stage.values().length - 1;
+		
+		setPosition(Stage.values()[newStage]);
+	}//moveUp
+	
+	public void moveDown() {
+		int newStage = currentStage.ordinal() - 1;
+		if (newStage < 0)
+			newStage = 0;
+		
+		setPosition(Stage.values()[newStage]);
+	}//moveDown
 	
 	public int getError() {
 		return talon1.getClosedLoopError(0);
 	}//getError
 	
 	public boolean onTarget() {
-		return Math.abs(talon1.getSelectedSensorPosition(0) - position) < 200;
+		return Math.abs(talon1.getSelectedSensorPosition(0) - currentStage.getCounts()) < 200;
 	}//onTarget
 	
 	public void userControl() {
 		if (!getBoolean("closed_loop_control", false)) {
-			effort = -joy.getRawAxis(AXIS_ID);
+			effort = joy.getRawAxis(AXIS_ID);
 			effort = Deadband.getDefault().get(effort);
 			setEffort(effort);
 		} else {
@@ -106,7 +130,7 @@ public class Elevator {
 		if (controlMode == Control.kEffort) {
 			talon1.set(ControlMode.PercentOutput, effort);
 		} else if (controlMode == Control.kPosition) {
-			talon1.set(ControlMode.Position, position);
+			talon1.set(ControlMode.Position, currentStage.getCounts());
 			System.out.println("Elevator Effort: "+talon1.getMotorOutputPercent());
 		}
 	}//update
