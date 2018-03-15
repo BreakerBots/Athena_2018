@@ -30,7 +30,7 @@ public class Elevator {
 		Stage (int position){
 			this.position = position;
 		}
-		public int getPosition() {
+		public int getCounts() {
 			return this.position;
 		}
 	}//Stage
@@ -53,7 +53,8 @@ public class Elevator {
 	}
 	Control controlMode = Control.kEffort;
 	public double effort = 0;
-	public double position = 0;
+	public int position;
+	Stage currentStage;
 	
 	private Elevator () {
 		if (TWO_TALONS) {
@@ -63,6 +64,8 @@ public class Elevator {
 		
 		talon1.config_kP(0, 2, 10);
 		talon1.config_IntegralZone(0, 2000, 10);
+		
+		currentStage = Stage.kBottom;
 	}//Elevator
 	
 	public void setEffort(double effort) {
@@ -72,9 +75,9 @@ public class Elevator {
 		update();
 	}//setEffort
 	
-	public void setPosition(double position) {
+	public void setPosition(Stage stage) {
 		controlMode = Control.kPosition;
-		this.position = position;
+		this.position = stage.getCounts();
 		
 		update();
 	}//setPosition
@@ -93,8 +96,7 @@ public class Elevator {
 			effort = Deadband.getDefault().get(effort);
 			setEffort(effort);
 		} else {
-			setPosition(getDouble("setpoint", 
-					talon1.getSelectedSensorPosition(0)));
+			setPosition(Stage.valueOf(getString("setpoint", currentStage.toString())));
 		}
 		update();
 		updateTables();

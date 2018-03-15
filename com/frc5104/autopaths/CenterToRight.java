@@ -5,6 +5,7 @@ import com.frc5104.autocommands.EjectSqueezy;
 import com.frc5104.autocommands.Move;
 import com.frc5104.autocommands.MoveElevator;
 import com.frc5104.autocommands.PIDTurn;
+import com.frc5104.main.subsystems.Elevator.Stage;
 
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.command.CommandGroup;
@@ -14,7 +15,7 @@ public class CenterToRight extends CommandGroup {
 	String position = DriverStation.getInstance().getLocation() == 0 ? "L" : (DriverStation.getInstance().getLocation() == 2 ? "R" : "M");
 	
     public CenterToRight() {    	
-    	elevator(-5000);
+    	elevator(Stage.kLowerScale);
     	move(25);
     	delay(100);
     	turn(30);
@@ -34,8 +35,8 @@ public class CenterToRight extends CommandGroup {
     	addSequential(new PIDTurn(degrees));
     }
     
-    public void elevator(double ticks) {
-    	addParallel(new MoveElevator(ticks));
+    public void elevator(Stage stage) {
+    	addParallel(new MoveElevator(stage));
     }
     
     public void delay(int milliseconds) {

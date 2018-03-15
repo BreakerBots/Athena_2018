@@ -2,7 +2,8 @@ package com.frc5104.main;
 
 import com.ctre.phoenix.motorcontrol.ControlMode;
 import com.ctre.phoenix.motorcontrol.can.TalonSRX;
-import com.frc5104.autopaths.Left;
+import com.frc5104.autopaths.AutoManager;
+import com.frc5104.autopaths.Baseline;
 import com.frc5104.main.subsystems.Drive;
 import com.frc5104.main.subsystems.Elevator;
 import com.frc5104.main.subsystems.Shifters;
@@ -16,6 +17,7 @@ import com.frc5104.vision.VisionThread;
 import edu.wpi.first.wpilibj.DoubleSolenoid;
 import edu.wpi.first.wpilibj.IterativeRobot;
 import edu.wpi.first.wpilibj.Joystick;
+import edu.wpi.first.wpilibj.command.CommandGroup;
 import edu.wpi.first.wpilibj.command.Scheduler;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
@@ -27,7 +29,7 @@ public class Robot extends IterativeRobot {
 	};
 	TalonFactory talonFactory = new TalonFactory(talonIDs);
 
-	BasicAuto auto;
+	CommandGroup auto;
 	VisionThread vision;
 
 	Joystick joy = new Joystick(0);
@@ -95,14 +97,11 @@ public class Robot extends IterativeRobot {
 		
 	    drive.resetEncoders();
 		
-		
 	}//robotInit
 	
 	public void autonomousInit() {
-		SmartDashboard.putNumber("DB/Slider 0", 4);
-		
-		Scheduler.getInstance().add(new Left());
-//		
+		auto = AutoManager.getAuto();
+		Scheduler.getInstance().add(auto);
 	}//autonomousInit
 	
 	public void autonomousPeriodic() {

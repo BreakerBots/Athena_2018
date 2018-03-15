@@ -1,14 +1,15 @@
 package com.frc5104.autocommands;
 
 import com.frc5104.main.subsystems.Elevator;
+import com.frc5104.main.subsystems.Elevator.Stage;
 
 import edu.wpi.first.wpilibj.command.Command;
 
 public class MoveElevator extends Command {
-	double target;
+	Stage target;
 
-    public MoveElevator(double ticks) {
-        target = ticks;
+    public MoveElevator(Stage moveToStage) {
+        target = moveToStage;
     }
 
     protected void initialize() {
