@@ -11,14 +11,14 @@ import edu.wpi.first.wpilibj.Talon;
 
 public class Squeezy {
 
-	public static final int MAIN_ID = /*11*/21;
-	public static final int LEFT_ID = /*0*/22;
-	public static final int RIGHT_ID = /*1*/23;
+	public static final int MAIN_ID = 21;
+	public static final int LEFT_ID = 22;
+	public static final int RIGHT_ID = 23;
 	
 	static final double kHoldEffort = -0.25;
 	static final double kShootSqueezeEffort = -0.05;
 	static final double kCloseEffort = -0.2;
-	static final double kOpenEffort  = 0.15;
+	static final double kOpenEffort  = 0.20;
 	
 	static final double kIntakeEffort = -/*0.4*//*3-12-18 0.2*/0.2;
 	static final double kPinchEffort = -0.1;
@@ -41,6 +41,7 @@ public class Squeezy {
 	NetworkTable table = null;
 	
 	//An unreasonable starting value
+	private boolean calibrated = false;
 	private SqueezyState prevState = SqueezyState.EJECT;
 	SqueezyState state = SqueezyState.HOLDING;
 	
@@ -62,6 +63,8 @@ public class Squeezy {
 	SqueezySensors sensors = SqueezySensors.getInstance();
 
 	private Squeezy () {
+		
+		
 		//Make sure that the motor output and encoder counts are in sync
 			//OTHERWISE, the finely tuned closed-loop control becomes
 			//chaotic and accelerates away from the setpoint
@@ -98,8 +101,11 @@ public class Squeezy {
 	public void updateState() {
 		sensors.updateSensors();
 
-		if (squeezer.getSensorCollection().isFwdLimitSwitchClosed())
-		squeezer.setSelectedSensorPosition(0, 0, 10);
+		if (squeezer.getSensorCollection().isFwdLimitSwitchClosed()) {
+			if (!calibrated)
+				squeezer.setSelectedSensorPosition(0, 0, 10);
+			calibrated = true;
+		}
 		
 		switch (state) {
 		case EMPTY:
@@ -141,6 +147,8 @@ public class Squeezy {
 			break;
 		case UNJAM:
 			if (squeezer.getSensorCollection().isFwdLimitSwitchClosed())
+				state = SqueezyState.INTAKE;
+			if (buttonIntake.Pressed)
 				state = SqueezyState.INTAKE;
 			break;
 		}//switch
@@ -315,9 +323,18 @@ public class Squeezy {
 			
 			setDouble("squeezer_pos", squeezer.getSelectedSensorPosition(0));
 			setDouble("squeezer_vel", squeezer.getSelectedSensorVelocity(0));
+			
+			setBoolean("Eject", state == SqueezyState.EJECT);
+			setBoolean("Intake", state == SqueezyState.INTAKE);
+			
+			setBoolean("DetectedBox", sensors.detectBox());
+			setBoolean("BoxHeld", sensors.detectBoxHeld());
 
 			setBoolean("limits/fwd", squeezer.getSensorCollection().isFwdLimitSwitchClosed());
 			setBoolean("limits/rev", squeezer.getSensorCollection().isRevLimitSwitchClosed());
+			
+//			setDouble("drive_left_pos", Drive.getInstance().getEncoderLeft());
+//			setDouble("drive_right_pos", Drive.getInstance().getEncoderRight());
 		}
 	}//postSqueezerData
 	

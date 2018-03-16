@@ -78,7 +78,8 @@ public class Elevator {
 		talon1.config_IntegralZone(0, 2000, 10);
 		
 		currentStage = Stage.kBottom;
-		calibrateBottom();
+//		calibrateBottom();
+		setEffort(0);
 	}//Elevator
 	
 	public void setEffort(double effort) {

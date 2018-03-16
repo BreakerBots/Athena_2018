@@ -50,7 +50,7 @@ public class AutoSelector {
 			
 			String position;
 			
-			position = NetworkTableInstance.getDefault().getTable("dashboard").getEntry("autoposition").getString("null");
+			position = NetworkTableInstance.getDefault().getTable("Autonomous").getEntry("AutoPos").getString("null");
 
 			if (position.equals("null"))
 				position = SmartDashboard.getString("autoposition", "null");
