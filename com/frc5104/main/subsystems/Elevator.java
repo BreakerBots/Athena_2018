@@ -53,6 +53,7 @@ public class Elevator {
 										//until the fwd (lower) limit switch is closed.
 										//This ensures that kBottom = 0;
 	}
+	private boolean calibrated = false;
 	Control controlMode = Control.kCalibrate;
 	Stage currentStage;
 
@@ -87,8 +88,11 @@ public class Elevator {
 	}//setEffort
 	
 	public void goTo(Stage stage) {
-		if (controlMode != Control.kCalibrate)
+		if (calibrated) {
 			controlMode = Control.kPosition;
+		} else {
+			calibrateBottom();
+		}
 		this.currentStage = stage;
 		
 		update();
@@ -130,9 +134,13 @@ public class Elevator {
 		} else if (controlMode == Control.kCalibrate) {
 			talon1.set(ControlMode.PercentOutput, 0.1);
 			if (talon1.getSensorCollection().isFwdLimitSwitchClosed()) {
+				//Reset Talon Encoder Position & Soft Limit
 				talon1.setSelectedSensorPosition(0, 0, 10);
 				talon1.configForwardSoftLimitEnable(true, 10);
-				goTo(currentStage);
+				
+				calibrated = true;
+				controlMode = Control.kPosition;
+				update();
 			}
 		}
 	}//update
@@ -143,6 +151,10 @@ public class Elevator {
 	}//calibrateBottom
 	
 	//----- Elevator Sensors ------//
+	public boolean isCalibrated() {
+		return calibrated;
+	}//isCalibrated
+	
 	public int getError() {
 		return talon1.getClosedLoopError(0);
 	}//getError
