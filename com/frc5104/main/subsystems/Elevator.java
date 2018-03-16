@@ -156,6 +156,7 @@ public class Elevator {
 	}//calibrateBottom
 	
 	public void vibrateIfApproaching() {
+		if (!calibrated) return;
 		//Raising the elevator triggers when it passes a setpoint,
 		//lowering triggers when it approachDistance above a setpoint.
 		int approachDistance = 100;
