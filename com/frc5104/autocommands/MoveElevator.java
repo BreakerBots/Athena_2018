@@ -13,7 +13,7 @@ public class MoveElevator extends Command {
     }
 
     protected void initialize() {
-    	Elevator.getInstance().setPosition(target);
+    	Elevator.getInstance().goTo(target);
     }
 
     protected void execute() {

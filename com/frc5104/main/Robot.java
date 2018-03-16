@@ -6,6 +6,7 @@ import com.frc5104.autopaths.AutoSelector;
 import com.frc5104.autopaths.Baseline;
 import com.frc5104.main.subsystems.Drive;
 import com.frc5104.main.subsystems.Elevator;
+import com.frc5104.main.subsystems.Elevator.Stage;
 import com.frc5104.main.subsystems.Shifters;
 import com.frc5104.main.subsystems.Squeezy;
 import com.frc5104.main.subsystems.SqueezySensors;
@@ -123,9 +124,9 @@ public class Robot extends IterativeRobot {
 		controller.update();
 		
 		if (controller.getPressed(Button.LB))
-			elevator.moveDown();
+			elevator.goTo(Stage.kSwitch);
 		else if (controller.getPressed(Button.RB))
-			elevator.moveUp();
+			elevator.goTo(Stage.kTop);
 		
 //		System.out.println("Encoder Position: "+drive.getEncoderRight());
 		if (controller.getHeldEvent(Dpad.S, 0.4)) { 
@@ -156,11 +157,11 @@ public class Robot extends IterativeRobot {
 			squeezy.update();
 		}
 		
-		if (joy.getPOV() == 180) {
+		if (controller.getPressed(Dpad.N)) {
 			System.out.println("DOWN!");
 			squeezyUpDown.set(DoubleSolenoid.Value.kForward);
 		}
-		if (joy.getPOV() == 0) {
+		if (controller.getPressed(Dpad.S)) {
 			System.out.println("UP!");
 			squeezyUpDown.set(DoubleSolenoid.Value.kReverse);
 		}
