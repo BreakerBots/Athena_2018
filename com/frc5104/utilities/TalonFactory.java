@@ -14,11 +14,13 @@ public class TalonFactory {
 		for (int i = 0; i < talonIds.length; i++) {
 			talons[i] = new TalonSRX(talonIds[i]);
 		}
+		init();
 	}//TalonFactory
 	
 	public void init() {
 		for (TalonSRX taloni:talons) {
 			fixTalon(taloni);
+			System.out.println("Configured Talon: "+taloni.getDeviceID());
 		}
 	}//init
 	

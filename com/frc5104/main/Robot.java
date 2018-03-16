@@ -2,24 +2,36 @@ package com.frc5104.main;
 
 import com.ctre.phoenix.motorcontrol.ControlMode;
 import com.ctre.phoenix.motorcontrol.can.TalonSRX;
+import com.frc5104.autopaths.AutoSelector;
+import com.frc5104.autopaths.Baseline;
 import com.frc5104.main.subsystems.Drive;
 import com.frc5104.main.subsystems.Elevator;
 import com.frc5104.main.subsystems.Shifters;
 import com.frc5104.main.subsystems.Squeezy;
 import com.frc5104.main.subsystems.SqueezySensors;
 import com.frc5104.utilities.ButtonS;
+import com.frc5104.utilities.ControllerHandler;
 import com.frc5104.utilities.Deadband;
 import com.frc5104.utilities.TalonFactory;
+import com.frc5104.utilities.ControllerHandler.Button;
 import com.frc5104.vision.VisionThread;
 
 import edu.wpi.first.wpilibj.DoubleSolenoid;
 import edu.wpi.first.wpilibj.IterativeRobot;
 import edu.wpi.first.wpilibj.Joystick;
+import edu.wpi.first.wpilibj.command.CommandGroup;
+import edu.wpi.first.wpilibj.command.Scheduler;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
 public class Robot extends IterativeRobot {
 
-	BasicAuto auto;
+	int[] talonIDs = new int[] {11, 12, 13, 14 //drive
+			,21, 22, 23    //squeezy
+			,31, 32        //elevator
+	};
+	TalonFactory talonFactory = new TalonFactory(talonIDs);
+
+	CommandGroup auto;
 	VisionThread vision;
 
 	Joystick joy = new Joystick(0);
@@ -29,7 +41,7 @@ public class Robot extends IterativeRobot {
 //	Drive drive = null;
 	Drive drive = Drive.getInstance();
 	Shifters shifters = Shifters.getInstance();
-	ButtonS shifterButton = new ButtonS(5);
+	ButtonS shifterButton = new ButtonS(7);
 	
 //	Squeezy squeezy = null;
 	Squeezy squeezy = Squeezy.getInstance();
@@ -49,8 +61,9 @@ public class Robot extends IterativeRobot {
 	ButtonS ptoShifter = new ButtonS(4);
 	DoubleSolenoid ptoSol = new DoubleSolenoid(4, 5);
 	
-	
 	DoubleSolenoid squeezyUpDown = new DoubleSolenoid(0,1);
+	
+	ControllerHandler controller = ControllerHandler.getInstance();
 	/* ------- PTO PID Values for Elevator -------
 	 * 
 	 * p == 0.16
@@ -85,25 +98,18 @@ public class Robot extends IterativeRobot {
 		
 		squeezyUpDown.set(DoubleSolenoid.Value.kForward);
 		
-		int[] talonIDs = new int[] {11, 12, 13, 14 //drive
-									,21, 22, 23    //squeezy
-									,31, 32        //elevator
-				};
-		TalonFactory talonFactory = new TalonFactory(talonIDs);
-		talonFactory.init();
+	    drive.resetEncoders();
+		
 	}//robotInit
 	
 	public void autonomousInit() {
-		SmartDashboard.putNumber("DB/Slider 0", 4);
-		
-//		auto = new AutoPickupCube();
-//		
-//		auto.init();
+		auto = AutoSelector.getAuto();
+		Scheduler.getInstance().add(auto);
 	}//autonomousInit
 	
 	public void autonomousPeriodic() {
-		
-		
+		Scheduler.getInstance().run();
+		squeezy.update();
 	}//autonomousPeriodic
 	
 	public void teleopInit() {
@@ -113,6 +119,13 @@ public class Robot extends IterativeRobot {
 	}//teleopInit
 	
 	public void teleopPeriodic() {
+		controller.update();
+		
+		if (controller.getPressed(Button.LB))
+			elevator.moveDown();
+		else if (controller.getPressed(Button.RB))
+			elevator.moveUp();
+		
 //		System.out.println("Encoder Position: "+drive.getEncoderRight());
 		ptoShifter.update(); if (ptoShifter.Pressed) { 
 			ptoSol.set(ptoSol.get() == DoubleSolenoid.Value.kReverse ? DoubleSolenoid.Value.kForward : DoubleSolenoid.Value.kReverse);
@@ -120,7 +133,7 @@ public class Robot extends IterativeRobot {
 		
 		if (drive != null) {
 			double x = -joy.getRawAxis(0),
-					y = joy.getRawAxis(1);
+				   y = joy.getRawAxis(1);
 			
 //			x = deadband.get(x);
 //			y = deadband.get(y);

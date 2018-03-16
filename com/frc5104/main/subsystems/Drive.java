@@ -7,6 +7,7 @@ import com.ctre.phoenix.motorcontrol.can.WPI_TalonSRX;
 import edu.wpi.first.wpilibj.DoubleSolenoid;
 import edu.wpi.first.wpilibj.SpeedControllerGroup;
 import edu.wpi.first.wpilibj.drive.DifferentialDrive;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
 public class Drive {
 
@@ -37,15 +38,22 @@ public class Drive {
 	
 	public void arcadeDrive(double moveVal, double rotateVal) {
 		drive.arcadeDrive(moveVal, rotateVal);
+		
+		SmartDashboard.putNumberArray("Drive Encoders", new double[] {getEncoderLeft(), getEncoderRight()});
 	}//arcadeDrive
 	
-	public double getEncoderLeft() {
+	public int getEncoderLeft() {
 		return talonLeftMain.getSelectedSensorPosition(0);
 	}//getEncoderLeft
 	
-	public double getEncoderRight() {
+	public int getEncoderRight() {
 		return talonRightMain.getSelectedSensorPosition(0);
 	}//getEncoderRight
+	
+	public void resetEncoders() {
+		talonLeftMain.setSelectedSensorPosition(0, 0, 20);
+		talonRightMain.setSelectedSensorPosition(0, 0, 20);
+	}//resetEncoders
 	
 	public void postValuesToNetworkTable() {
 

@@ -19,11 +19,21 @@ public class Elevator {
 	public static final int TALON2_ID = 32;
 	public static final int AXIS_ID = 5;
 	
-	public static final double kRaiseEffort = 0.8;
-	public static final double kLowerEffort = 0.5;
-	public static final double kHoldEffort = 0;
-		// Constant effort to hold up elevator
-		// Might change w/ Power Cube
+	public enum Stage {
+		kBottom(0),
+		kPortal(-3000),
+		kSwitch(-5000),
+		kLowerScale(-13000),
+		kTop(-16500);
+		
+		int position;
+		Stage (int position){
+			this.position = position;
+		}
+		public int getCounts() {
+			return this.position;
+		}
+	}//Stage
 	
 	static Elevator m_instance = null;
 	
@@ -43,13 +53,27 @@ public class Elevator {
 	}
 	Control controlMode = Control.kEffort;
 	public double effort = 0;
-	public double position = 0;
+	Stage currentStage;
 	
 	private Elevator () {
 		if (TWO_TALONS) {
 			talon2 = new TalonSRX(TALON2_ID);
 			talon2.set(ControlMode.Follower, TALON1_ID);
 		}
+		
+		talon1.configReverseSoftLimitEnable(true, 10);
+		talon1.configReverseSoftLimitThreshold(SOFT_STOP_TOP, 10);
+
+		talon1.configForwardSoftLimitEnable(false, 10);
+//		talon1.configForwardSoftLimitThreshold(SOFT_STOP_BOTTOM, 10);
+
+		
+		talon1.config_kP(0, 2, 10);
+		talon1.config_IntegralZone(0, 2000, 10);
+		
+		currentStage = Stage.kBottom;
+		setEffort(0);
+//		setPosition(currentStage);
 	}//Elevator
 	
 	public void setEffort(double effort) {
@@ -59,21 +83,44 @@ public class Elevator {
 		update();
 	}//setEffort
 	
-	public void setPosition(double position) {
+	public void setPosition(Stage stage) {
 		controlMode = Control.kPosition;
-		this.position = position;
+		this.currentStage = stage;
 		
 		update();
 	}//setPosition
 	
+	public void moveUp() {
+		int newStage = currentStage.ordinal() + 1;
+		if (newStage >= Stage.values().length)
+			newStage = Stage.values().length - 1;
+		
+		setPosition(Stage.values()[newStage]);
+	}//moveUp
+	
+	public void moveDown() {
+		int newStage = currentStage.ordinal() - 1;
+		if (newStage < 0)
+			newStage = 0;
+		
+		setPosition(Stage.values()[newStage]);
+	}//moveDown
+	
+	public int getError() {
+		return talon1.getClosedLoopError(0);
+	}//getError
+	
+	public boolean onTarget() {
+		return Math.abs(talon1.getSelectedSensorPosition(0) - currentStage.getCounts()) < 200;
+	}//onTarget
+	
 	public void userControl() {
 		if (!getBoolean("closed_loop_control", false)) {
-			effort = -joy.getRawAxis(AXIS_ID);
+			effort = joy.getRawAxis(AXIS_ID);
 			effort = Deadband.getDefault().get(effort);
-			talon1.set(ControlMode.PercentOutput, effort);
+			setEffort(effort);
 		} else {
-			talon1.set(ControlMode.Position, getDouble("setpoint", 
-					talon1.getSelectedSensorPosition(0)));
+			setPosition(Stage.valueOf(getString("setpoint", currentStage.toString())));
 		}
 		update();
 		updateTables();
@@ -83,7 +130,8 @@ public class Elevator {
 		if (controlMode == Control.kEffort) {
 			talon1.set(ControlMode.PercentOutput, effort);
 		} else if (controlMode == Control.kPosition) {
-			talon1.set(ControlMode.Position, position);
+			talon1.set(ControlMode.Position, currentStage.getCounts());
+			System.out.println("Elevator Effort: "+talon1.getMotorOutputPercent());
 		}
 	}//update
 	
