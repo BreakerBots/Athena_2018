@@ -14,6 +14,7 @@ import com.frc5104.utilities.ControllerHandler;
 import com.frc5104.utilities.Deadband;
 import com.frc5104.utilities.TalonFactory;
 import com.frc5104.utilities.ControllerHandler.Button;
+import com.frc5104.utilities.ControllerHandler.Dpad;
 import com.frc5104.vision.VisionThread;
 
 import edu.wpi.first.wpilibj.DoubleSolenoid;
@@ -127,8 +128,9 @@ public class Robot extends IterativeRobot {
 			elevator.moveUp();
 		
 //		System.out.println("Encoder Position: "+drive.getEncoderRight());
-		ptoShifter.update(); if (ptoShifter.Pressed) { 
+		if (controller.getHeldEvent(Dpad.S, 0.4)) { 
 			ptoSol.set(ptoSol.get() == DoubleSolenoid.Value.kReverse ? DoubleSolenoid.Value.kForward : DoubleSolenoid.Value.kReverse);
+			controller.rumbleHardFor(1, 0.2);
 		}
 		
 		if (drive != null) {

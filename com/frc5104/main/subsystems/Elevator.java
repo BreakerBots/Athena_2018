@@ -52,8 +52,10 @@ public class Elevator {
 		kPosition, kEffort
 	}
 	Control controlMode = Control.kEffort;
-	public double effort = 0;
 	Stage currentStage;
+
+	public Deadband userDeadband = new Deadband(0.2);
+	public double effort = 0;
 	
 	private Elevator () {
 		if (TWO_TALONS) {
@@ -64,8 +66,8 @@ public class Elevator {
 		talon1.configReverseSoftLimitEnable(true, 10);
 		talon1.configReverseSoftLimitThreshold(SOFT_STOP_TOP, 10);
 
-		talon1.configForwardSoftLimitEnable(false, 10);
-//		talon1.configForwardSoftLimitThreshold(SOFT_STOP_BOTTOM, 10);
+		talon1.configForwardSoftLimitEnable(true, 10);
+		talon1.configForwardSoftLimitThreshold(SOFT_STOP_BOTTOM, 10);
 
 		
 		talon1.config_kP(0, 2, 10);
@@ -115,13 +117,12 @@ public class Elevator {
 	}//onTarget
 	
 	public void userControl() {
-		if (!getBoolean("closed_loop_control", false)) {
-			effort = joy.getRawAxis(AXIS_ID);
-			effort = Deadband.getDefault().get(effort);
+		double userInput = joy.getRawAxis(AXIS_ID);
+		userInput = userDeadband.get(userInput);
+		
+		if (0.2 <= Math.abs(userInput))
 			setEffort(effort);
-		} else {
-			setPosition(Stage.valueOf(getString("setpoint", currentStage.toString())));
-		}
+		
 		update();
 		updateTables();
 	}//userControl
