@@ -2,6 +2,7 @@ package com.frc5104.main.subsystems;
 
 import com.ctre.phoenix.motorcontrol.ControlMode;
 import com.ctre.phoenix.motorcontrol.can.TalonSRX;
+import com.frc5104.utilities.ControllerHandler;
 import com.frc5104.utilities.Deadband;
 
 import edu.wpi.first.networktables.NetworkTable;
@@ -59,6 +60,7 @@ public class Elevator {
 
 	public Deadband userDeadband = new Deadband(0.2);
 	public double effort = 0;
+	public int prevEnc = -1;
 	
 	private Elevator () {
 		if (TWO_TALONS) {
@@ -76,8 +78,7 @@ public class Elevator {
 		talon1.config_IntegralZone(0, 2000, 10);
 		
 		currentStage = Stage.kBottom;
-		setEffort(0);
-//		setPosition(currentStage);
+		calibrateBottom();
 	}//Elevator
 	
 	public void setEffort(double effort) {
@@ -89,6 +90,8 @@ public class Elevator {
 	
 	public void goTo(Stage stage) {
 		if (calibrated) {
+			if (controlMode != Control.kPosition)
+				talon1.setIntegralAccumulator(0, 0, 10);
 			controlMode = Control.kPosition;
 		} else {
 			calibrateBottom();
@@ -123,6 +126,7 @@ public class Elevator {
 		
 		update();
 		updateTables();
+		vibrateIfApproaching();
 	}//userControl
 
 	private void update() {
@@ -148,7 +152,33 @@ public class Elevator {
 	public void calibrateBottom() {
 		talon1.configForwardSoftLimitEnable(false, 10);
 		controlMode = Control.kCalibrate;
+		update();
 	}//calibrateBottom
+	
+	public void vibrateIfApproaching() {
+		//Raising the elevator triggers when it passes a setpoint,
+		//lowering triggers when it approachDistance above a setpoint.
+		int approachDistance = 100;
+		
+		int enc = talon1.getSelectedSensorPosition(0);
+		
+		for (Stage checkStage: Stage.values()) {
+			boolean wasInZone, isInZone;
+			if (effort > 0) {
+				//DOWN (fwd limit switch is on the bottom)
+				wasInZone = prevEnc > checkStage.getCounts()-approachDistance;
+				isInZone = enc > checkStage.getCounts()-approachDistance;
+			} else {
+				//UP
+				wasInZone = prevEnc < checkStage.getCounts();
+				isInZone = enc < checkStage.getCounts();
+			}
+			if (!wasInZone && isInZone)
+				ControllerHandler.getInstance().rumbleHardFor(1, 0.1);
+		}
+		
+		prevEnc = enc;
+	}//vibrateIfApproaching
 	
 	//----- Elevator Sensors ------//
 	public boolean isCalibrated() {
