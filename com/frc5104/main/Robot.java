@@ -21,8 +21,10 @@ import com.frc5104.utilities.ControllerHandler.Dpad;
 import com.frc5104.vision.VisionThread;
 
 import edu.wpi.first.wpilibj.DoubleSolenoid;
+import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.IterativeRobot;
 import edu.wpi.first.wpilibj.Joystick;
+import edu.wpi.first.wpilibj.DoubleSolenoid.Value;
 import edu.wpi.first.wpilibj.command.CommandGroup;
 import edu.wpi.first.wpilibj.command.Scheduler;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
@@ -106,19 +108,24 @@ public class Robot extends IterativeRobot {
 	}//robotInit
 	long autoStartTime;
 	public void autonomousInit() {
-//		auto = AutoSelector.getAuto();
-//		Scheduler.getInstance().add(auto);
-		autoStartTime = System.currentTimeMillis();
+		squeezy.forceState(SqueezyState.HOLDING);
+		squeezyUpDown.set(Value.kReverse);//UP
+		
+		auto = AutoSelector.getAuto();
+		Scheduler.getInstance().add(auto);
+		
+//		autoStartTime = System.currentTimeMillis();
 	}//autonomousInit
 	
 	public void autonomousPeriodic() {
-//		Scheduler.getInstance().run();
+		Scheduler.getInstance().run();
 		squeezy.update();
-		if (System.currentTimeMillis() < autoStartTime + 10000) {
-			drive.arcadeDrive(0.3, 0);
-		} else {
-			drive.arcadeDrive(0, 0);
-		}
+//		if (System.currentTimeMillis() < autoStartTime + 10000) {
+//			drive.arcadeDrive(0.3, 0);
+//		} else {
+//			drive.arcadeDrive(0, 0);
+//		}
+		SmartDashboard.putString("DB/String 7", DriverStation.getInstance().getGameSpecificMessage());
 	}//autonomousPeriodic
 	
 	public void teleopInit() {
@@ -130,16 +137,20 @@ public class Robot extends IterativeRobot {
 	public void teleopPeriodic() {
 		controller.update();
 		
-		if (controller.getPressed(Button.LB))
-			elevator.goTo(Stage.kSwitch);
-		else if (controller.getPressed(Button.RB))
-			elevator.goTo(Stage.kTop);
+//		if (controller.getPressed(Button.LB))
+//			elevator.goTo(Stage.kSwitch);
+//		else if (controller.getPressed(Button.RB))
+//			elevator.goTo(Stage.kTop);
 		
 //		System.out.println("Encoder Position: "+drive.getEncoderRight());
 		if (controller.getHeldEvent(Dpad.E, 1)) { 
 			System.out.println("Switching PTO!");
 			ptoSol.set(ptoSol.get() == DoubleSolenoid.Value.kReverse ? DoubleSolenoid.Value.kForward : DoubleSolenoid.Value.kReverse);
-			controller.rumbleHardFor(1, 0.2);
+			if (ptoSol.get() == Value.kForward)
+				controller.rumbleSoftFor(0.5, 0.2);
+			else
+				controller.rumbleHardFor(1, 0.2);
+				
 		}
 		
 		if (drive != null) {
@@ -230,6 +241,18 @@ public class Robot extends IterativeRobot {
 				SmartDashboard.putBoolean("clear_i_accum", false);
 				ptoTalon.setIntegralAccumulator(0, 0, 10);
 			}
+		}
+		
+		
+		if (controller.getHeldEvent(Button.B, 5)) {
+			System.out.println("Disabled Elevator Forward Limit Switch");
+			elevator.disableForwardLimitSwitch();
+			controller.rumbleHardFor(1, 2);
+		}
+		if (controller.getHeldEvent(Button.Y, 5)) {
+			System.out.println("Enabled Elevator Forward Limit Switch");
+			elevator.enableForwardLimitSwitch();
+			controller.rumbleHardFor(1, 1);
 		}
 		
 		

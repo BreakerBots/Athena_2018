@@ -14,20 +14,27 @@ public class AutoSelector {
 		kLeft, kCenter, kRight
 	}
 	
-	public static String gameData;
+	public static String gameData = null;
 	public static Position robotPosition;
 	//Choose to go for the same side scale over the opposite side switch
 	public static boolean userDecision;
 	
 	public static CommandGroup getAuto() {
 		
-		CommandGroup auto = new Baseline();
+		CommandGroup auto = new Recording("Baseline");
 
 		Thread gameDataThread = new Thread() {
 			public void run() {
 				while (Thread.interrupted()) {
 					gameData = DriverStation.getInstance().getGameSpecificMessage();
-					if (!gameData.equals("")) {
+					if (gameData != null) {
+						System.out.println("GameData: "+gameData);
+					} else {
+						System.out.println("No Game Data");
+					}
+					if (gameData != null) {
+						System.out.println("Got Game Data: "+gameData);
+						System.out.println("At: "+DriverStation.getInstance().getMatchTime());
 						break;
 					}
 					try {
@@ -46,8 +53,8 @@ public class AutoSelector {
 			e.printStackTrace();
 		}
 		
-		if (!gameData.equals("")) {
-			
+		if (gameData != null) {
+			System.out.println("Provided Game Data: "+gameData);
 			String position;
 			
 			position = NetworkTableInstance.getDefault().getTable("Autonomous").getEntry("AutoPos").getString("null");
@@ -59,22 +66,27 @@ public class AutoSelector {
 				switch (position) {
 				case "Left":
 					if (gameData.charAt(0) == 'L')
-						auto = new Recording("Left");
+						System.out.println("Left to Left!");
+//						auto = new Recording("Left");
 					break;
 				case "Center":
 					if (gameData.charAt(0) == 'L')
-						auto = new Recording("CenterToLeft");
+						System.out.println("Center To Left!");
+//						auto = new Recording("CenterToLeft");
 					else if (gameData.charAt(0) == 'R')
-						auto = new Recording("CenterToRight");
+						System.out.println("Center To Right!");
+//						auto = new Recording("CenterToRight");
 					break;
 				case "Right":
 					if (gameData.charAt(0) == 'R')
-						auto = new Recording("Right");
+						System.out.println("Right To Right!");
+//						auto = new Recording("Right");
 					break;
 				}
 			}
-		} //else return default auto (new Baseline())
-		
+		} else { //else return default auto (new Baseline()) 
+			System.out.println("No Game Data Provided!");
+		}
 		return auto;
 	}//CommandGroup
 

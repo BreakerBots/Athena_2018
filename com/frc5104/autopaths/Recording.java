@@ -15,9 +15,9 @@ public class Recording extends CommandGroup {
 	CSVFileReader reader;
 	
     public Recording(String recordingName) {    	
-    	elevator(Stage.kLowerScale);
+//    	elevator(Stage.kLowerScale);
     	
-    	file = new File("/home/lvuser/sanfrancisco/"+recordingName);
+    	file = new File("/home/lvuser/good/"+recordingName);
     	reader = new CSVFileReader(file);
 
     	reader.readFile();

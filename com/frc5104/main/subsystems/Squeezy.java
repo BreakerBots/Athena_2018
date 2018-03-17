@@ -21,6 +21,7 @@ public class Squeezy {
 	static final double kCloseEffort = -0.25;
 	static final double kOpenEffort  = 0.30;
 	
+	static final double kRightSpinMultiplier = 1.1;
 	static final double kIntakeEffort = -/*0.4*//*3-12-18 0.2*/0.2;
 	static final double kPinchEffort = -0.1;
 	public static double kEjectEffort = 0.6;
@@ -49,8 +50,8 @@ public class Squeezy {
 	public enum ButtonType {
 		kIntake, kEject, kCancel, kUnjam
 	}
-	ButtonS buttonIntake = new ButtonS(3),
-			buttonEject = new ButtonS(1),
+	ButtonS buttonIntake = new ButtonS(6),//RB
+			buttonEject = new ButtonS(5),//LB
 			buttonCancel = new ButtonS(2),
 			buttonUnjam = new ButtonS(8);
 	
@@ -247,7 +248,7 @@ public class Squeezy {
 //		leftSpin.set(ControlMode.PercentOutput, effort);
 //		rightSpin.set(ControlMode.PercentOutput, effort);
 		leftSpin.set(ControlMode.PercentOutput, effort);
-		rightSpin.set(ControlMode.PercentOutput, -effort);
+		rightSpin.set(ControlMode.PercentOutput, -kRightSpinMultiplier*effort);
 	}//setSpinners
 	
 	private void spinIn() {

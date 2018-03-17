@@ -53,7 +53,6 @@ public class CSVFileReader {
 		long start = System.currentTimeMillis();
 		
 		while (scanner.hasNextLine()) {
-			System.out.println("Reading line "+(size+1));
 			line = scanner.nextLine();
 			String[] values = line.split(separator);
 			for (int i=0; i<values.length; i++) {

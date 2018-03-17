@@ -1,6 +1,8 @@
 package com.frc5104.main.subsystems;
 
 import com.ctre.phoenix.motorcontrol.ControlMode;
+import com.ctre.phoenix.motorcontrol.LimitSwitchNormal;
+import com.ctre.phoenix.motorcontrol.LimitSwitchSource;
 import com.ctre.phoenix.motorcontrol.can.TalonSRX;
 import com.frc5104.utilities.ControllerHandler;
 import com.frc5104.utilities.Deadband;
@@ -71,7 +73,7 @@ public class Elevator {
 		talon1.configReverseSoftLimitEnable(false, 10);
 		talon1.configReverseSoftLimitThreshold(SOFT_STOP_TOP, 10);
 
-		talon1.configForwardSoftLimitEnable(true, 10);
+		talon1.configForwardSoftLimitEnable(false, 10);
 		talon1.configForwardSoftLimitThreshold(SOFT_STOP_BOTTOM, 10);
 		
 		talon1.config_kP(0, 2, 10);
@@ -289,5 +291,16 @@ public class Elevator {
 		return table.getEntry(key).getBoolean(defaultValue);
 	}//getBoolean
 	
+	
+	public void enableForwardLimitSwitch () {
+		talon1.configForwardLimitSwitchSource(LimitSwitchSource.FeedbackConnector, LimitSwitchNormal.NormallyOpen, 10);
+		setBoolean("Limit Switch Enabled", true);
+	}//disableForwardLimitSwitch
+
+	public void disableForwardLimitSwitch () {
+		talon1.configForwardLimitSwitchSource(LimitSwitchSource.Deactivated, LimitSwitchNormal.NormallyOpen, 10);
+		setBoolean("Limit Switch Enabled", false);
+	}//disableForwardLimitSwitch
+
 	
 }//Elevator

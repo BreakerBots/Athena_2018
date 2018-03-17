@@ -29,6 +29,7 @@ import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.IterativeRobot;
 import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.Timer;
+import edu.wpi.first.wpilibj.DoubleSolenoid.Value;
 import edu.wpi.first.wpilibj.GenericHID.RumbleType;
 import edu.wpi.first.wpilibj.command.CommandGroup;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
@@ -180,7 +181,10 @@ public class RobotRecorder extends IterativeRobot {
 		if (controller.getHeldEvent(Dpad.E, 1)) { 
 			System.out.println("Switching PTO!");
 			ptoSol.set(ptoSol.get() == DoubleSolenoid.Value.kReverse ? DoubleSolenoid.Value.kForward : DoubleSolenoid.Value.kReverse);
-			controller.rumbleHardFor(1, 0.2);
+			if (ptoSol.get() == Value.kForward)
+				controller.rumbleSoftFor(0.5, 0.2);
+			else
+				controller.rumbleHardFor(1, 0.2);
 		}
 		
 		if (drive != null) {
