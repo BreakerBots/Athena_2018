@@ -66,9 +66,7 @@ public class SqueezySensors {
 	public String encVel () {
 		int vel = Squeezy.getInstance().getEncoderVelocity();
 		boolean bool = Math.abs(vel) < 30;
-		return "Vel Check: "+bool+" -- vel;
-//			return true;
-		return "";
+		return "Vel Check: "+bool+" -- "+vel;
 	}//encVel
 	
 	public boolean detectBoxHeld() {

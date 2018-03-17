@@ -15,6 +15,7 @@ import com.frc5104.utilities.ButtonS;
 import com.frc5104.utilities.ControllerHandler;
 import com.frc5104.utilities.Deadband;
 import com.frc5104.utilities.TalonFactory;
+import com.frc5104.utilities.ControllerHandler.Axis;
 import com.frc5104.utilities.ControllerHandler.Button;
 import com.frc5104.utilities.ControllerHandler.Dpad;
 import com.frc5104.vision.VisionThread;
@@ -44,7 +45,6 @@ public class Robot extends IterativeRobot {
 //	Drive drive = null;
 	Drive drive = Drive.getInstance();
 	Shifters shifters = Shifters.getInstance();
-	ButtonS shifterButton = new ButtonS(9);
 	
 //	Squeezy squeezy = null;
 	Squeezy squeezy = Squeezy.getInstance();
@@ -136,7 +136,8 @@ public class Robot extends IterativeRobot {
 			elevator.goTo(Stage.kTop);
 		
 //		System.out.println("Encoder Position: "+drive.getEncoderRight());
-		if (controller.getHeldEvent(Dpad.E, 0.4)) { 
+		if (controller.getHeldEvent(Dpad.E, 1)) { 
+			System.out.println("Switching PTO!");
 			ptoSol.set(ptoSol.get() == DoubleSolenoid.Value.kReverse ? DoubleSolenoid.Value.kForward : DoubleSolenoid.Value.kReverse);
 			controller.rumbleHardFor(1, 0.2);
 		}
@@ -144,15 +145,16 @@ public class Robot extends IterativeRobot {
 		if (drive != null) {
 			double x = joy.getRawAxis(0),
 				   y = -joy.getRawAxis(1);
+			x = Deadband.getDefault().get(x);
+			y = Deadband.getDefault().get(y);
 			
-//			x = deadband.get(x);
-//			y = deadband.get(y);
 			drive.arcadeDrive(y,x);
 		}
 		
-		shifterButton.update();
-		if (shifterButton.Pressed)
-			shifters.toggle();
+		if (controller.getAxis(Axis.RT) > 0.6)
+			shifters.shiftHigh();
+		else
+			shifters.shiftLow();
 		
 		if (elevator != null) {
 			elevator.userControl();

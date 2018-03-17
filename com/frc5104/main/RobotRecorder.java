@@ -17,6 +17,7 @@ import com.frc5104.main.subsystems.Elevator.Stage;
 import com.frc5104.main.subsystems.Squeezy.SqueezyState;
 import com.frc5104.utilities.ButtonS;
 import com.frc5104.utilities.ControllerHandler;
+import com.frc5104.utilities.ControllerHandler.Axis;
 import com.frc5104.utilities.ControllerHandler.Button;
 import com.frc5104.utilities.ControllerHandler.Dpad;
 import com.frc5104.utilities.Deadband;
@@ -68,7 +69,6 @@ public class RobotRecorder extends IterativeRobot {
 //	Drive drive = null;
 	Drive drive = Drive.getInstance();
 	Shifters shifters = Shifters.getInstance();
-	ButtonS shifterButton = new ButtonS(9);
 	
 //	Squeezy squeezy = null;
 	Squeezy squeezy = Squeezy.getInstance();
@@ -162,7 +162,7 @@ public class RobotRecorder extends IterativeRobot {
 			}
 			break;
 		case kPlayback:
-			if (!playback()) {
+			if (playback()) {
 				recorderState = RecorderState.kUser;
 				getBatteryVoltage();
 			}
@@ -177,7 +177,8 @@ public class RobotRecorder extends IterativeRobot {
 			elevator.goTo(Stage.kTop);
 		
 //		System.out.println("Encoder Position: "+drive.getEncoderRight());
-		if (controller.getHeldEvent(Dpad.E, 0.4)) { 
+		if (controller.getHeldEvent(Dpad.E, 1)) { 
+			System.out.println("Switching PTO!");
 			ptoSol.set(ptoSol.get() == DoubleSolenoid.Value.kReverse ? DoubleSolenoid.Value.kForward : DoubleSolenoid.Value.kReverse);
 			controller.rumbleHardFor(1, 0.2);
 		}
@@ -185,15 +186,17 @@ public class RobotRecorder extends IterativeRobot {
 		if (drive != null) {
 			double x = joy.getRawAxis(0),
 				   y = -joy.getRawAxis(1);
+			x = Deadband.getDefault().get(x);
+			y = Deadband.getDefault().get(y);
 			
-//			x = deadband.get(x);
-//			y = deadband.get(y);
-			drive.arcadeDrive(y,x);
+			drive.arcadeDrive(y*10/batteryVoltage,x*10/batteryVoltage);
 		}
 		
-		shifterButton.update();
-		if (shifterButton.Pressed)
-			shifters.toggle();
+		if (controller.getAxis(Axis.RT) > 0.6) {
+			shifters.shiftHigh();
+		} else {
+			shifters.shiftLow();
+		}
 		
 		if (elevator != null) {
 			elevator.userControl();
@@ -264,27 +267,27 @@ public class RobotRecorder extends IterativeRobot {
 	public void setupRecorderData() {
 		recorder.addLogDouble("joy_x", new LogDouble() {
 			public double get() {
-				return joy.getRawAxis(0);
+				return Deadband.getDefault().get(joy.getRawAxis(0));
 			}
 		});
 		recorder.addLogDouble("joy_y", new LogDouble() {
 			public double get() {
-				return -joy.getRawAxis(1);
+				return -Deadband.getDefault().get(joy.getRawAxis(1));
 			}
 		});
-		recorder.addLogDouble("elevator_effort", new LogDouble() {
-			public double get() {
-				return joy.getRawAxis(3);
-			}
-		});
-		recorder.addLogDouble("buttons", new LogDouble() {
-			public double get() {
-				for (int i=0; i<Button.values().length; i++)
-					if (controller.getPressed(Button.values()[i]))
-						return i;
-				return -1;
-			}
-		});
+//		recorder.addLogDouble("elevator_effort", new LogDouble() {
+//			public double get() {
+//				return joy.getRawAxis(3);
+//			}
+//		});
+//		recorder.addLogDouble("buttons", new LogDouble() {
+//			public double get() {
+//				for (int i=0; i<Button.values().length; i++)
+//					if (controller.getPressed(Button.values()[i]))
+//						return i;
+//				return -1;
+//			}
+//		});
 	}//setupRecorderData
 	
 	public void closeRecorderFile() {
@@ -293,6 +296,7 @@ public class RobotRecorder extends IterativeRobot {
 	
 	public void loadPlaybackFile() {
 		reader = new CSVFileReader(recorderFile);
+		reader.readFile();
 	}//loadPlaybackFile
 	
 	public boolean playback() {
@@ -300,12 +304,14 @@ public class RobotRecorder extends IterativeRobot {
 		
 		double x = reader.get("joy_x", playbackIndex);
 		double y = reader.get("joy_y", playbackIndex);
-		double elevatorEffort = reader.get("elevator_effort", playbackIndex);
 		
 		drive.arcadeDrive(y*10/batteryVoltage, x*10/batteryVoltage);
-		elevator.setEffort(elevatorEffort);
 		
 		playbackIndex++;
+
+//		double elevatorEffort = reader.get("elevator_effort", playbackIndex);
+//		elevator.setEffort(elevatorEffort);
+		
 		return playbackIndex == reader.size();
 	}//playback
 	
