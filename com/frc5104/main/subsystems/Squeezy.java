@@ -59,6 +59,9 @@ public class Squeezy {
 	TalonSRX leftSpin  = new TalonSRX(LEFT_ID);
 	TalonSRX rightSpin = new TalonSRX(RIGHT_ID);
 	
+	//Eject Timing
+	long lastTime;
+	
 	//DoubleSolenoid lifter = new DoubleSolenoid(0,1);
 	
 	SqueezySensors sensors = SqueezySensors.getInstance();
@@ -131,8 +134,6 @@ public class Squeezy {
 			}
 			break;
 		case HOLDING:
-			if (buttonEject.Pressed)
-				state = SqueezyState.EJECT;
 			if (sensors.detectBoxGone())
 				state = SqueezyState.EMPTY;
 			break;
@@ -143,7 +144,7 @@ public class Squeezy {
 				state = SqueezyState.EMPTY;
 			break;
 		case EJECT:
-			if (sensors.detectBoxGone())
+			if ((System.currentTimeMillis() - lastTime) > 1000)
 				state = SqueezyState.UNJAM;
 			if (buttonCancel.Pressed)
 				state = SqueezyState.EMPTY;
@@ -155,6 +156,12 @@ public class Squeezy {
 				state = SqueezyState.INTAKE;
 			break;
 		}//switch
+		
+		if (buttonEject.Pressed) {
+			state = SqueezyState.EJECT;
+			lastTime = System.currentTimeMillis();
+		}
+		
 		if (buttonUnjam.Pressed)
 			state = SqueezyState.UNJAM;
 		
@@ -170,7 +177,6 @@ public class Squeezy {
 		buttonEject.Pressed = false;
 		buttonCancel.Pressed = false;
 		buttonUnjam.Pressed = false;
-		
 	}//poll
 	
 	public void update() {
@@ -215,6 +221,15 @@ public class Squeezy {
 	}//updateState
 	
 	//--------- Squeezy States ----------//
+	
+	public int getEncoderPosition() {
+		return squeezer.getSelectedSensorPosition(0);
+	}//getEncoderPosition
+
+	public int getEncoderVelocity() {
+		return squeezer.getSelectedSensorVelocity(0);
+	}//getEncoderVelocity
+	
 	public void forceState(SqueezyState newState) {
 		state = newState;
 	}//forceState
