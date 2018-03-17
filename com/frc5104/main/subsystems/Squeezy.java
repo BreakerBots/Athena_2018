@@ -3,6 +3,7 @@ package com.frc5104.main.subsystems;
 import com.ctre.phoenix.motorcontrol.ControlMode;
 import com.ctre.phoenix.motorcontrol.can.TalonSRX;
 import com.frc5104.utilities.ButtonS;
+import com.frc5104.utilities.ControllerHandler;
 
 import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableInstance;
@@ -17,8 +18,8 @@ public class Squeezy {
 	
 	static final double kHoldEffort = -0.25;
 	static final double kShootSqueezeEffort = -0.05;
-	static final double kCloseEffort = -0.2;
-	static final double kOpenEffort  = 0.20;
+	static final double kCloseEffort = -0.25;
+	static final double kOpenEffort  = 0.30;
 	
 	static final double kIntakeEffort = -/*0.4*//*3-12-18 0.2*/0.2;
 	static final double kPinchEffort = -0.1;
@@ -124,12 +125,14 @@ public class Squeezy {
 				state = SqueezyState.UNJAM;
 			if (!(sensors.detectBox() && squeezer.getSelectedSensorPosition(0) > -90000))
 				state = SqueezyState.INTAKE;
-			if (sensors.detectBoxHeld())
+			if (sensors.detectBoxHeld()) {
 				state = SqueezyState.HOLDING;
+				ControllerHandler.getInstance().rumbleHardFor(0.5, 0.5);
+			}
 			break;
 		case HOLDING:
 			if (buttonEject.Pressed)
-				state = SqueezyState.LOADED;
+				state = SqueezyState.EJECT;
 			if (sensors.detectBoxGone())
 				state = SqueezyState.EMPTY;
 			break;

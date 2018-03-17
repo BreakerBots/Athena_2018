@@ -49,7 +49,7 @@ public class Elevator {
 					 talon2;
 	private NetworkTable table = null;
 	
-	enum Control {
+	public enum Control {
 		kPosition, kEffort, kCalibrate //Calibrate drives the elevator down slowly (0.1)
 										//until the fwd (lower) limit switch is closed.
 										//This ensures that kBottom = 0;
@@ -68,7 +68,7 @@ public class Elevator {
 			talon2.set(ControlMode.Follower, TALON1_ID);
 		}
 		
-		talon1.configReverseSoftLimitEnable(true, 10);
+		talon1.configReverseSoftLimitEnable(false, 10);
 		talon1.configReverseSoftLimitThreshold(SOFT_STOP_TOP, 10);
 
 		talon1.configForwardSoftLimitEnable(true, 10);
@@ -210,6 +210,10 @@ public class Elevator {
 	public boolean isLowEnoughToDrop() {
 		return talon1.getSelectedSensorPosition(0) > SOFT_STOP_BOTTOM - 2000;
 	}//isLowEnoughToDrop
+	
+	public Control controlMode() {
+		return controlMode;
+	}//controlMode
 	
 	public static boolean isRaised() {
 		if (m_instance != null)

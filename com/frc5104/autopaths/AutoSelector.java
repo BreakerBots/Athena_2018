@@ -59,17 +59,17 @@ public class AutoSelector {
 				switch (position) {
 				case "Left":
 					if (gameData.charAt(0) == 'L')
-						auto = new Left();
+						auto = new Recording("Left");
 					break;
 				case "Center":
 					if (gameData.charAt(0) == 'L')
-						auto = new CenterToLeft();
+						auto = new Recording("CenterToLeft");
 					else if (gameData.charAt(0) == 'R')
-						auto = new CenterToRight();
+						auto = new Recording("CenterToRight");
 					break;
 				case "Right":
 					if (gameData.charAt(0) == 'R')
-						auto = new Right();
+						auto = new Recording("Right");
 					break;
 				}
 			}

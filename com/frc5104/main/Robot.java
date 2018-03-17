@@ -9,6 +9,7 @@ import com.frc5104.main.subsystems.Elevator;
 import com.frc5104.main.subsystems.Elevator.Stage;
 import com.frc5104.main.subsystems.Shifters;
 import com.frc5104.main.subsystems.Squeezy;
+import com.frc5104.main.subsystems.Squeezy.SqueezyState;
 import com.frc5104.main.subsystems.SqueezySensors;
 import com.frc5104.utilities.ButtonS;
 import com.frc5104.utilities.ControllerHandler;
@@ -113,7 +114,7 @@ public class Robot extends IterativeRobot {
 	public void autonomousPeriodic() {
 //		Scheduler.getInstance().run();
 		squeezy.update();
-		if (System.currentTimeMillis() < autoStartTime + 4000) {
+		if (System.currentTimeMillis() < autoStartTime + 10000) {
 			drive.arcadeDrive(0.3, 0);
 		} else {
 			drive.arcadeDrive(0, 0);
@@ -168,8 +169,12 @@ public class Robot extends IterativeRobot {
 			squeezyUpDown.set(DoubleSolenoid.Value.kForward);
 		}
 		if (controller.getPressed(Dpad.N)) {
-			System.out.println("UP!");
-			squeezyUpDown.set(DoubleSolenoid.Value.kReverse);
+			if (!squeezy.isInState(SqueezyState.INTAKE)) {
+				System.out.println("UP!");
+				squeezyUpDown.set(DoubleSolenoid.Value.kReverse);
+			} else {
+				System.out.println("Will not pull up squeezy in intake mode!!!");
+			}
 		}
 //		if (Math.abs(drive.getEncoderLeft()+drive.getEncoderRight())/2 > 1300)
 //			shifters.shiftHigh();
