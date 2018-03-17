@@ -4,6 +4,8 @@ import com.ctre.phoenix.motorcontrol.ControlMode;
 import com.ctre.phoenix.motorcontrol.can.TalonSRX;
 import com.frc5104.utilities.ButtonS;
 import com.frc5104.utilities.ControllerHandler;
+import com.frc5104.utilities.ControllerHandler.Button;
+import com.frc5104.utilities.ControllerHandler.Dpad;
 
 import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableInstance;
@@ -18,12 +20,12 @@ public class Squeezy {
 	
 	static final double kHoldEffort = -0.25;
 	static final double kShootSqueezeEffort = -0.05;
-	static final double kCloseEffort = -0.25;
-	static final double kOpenEffort  = 0.30;
+	static final double kCloseEffort = -0.0;
+	static final double kOpenEffort  = 0.18;
 	
 	static final double kRightSpinMultiplier = 1.1;
 	static final double kIntakeEffort = -/*0.4*//*3-12-18 0.2*/0.2;
-	static final double kPinchEffort = -0.1;
+	static final double kPinchEffort = -0.2;
 	public static double kEjectEffort = 0.6;
 	
 	public enum SqueezyState {
@@ -103,7 +105,11 @@ public class Squeezy {
 		}
 	}//forceButtonOn
 		
+	long ejectTime = System.currentTimeMillis();
+	
 	public void updateState() {
+		
+		/*
 		sensors.updateSensors();
 
 		if (squeezer.getSensorCollection().isFwdLimitSwitchClosed()) {
@@ -175,9 +181,28 @@ public class Squeezy {
 		postSqueezerData();
 		
 		buttonIntake.Pressed = false;
-		buttonEject.Pressed = false;
+		buttonEject.Pressed = false;\
 		buttonCancel.Pressed = false;
 		buttonUnjam.Pressed = false;
+		*/
+		
+		if (ControllerHandler.getInstance().getPressed(Button.B))
+			state = SqueezyState.EMPTY;
+		if (ControllerHandler.getInstance().getPressed(Dpad.E))
+			state = SqueezyState.INTAKE;
+		if (ControllerHandler.getInstance().getPressed(Dpad.W))
+			state = SqueezyState.HOLDING;
+		if (ControllerHandler.getInstance().getPressed(Button.LB)) {
+			System.out.println("EJECTING!!!");
+			ejectTime = System.currentTimeMillis();
+			state = SqueezyState.EJECT;
+		}
+		
+		if (state == SqueezyState.EJECT) {
+			if (System.currentTimeMillis()-ejectTime > 1000)
+				state = SqueezyState.HOLDING;
+		}
+		
 	}//poll
 	
 	public void update() {
@@ -233,6 +258,8 @@ public class Squeezy {
 	
 	public void forceState(SqueezyState newState) {
 		state = newState;
+		if (state == SqueezyState.EJECT)
+			ejectTime = System.currentTimeMillis();
 	}//forceState
 	
 	public boolean isInState (SqueezyState checkState) {

@@ -143,14 +143,14 @@ public class Robot extends IterativeRobot {
 //			elevator.goTo(Stage.kTop);
 		
 //		System.out.println("Encoder Position: "+drive.getEncoderRight());
-		if (controller.getHeldEvent(Dpad.E, 1)) { 
+		if (controller.getHeldEvent(Button.X, 0.4)) { 
+//		if (controller.getPressed(Button.X))
 			System.out.println("Switching PTO!");
 			ptoSol.set(ptoSol.get() == DoubleSolenoid.Value.kReverse ? DoubleSolenoid.Value.kForward : DoubleSolenoid.Value.kReverse);
 			if (ptoSol.get() == Value.kForward)
 				controller.rumbleSoftFor(0.5, 0.2);
 			else
 				controller.rumbleHardFor(1, 0.2);
-				
 		}
 		
 		if (drive != null) {

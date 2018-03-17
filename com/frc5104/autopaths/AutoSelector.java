@@ -14,7 +14,7 @@ public class AutoSelector {
 		kLeft, kCenter, kRight
 	}
 	
-	public static String gameData = null;
+	public static volatile String gameData = null;
 	public static Position robotPosition;
 	//Choose to go for the same side scale over the opposite side switch
 	public static boolean userDecision;
@@ -25,7 +25,7 @@ public class AutoSelector {
 
 		Thread gameDataThread = new Thread() {
 			public void run() {
-				while (Thread.interrupted()) {
+				while (!Thread.interrupted()) {
 					gameData = DriverStation.getInstance().getGameSpecificMessage();
 					if (gameData != null) {
 						System.out.println("GameData: "+gameData);
