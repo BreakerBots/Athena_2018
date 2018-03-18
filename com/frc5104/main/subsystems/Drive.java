@@ -34,6 +34,7 @@ public class Drive {
 		drive.setDeadband(0);
 		talonLeftFollower.set(ControlMode.Follower, 11);
 		talonRightFollower.set(ControlMode.Follower, 13);
+		
 	}
 	
 	public void arcadeDrive(double moveVal, double rotateVal) {

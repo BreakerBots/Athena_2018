@@ -3,7 +3,6 @@ package com.frc5104.main;
 import java.io.File;
 import java.util.Calendar;
 
-import com.ctre.phoenix.motorcontrol.ControlMode;
 import com.ctre.phoenix.motorcontrol.can.TalonSRX;
 import com.frc5104.logging.CSVFileReader;
 import com.frc5104.logging.CSVFileWriter;
@@ -12,9 +11,8 @@ import com.frc5104.main.subsystems.Drive;
 import com.frc5104.main.subsystems.Elevator;
 import com.frc5104.main.subsystems.Shifters;
 import com.frc5104.main.subsystems.Squeezy;
-import com.frc5104.main.subsystems.SqueezySensors;
-import com.frc5104.main.subsystems.Elevator.Stage;
 import com.frc5104.main.subsystems.Squeezy.SqueezyState;
+import com.frc5104.main.subsystems.SqueezySensors;
 import com.frc5104.utilities.ButtonS;
 import com.frc5104.utilities.ControllerHandler;
 import com.frc5104.utilities.ControllerHandler.Axis;
@@ -25,12 +23,12 @@ import com.frc5104.utilities.TalonFactory;
 import com.frc5104.vision.VisionThread;
 
 import edu.wpi.first.wpilibj.DoubleSolenoid;
+import edu.wpi.first.wpilibj.DoubleSolenoid.Value;
 import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.GenericHID.RumbleType;
 import edu.wpi.first.wpilibj.IterativeRobot;
 import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.Timer;
-import edu.wpi.first.wpilibj.DoubleSolenoid.Value;
-import edu.wpi.first.wpilibj.GenericHID.RumbleType;
 import edu.wpi.first.wpilibj.command.CommandGroup;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
@@ -133,9 +131,6 @@ public class RobotRecorder extends IterativeRobot {
 		
 //		System.out.println(recorderState.toString() + "\t" + pov);
 		
-		if (System.currentTimeMillis() % 20 == 0)
-			System.out.println("State: "+recorderState.toString());
-		
 		switch (recorderState) {
 		case kUser:
 			userTeleop();
@@ -228,6 +223,7 @@ public class RobotRecorder extends IterativeRobot {
 				squeezyUpDown.set(DoubleSolenoid.Value.kReverse);
 			} else {
 				System.out.println("Will not pull up squeezy in intake mode!!!");
+				squeezy.forceState(SqueezyState.HOLDING);
 			}
 		}
 //		if (Math.abs(drive.getEncoderLeft()+drive.getEncoderRight())/2 > 1300)
@@ -235,7 +231,6 @@ public class RobotRecorder extends IterativeRobot {
 //		else if (Math.abs(drive.getEncoderLeft()+drive.getEncoderRight())/2 < 800)
 //			shifters.shiftLow();
 
-		
 //		if (joy.getRawAxis(3) > 0.2) {
 		if (pto != null) {
 			if ((System.currentTimeMillis() - startTime)%2000 > 1000) {
@@ -333,9 +328,6 @@ public class RobotRecorder extends IterativeRobot {
 		
 		playbackIndex++;
 
-//		double elevatorEffort = reader.get("elevator_effort", playbackIndex);
-//		elevator.setEffort(elevatorEffort);
-		
 		return playbackIndex == reader.size();
 	}//playback
 	

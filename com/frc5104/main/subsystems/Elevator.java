@@ -129,7 +129,7 @@ public class Elevator {
 		
 		update();
 		updateTables();
-		vibrateIfApproaching();
+//		vibrateIfApproaching();
 	}//userControl
 
 	private void update() {

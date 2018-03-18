@@ -187,6 +187,7 @@ public class Robot extends IterativeRobot {
 				squeezyUpDown.set(DoubleSolenoid.Value.kReverse);
 			} else {
 				System.out.println("Will not pull up squeezy in intake mode!!!");
+				squeezy.forceState(SqueezyState.HOLDING);
 			}
 		}
 //		if (Math.abs(drive.getEncoderLeft()+drive.getEncoderRight())/2 > 1300)
