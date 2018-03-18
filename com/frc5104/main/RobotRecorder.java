@@ -133,17 +133,20 @@ public class RobotRecorder extends IterativeRobot {
 		
 //		System.out.println(recorderState.toString() + "\t" + pov);
 		
+		if (System.currentTimeMillis() % 20 == 0)
+			System.out.println("State: "+recorderState.toString());
+		
 		switch (recorderState) {
 		case kUser:
 			userTeleop();
-			if (controller.getPressed(Button.Y)) {
+			if (joy.getRawButton(4)) {
 				System.out.println("Started Recording");
 				recorderState = RecorderState.kRecording;
 				getBatteryVoltage();
 				initRecorderFile();
 				setupRecorderData();
 			}
-			if (controller.getPressed(Button.LIST)) {
+			if (joy.getRawButton(8)) {
 				System.out.println("Started Playback");
 				recorderState = RecorderState.kPlayback;
 				getBatteryVoltage();
@@ -156,7 +159,7 @@ public class RobotRecorder extends IterativeRobot {
 			userTeleop();
 			recorder.collectAtTime(System.currentTimeMillis());
 			
-			if (controller.getPressed(Button.Y)) {
+			if (joy.getRawButton(1)) {
 				System.out.println("Stopped Recording");
 				recorderState = RecorderState.kUser;
 				closeRecorderFile();
@@ -172,13 +175,16 @@ public class RobotRecorder extends IterativeRobot {
 	}//teleopPeriodic
 	
 	public void userTeleop() {
-		if (controller.getPressed(Button.LB))
-			elevator.goTo(Stage.kSwitch);
-		else if (controller.getPressed(Button.RB))
-			elevator.goTo(Stage.kTop);
+//		controller.update();
+		
+//		if (controller.getPressed(Button.LB))
+//			elevator.goTo(Stage.kSwitch);
+//		else if (controller.getPressed(Button.RB))
+//			elevator.goTo(Stage.kTop);
 		
 //		System.out.println("Encoder Position: "+drive.getEncoderRight());
-		if (controller.getHeldEvent(Dpad.E, 1)) { 
+		if (controller.getHeldEvent(Button.X, 0.4)) { 
+//		if (controller.getPressed(Button.X))
 			System.out.println("Switching PTO!");
 			ptoSol.set(ptoSol.get() == DoubleSolenoid.Value.kReverse ? DoubleSolenoid.Value.kForward : DoubleSolenoid.Value.kReverse);
 			if (ptoSol.get() == Value.kForward)
@@ -196,14 +202,14 @@ public class RobotRecorder extends IterativeRobot {
 			drive.arcadeDrive(y*10/batteryVoltage,x*10/batteryVoltage);
 		}
 		
-		if (controller.getAxis(Axis.RT) > 0.6) {
+		if (controller.getAxis(Axis.RT) > 0.6)
 			shifters.shiftHigh();
-		} else {
+		else
 			shifters.shiftLow();
-		}
 		
 		if (elevator != null) {
-			elevator.userControl();
+//			elevator.userControl();
+			elevator.setEffort(joy.getRawAxis(3));
 		}
 
 		if (squeezy != null) {
@@ -224,12 +230,24 @@ public class RobotRecorder extends IterativeRobot {
 				System.out.println("Will not pull up squeezy in intake mode!!!");
 			}
 		}
-
 //		if (Math.abs(drive.getEncoderLeft()+drive.getEncoderRight())/2 > 1300)
 //			shifters.shiftHigh();
 //		else if (Math.abs(drive.getEncoderLeft()+drive.getEncoderRight())/2 < 800)
 //			shifters.shiftLow();
 
+		
+//		if (joy.getRawAxis(3) > 0.2) {
+		if (pto != null) {
+			if ((System.currentTimeMillis() - startTime)%2000 > 1000) {
+	//			elevator.disable();
+				pto.powerClimber();
+				System.out.println("Powering climber");
+			} else {
+	//			elevator.enable();
+				pto.powerElevator();
+				System.out.println("Powering elevator");
+			}
+		}
 		
 	}//teleopPeriodic
 	
@@ -279,11 +297,11 @@ public class RobotRecorder extends IterativeRobot {
 				return -Deadband.getDefault().get(joy.getRawAxis(1));
 			}
 		});
-//		recorder.addLogDouble("elevator_effort", new LogDouble() {
-//			public double get() {
-//				return joy.getRawAxis(3);
-//			}
-//		});
+		recorder.addLogDouble("elevator_effort", new LogDouble() {
+			public double get() {
+				return joy.getRawAxis(3);
+			}
+		});
 //		recorder.addLogDouble("buttons", new LogDouble() {
 //			public double get() {
 //				for (int i=0; i<Button.values().length; i++)
@@ -308,8 +326,10 @@ public class RobotRecorder extends IterativeRobot {
 		
 		double x = reader.get("joy_x", playbackIndex);
 		double y = reader.get("joy_y", playbackIndex);
+		double elev = reader.get("elevator_effort", playbackIndex);
 		
 		drive.arcadeDrive(y*10/batteryVoltage, x*10/batteryVoltage);
+		elevator.setEffort(elev);
 		
 		playbackIndex++;
 
@@ -323,7 +343,7 @@ public class RobotRecorder extends IterativeRobot {
 		drive.arcadeDrive(0, 0);
 		
 		joy.setRumble(RumbleType.kRightRumble, 1);
-		Timer.delay(0.1);
+		Timer.delay(0.5);
 		joy.setRumble(RumbleType.kRightRumble, 0);
 
 		batteryVoltage = DriverStation.getInstance().getBatteryVoltage();

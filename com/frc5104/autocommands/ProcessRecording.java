@@ -60,7 +60,7 @@ public class ProcessRecording extends Command {
 		Drive.getInstance().arcadeDrive(0, 0);
 		
 		(new Joystick(0)).setRumble(RumbleType.kRightRumble, 1);
-		Timer.delay(0.1);
+		Timer.delay(0.3);
 		(new Joystick(0)).setRumble(RumbleType.kRightRumble, 0);
 
 		batteryVoltage = DriverStation.getInstance().getBatteryVoltage();

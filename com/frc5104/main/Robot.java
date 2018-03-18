@@ -243,7 +243,7 @@ public class Robot extends IterativeRobot {
 			}
 		}
 		
-		
+		/*
 		if (controller.getHeldEvent(Button.B, 5)) {
 			System.out.println("Disabled Elevator Forward Limit Switch");
 			elevator.disableForwardLimitSwitch();
@@ -254,6 +254,7 @@ public class Robot extends IterativeRobot {
 			elevator.enableForwardLimitSwitch();
 			controller.rumbleHardFor(1, 1);
 		}
+		*/
 		
 		
 	}//teleopPeriodic
