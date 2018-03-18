@@ -66,7 +66,7 @@ public class Robot extends IterativeRobot {
 	ButtonS ptoShifter = new ButtonS(4);
 	DoubleSolenoid ptoSol = new DoubleSolenoid(2,3);
 	
-	DoubleSolenoid squeezyUpDown = new DoubleSolenoid(4,5);
+	public DoubleSolenoid squeezyUpDown = new DoubleSolenoid(4,5);
 	
 	ControllerHandler controller = ControllerHandler.getInstance();
 	/* ------- PTO PID Values for Elevator -------
@@ -111,7 +111,7 @@ public class Robot extends IterativeRobot {
 		squeezy.forceState(SqueezyState.HOLDING);
 		squeezyUpDown.set(Value.kReverse);//UP
 		
-		auto = AutoSelector.getAuto();
+		auto = AutoSelector.getAuto(squeezyUpDown);
 		Scheduler.getInstance().add(auto);
 		
 //		autoStartTime = System.currentTimeMillis();

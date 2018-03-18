@@ -1,7 +1,7 @@
 package com.frc5104.autopaths;
 
-import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableInstance;
+import edu.wpi.first.wpilibj.DoubleSolenoid;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.command.CommandGroup;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
@@ -19,7 +19,7 @@ public class AutoSelector {
 	//Choose to go for the same side scale over the opposite side switch
 	public static boolean userDecision;
 	
-	public static CommandGroup getAuto() {
+	public static CommandGroup getAuto(DoubleSolenoid squeezySol) {
 		
 		CommandGroup auto = new Recording("Baseline");
 
@@ -87,6 +87,12 @@ public class AutoSelector {
 		} else { //else return default auto (new Baseline()) 
 			System.out.println("No Game Data Provided!");
 		}
+		
+		if (gameData.charAt(0) == 'L')
+			auto = new DropSqueezyRecording("LeftToLeft_NoElevator", squeezySol);
+		else 
+			auto = new Recording("LeftToLeft_NoElevator");
+		
 		return auto;
 	}//CommandGroup
 
