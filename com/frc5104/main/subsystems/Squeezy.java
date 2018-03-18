@@ -21,7 +21,7 @@ public class Squeezy {
 	static final double kHoldEffort = -0.25;
 	static final double kShootSqueezeEffort = -0.05;
 	static final double kCloseEffort = -0.0;
-	static final double kOpenEffort  = 0.18;
+	static final double kOpenEffort  = 0.25;
 	
 	static final double kRightSpinMultiplier = 1.1;
 	static final double kIntakeEffort = -/*0.4*//*3-12-18 0.2*/0.2;
