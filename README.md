@@ -10,7 +10,7 @@ A repository for Team 5104's robot code for the 2018 Power Up game.
 - [ ] Test 3
 
 ### In Progress
-- [ ] Test 4 @LiamSnow
+- [ ] @LiamSnow
 - [ ] Test 5
 - [ ] Test 6
 
