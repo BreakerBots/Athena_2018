@@ -2,6 +2,7 @@ package com.frc5104.utilities;
 
 import com.ctre.phoenix.motorcontrol.FeedbackDevice;
 import com.ctre.phoenix.motorcontrol.LimitSwitchNormal;
+import com.ctre.phoenix.motorcontrol.NeutralMode;
 import com.ctre.phoenix.motorcontrol.RemoteFeedbackDevice;
 import com.ctre.phoenix.motorcontrol.VelocityMeasPeriod;
 import com.ctre.phoenix.motorcontrol.can.TalonSRX;
@@ -14,11 +15,13 @@ public class TalonFactory {
 		for (int i = 0; i < talonIds.length; i++) {
 			talons[i] = new TalonSRX(talonIds[i]);
 		}
+		init();
 	}//TalonFactory
 	
 	public void init() {
 		for (TalonSRX taloni:talons) {
 			fixTalon(taloni);
+			System.out.println("Configured Talon: "+taloni.getDeviceID());
 		}
 	}//init
 	
@@ -29,7 +32,7 @@ public class TalonFactory {
 			talon.configPeakOutputReverse(-1, 0);
 			talon.configNominalOutputForward(0, 0);
 			talon.configNominalOutputReverse(0, 0);
-			talon.configNeutralDeadband(0.04, 0);
+			talon.configNeutralDeadband(0.0, 0);
 			talon.configVoltageCompSaturation(0, 0);
 			talon.configVoltageMeasurementFilter(32, 0);
 			talon.configSelectedFeedbackSensor(FeedbackDevice.QuadEncoder, 0, 0);
@@ -61,5 +64,6 @@ public class TalonFactory {
 			talon.configSetCustomParam(0, 0, 0);
 			talon.configPeakCurrentLimit(0, 0);
 			talon.configContinuousCurrentLimit(0, 0);
+			talon.setNeutralMode(NeutralMode.Brake);
 	}//fixTalon
  }

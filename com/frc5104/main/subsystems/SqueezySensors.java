@@ -58,12 +58,20 @@ public class SqueezySensors {
 			return false;
 //		if (leftUltra.getDistance() > 4 && rightUltra.getDistance() > 4)
 //			return true;
+		
 //		else
 //			return false;
 	}//detectBoxGone
 	
+	public String encVel () {
+		int vel = Squeezy.getInstance().getEncoderVelocity();
+		boolean bool = Math.abs(vel) < 30;
+		return "Vel Check: "+bool+" -- "+vel;
+	}//encVel
+	
 	public boolean detectBoxHeld() {
 //		if (new Joystick(0).getRawButton(6))/*3-11-18*/
+		
 		if (centerUltra.getDistance() < /*6*//*5.5*//*New 3d plate*/3)
 //			leftUltra.getDistance() < 2 &&
 //			rightUltra.getDistance() < 2)

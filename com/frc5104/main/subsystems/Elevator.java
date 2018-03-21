@@ -1,7 +1,10 @@
 package com.frc5104.main.subsystems;
 
 import com.ctre.phoenix.motorcontrol.ControlMode;
+import com.ctre.phoenix.motorcontrol.LimitSwitchNormal;
+import com.ctre.phoenix.motorcontrol.LimitSwitchSource;
 import com.ctre.phoenix.motorcontrol.can.TalonSRX;
+import com.frc5104.utilities.ControllerHandler;
 import com.frc5104.utilities.Deadband;
 
 import edu.wpi.first.networktables.NetworkTable;
@@ -19,11 +22,21 @@ public class Elevator {
 	public static final int TALON2_ID = 32;
 	public static final int AXIS_ID = 5;
 	
-	public static final double kRaiseEffort = 0.8;
-	public static final double kLowerEffort = 0.5;
-	public static final double kHoldEffort = 0;
-		// Constant effort to hold up elevator
-		// Might change w/ Power Cube
+	public enum Stage {
+		kBottom(0),
+		kPortal(-3000),
+		kSwitch(-5000),
+		kLowerScale(-13000),
+		kTop(-16500);
+		
+		int position;
+		Stage (int position){
+			this.position = position;
+		}
+		public int getCounts() {
+			return this.position;
+		}
+	}//Stage
 	
 	static Elevator m_instance = null;
 	
@@ -38,18 +51,37 @@ public class Elevator {
 					 talon2;
 	private NetworkTable table = null;
 	
-	enum Control {
-		kPosition, kEffort
+	public enum Control {
+		kPosition, kEffort, kCalibrate //Calibrate drives the elevator down slowly (0.1)
+										//until the fwd (lower) limit switch is closed.
+										//This ensures that kBottom = 0;
 	}
-	Control controlMode = Control.kEffort;
+	private boolean calibrated = false;
+	Control controlMode = Control.kCalibrate;
+	Stage currentStage;
+
+	public Deadband userDeadband = new Deadband(0.2);
 	public double effort = 0;
-	public double position = 0;
+	public int prevEnc = -1;
 	
 	private Elevator () {
 		if (TWO_TALONS) {
 			talon2 = new TalonSRX(TALON2_ID);
 			talon2.set(ControlMode.Follower, TALON1_ID);
 		}
+		
+		talon1.configReverseSoftLimitEnable(false, 10);
+		talon1.configReverseSoftLimitThreshold(SOFT_STOP_TOP, 10);
+
+		talon1.configForwardSoftLimitEnable(false, 10);
+		talon1.configForwardSoftLimitThreshold(SOFT_STOP_BOTTOM, 10);
+		
+		talon1.config_kP(0, 2, 10);
+		talon1.config_IntegralZone(0, 2000, 10);
+		
+		currentStage = Stage.kBottom;
+//		calibrateBottom();
+		setEffort(0);
 	}//Elevator
 	
 	public void setEffort(double effort) {
@@ -59,35 +91,112 @@ public class Elevator {
 		update();
 	}//setEffort
 	
-	public void setPosition(double position) {
-		controlMode = Control.kPosition;
-		this.position = position;
+	public void goTo(Stage stage) {
+		if (calibrated) {
+			if (controlMode != Control.kPosition)
+				talon1.setIntegralAccumulator(0, 0, 10);
+			controlMode = Control.kPosition;
+		} else {
+			calibrateBottom();
+		}
+		this.currentStage = stage;
 		
 		update();
 	}//setPosition
 	
+	public void goUp() {
+		int newStage = currentStage.ordinal() + 1;
+		if (newStage >= Stage.values().length)
+			newStage = Stage.values().length - 1;
+		
+		goTo(Stage.values()[newStage]);
+	}//moveUp
+	
+	public void goDown() {
+		int newStage = currentStage.ordinal() - 1;
+		if (newStage < 0)
+			newStage = 0;
+		
+		goTo(Stage.values()[newStage]);
+	}//moveDown
+	
 	public void userControl() {
-		if (!getBoolean("closed_loop_control", false)) {
-			effort = -joy.getRawAxis(AXIS_ID);
-			effort = Deadband.getDefault().get(effort);
-			talon1.set(ControlMode.PercentOutput, effort);
-		} else {
-			talon1.set(ControlMode.Position, getDouble("setpoint", 
-					talon1.getSelectedSensorPosition(0)));
-		}
+		double userInput = joy.getRawAxis(AXIS_ID);
+		userInput = userDeadband.get(userInput);
+		
+		if (0 <= Math.abs(userInput))
+			setEffort(userInput);
+		
 		update();
 		updateTables();
+//		vibrateIfApproaching();
 	}//userControl
 
 	private void update() {
 		if (controlMode == Control.kEffort) {
 			talon1.set(ControlMode.PercentOutput, effort);
 		} else if (controlMode == Control.kPosition) {
-			talon1.set(ControlMode.Position, position);
+			talon1.set(ControlMode.Position, currentStage.getCounts());
+			System.out.println("Elevator Effort: "+talon1.getMotorOutputPercent());
+		} else if (controlMode == Control.kCalibrate) {
+			talon1.set(ControlMode.PercentOutput, 0.1);
+			if (talon1.getSensorCollection().isFwdLimitSwitchClosed()) {
+				//Reset Talon Encoder Position & Soft Limit
+				talon1.setSelectedSensorPosition(0, 0, 10);
+				talon1.configForwardSoftLimitEnable(true, 10);
+				
+				calibrated = true;
+				controlMode = Control.kPosition;
+				update();
+			}
 		}
 	}//update
 	
+	public void calibrateBottom() {
+		talon1.configForwardSoftLimitEnable(false, 10);
+		controlMode = Control.kCalibrate;
+		update();
+	}//calibrateBottom
+	
+	public void vibrateIfApproaching() {
+		if (!calibrated) return;
+		//Raising the elevator triggers when it passes a setpoint,
+		//lowering triggers when it approachDistance above a setpoint.
+		int approachDistance = 100;
+		
+		int enc = talon1.getSelectedSensorPosition(0);
+		
+		for (Stage checkStage: Stage.values()) {
+			boolean wasInZone, isInZone;
+			if (effort > 0) {
+				//DOWN (fwd limit switch is on the bottom)
+				wasInZone = prevEnc > checkStage.getCounts()-approachDistance;
+				isInZone = enc > checkStage.getCounts()-approachDistance;
+			} else {
+				//UP
+				wasInZone = prevEnc < checkStage.getCounts();
+				isInZone = enc < checkStage.getCounts();
+			}
+			if (!wasInZone && isInZone)
+				ControllerHandler.getInstance().rumbleHardFor(1, 0.1);
+		}
+		
+		prevEnc = enc;
+	}//vibrateIfApproaching
+	
 	//----- Elevator Sensors ------//
+	public boolean isCalibrated() {
+		return calibrated;
+	}//isCalibrated
+	
+	public int getError() {
+		return talon1.getClosedLoopError(0);
+	}//getError
+	
+	public boolean onTarget() {
+		return Math.abs(talon1.getSelectedSensorPosition(0) - currentStage.getCounts()) < 200;
+	}//onTarget
+	
 	public boolean getLowerLimit() {
 		return talon1.getSensorCollection().isFwdLimitSwitchClosed();
 	}//getLowerLimit
@@ -103,6 +212,10 @@ public class Elevator {
 	public boolean isLowEnoughToDrop() {
 		return talon1.getSelectedSensorPosition(0) > SOFT_STOP_BOTTOM - 2000;
 	}//isLowEnoughToDrop
+	
+	public Control controlMode() {
+		return controlMode;
+	}//controlMode
 	
 	public static boolean isRaised() {
 		if (m_instance != null)
@@ -178,5 +291,16 @@ public class Elevator {
 		return table.getEntry(key).getBoolean(defaultValue);
 	}//getBoolean
 	
+	
+	public void enableForwardLimitSwitch () {
+		talon1.configForwardLimitSwitchSource(LimitSwitchSource.FeedbackConnector, LimitSwitchNormal.NormallyOpen, 10);
+		setBoolean("Limit Switch Enabled", true);
+	}//disableForwardLimitSwitch
+
+	public void disableForwardLimitSwitch () {
+		talon1.configForwardLimitSwitchSource(LimitSwitchSource.Deactivated, LimitSwitchNormal.NormallyOpen, 10);
+		setBoolean("Limit Switch Enabled", false);
+	}//disableForwardLimitSwitch
+
 	
 }//Elevator

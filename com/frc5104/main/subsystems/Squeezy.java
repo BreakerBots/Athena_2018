@@ -3,6 +3,9 @@ package com.frc5104.main.subsystems;
 import com.ctre.phoenix.motorcontrol.ControlMode;
 import com.ctre.phoenix.motorcontrol.can.TalonSRX;
 import com.frc5104.utilities.ButtonS;
+import com.frc5104.utilities.ControllerHandler;
+import com.frc5104.utilities.ControllerHandler.Button;
+import com.frc5104.utilities.ControllerHandler.Dpad;
 
 import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableInstance;
@@ -11,18 +14,19 @@ import edu.wpi.first.wpilibj.Talon;
 
 public class Squeezy {
 
-	public static final int MAIN_ID = /*11*/21;
-	public static final int LEFT_ID = /*0*/22;
-	public static final int RIGHT_ID = /*1*/23;
+	public static final int MAIN_ID = 21;
+	public static final int LEFT_ID = 22;
+	public static final int RIGHT_ID = 23;
 	
-	static final double kHoldEffort = -0.15;
+	static final double kHoldEffort = -0.25;
 	static final double kShootSqueezeEffort = -0.05;
-	static final double kCloseEffort = -0.2;
-	static final double kOpenEffort  = 0.15;
+	static final double kCloseEffort = -0.0;
+	static final double kOpenEffort  = 0.25;
 	
+	static final double kRightSpinMultiplier = 1.1;
 	static final double kIntakeEffort = -/*0.4*//*3-12-18 0.2*/0.2;
-	static final double kPinchEffort = -0.1;
-	static final double kEjectEffort = 0.6;
+	static final double kPinchEffort = -0.2;
+	public static double kEjectEffort = 0.6;
 	
 	public enum SqueezyState {
 		EMPTY, INTAKE, CLOSING, HOLDING, LOADED, EJECT,
@@ -41,14 +45,15 @@ public class Squeezy {
 	NetworkTable table = null;
 	
 	//An unreasonable starting value
+	private boolean calibrated = false;
 	private SqueezyState prevState = SqueezyState.EJECT;
-	SqueezyState state = SqueezyState.EMPTY;
+	SqueezyState state = SqueezyState.HOLDING;
 	
 	public enum ButtonType {
 		kIntake, kEject, kCancel, kUnjam
 	}
-	ButtonS buttonIntake = new ButtonS(3),
-			buttonEject = new ButtonS(1),
+	ButtonS buttonIntake = new ButtonS(6),//RB
+			buttonEject = new ButtonS(5),//LB
 			buttonCancel = new ButtonS(2),
 			buttonUnjam = new ButtonS(8);
 	
@@ -57,16 +62,23 @@ public class Squeezy {
 	TalonSRX leftSpin  = new TalonSRX(LEFT_ID);
 	TalonSRX rightSpin = new TalonSRX(RIGHT_ID);
 	
+	//Eject Timing
+	long lastTime;
+	
 	//DoubleSolenoid lifter = new DoubleSolenoid(0,1);
 	
 	SqueezySensors sensors = SqueezySensors.getInstance();
 
 	private Squeezy () {
+		
+		
 		//Make sure that the motor output and encoder counts are in sync
 			//OTHERWISE, the finely tuned closed-loop control becomes
 			//chaotic and accelerates away from the setpoint
 		squeezer.setSensorPhase(true);
-		raise();
+		state = SqueezyState.HOLDING;
+		updateState();
+		update();
 	}//Squeezy
 	
 	public void pollButtons() {
@@ -93,11 +105,18 @@ public class Squeezy {
 		}
 	}//forceButtonOn
 		
+	long ejectTime = System.currentTimeMillis();
+	
 	public void updateState() {
+		
+		/*
 		sensors.updateSensors();
 
-		if (squeezer.getSensorCollection().isFwdLimitSwitchClosed())
-		squeezer.setSelectedSensorPosition(0, 0, 10);
+		if (squeezer.getSensorCollection().isFwdLimitSwitchClosed()) {
+			if (!calibrated)
+				squeezer.setSelectedSensorPosition(0, 0, 10);
+			calibrated = true;
+		}
 		
 		switch (state) {
 		case EMPTY:
@@ -116,12 +135,12 @@ public class Squeezy {
 				state = SqueezyState.UNJAM;
 			if (!(sensors.detectBox() && squeezer.getSelectedSensorPosition(0) > -90000))
 				state = SqueezyState.INTAKE;
-			if (sensors.detectBoxHeld())
+			if (sensors.detectBoxHeld()) {
 				state = SqueezyState.HOLDING;
+				ControllerHandler.getInstance().rumbleHardFor(0.5, 0.5);
+			}
 			break;
 		case HOLDING:
-			if (buttonEject.Pressed)
-				state = SqueezyState.LOADED;
 			if (sensors.detectBoxGone())
 				state = SqueezyState.EMPTY;
 			break;
@@ -132,7 +151,7 @@ public class Squeezy {
 				state = SqueezyState.EMPTY;
 			break;
 		case EJECT:
-			if (sensors.detectBoxGone())
+			if ((System.currentTimeMillis() - lastTime) > 1000)
 				state = SqueezyState.UNJAM;
 			if (buttonCancel.Pressed)
 				state = SqueezyState.EMPTY;
@@ -140,8 +159,16 @@ public class Squeezy {
 		case UNJAM:
 			if (squeezer.getSensorCollection().isFwdLimitSwitchClosed())
 				state = SqueezyState.INTAKE;
+			if (buttonIntake.Pressed)
+				state = SqueezyState.INTAKE;
 			break;
 		}//switch
+		
+		if (buttonEject.Pressed) {
+			state = SqueezyState.EJECT;
+			lastTime = System.currentTimeMillis();
+		}
+		
 		if (buttonUnjam.Pressed)
 			state = SqueezyState.UNJAM;
 		
@@ -154,9 +181,27 @@ public class Squeezy {
 		postSqueezerData();
 		
 		buttonIntake.Pressed = false;
-		buttonEject.Pressed = false;
+		buttonEject.Pressed = false;\
 		buttonCancel.Pressed = false;
 		buttonUnjam.Pressed = false;
+		*/
+		
+		if (ControllerHandler.getInstance().getPressed(Button.B))
+			state = SqueezyState.EMPTY;
+		if (ControllerHandler.getInstance().getPressed(Dpad.E))
+			state = SqueezyState.INTAKE;
+		if (ControllerHandler.getInstance().getPressed(Dpad.W))
+			state = SqueezyState.HOLDING;
+		if (ControllerHandler.getInstance().getPressed(Button.LB)) {
+			System.out.println("EJECTING!!!");
+			ejectTime = System.currentTimeMillis();
+			state = SqueezyState.EJECT;
+		}
+		
+		if (state == SqueezyState.EJECT) {
+			if (System.currentTimeMillis()-ejectTime > 1000)
+				state = SqueezyState.HOLDING;
+		}
 		
 	}//poll
 	
@@ -202,8 +247,19 @@ public class Squeezy {
 	}//updateState
 	
 	//--------- Squeezy States ----------//
+	
+	public int getEncoderPosition() {
+		return squeezer.getSelectedSensorPosition(0);
+	}//getEncoderPosition
+
+	public int getEncoderVelocity() {
+		return squeezer.getSelectedSensorVelocity(0);
+	}//getEncoderVelocity
+	
 	public void forceState(SqueezyState newState) {
 		state = newState;
+		if (state == SqueezyState.EJECT)
+			ejectTime = System.currentTimeMillis();
 	}//forceState
 	
 	public boolean isInState (SqueezyState checkState) {
@@ -219,7 +275,7 @@ public class Squeezy {
 //		leftSpin.set(ControlMode.PercentOutput, effort);
 //		rightSpin.set(ControlMode.PercentOutput, effort);
 		leftSpin.set(ControlMode.PercentOutput, effort);
-		rightSpin.set(ControlMode.PercentOutput, -effort);
+		rightSpin.set(ControlMode.PercentOutput, -kRightSpinMultiplier*effort);
 	}//setSpinners
 	
 	private void spinIn() {
@@ -313,9 +369,18 @@ public class Squeezy {
 			
 			setDouble("squeezer_pos", squeezer.getSelectedSensorPosition(0));
 			setDouble("squeezer_vel", squeezer.getSelectedSensorVelocity(0));
+			
+			setBoolean("Eject", state == SqueezyState.EJECT);
+			setBoolean("Intake", state == SqueezyState.INTAKE);
+			
+			setBoolean("DetectedBox", sensors.detectBox());
+			setBoolean("BoxHeld", sensors.detectBoxHeld());
 
 			setBoolean("limits/fwd", squeezer.getSensorCollection().isFwdLimitSwitchClosed());
 			setBoolean("limits/rev", squeezer.getSensorCollection().isRevLimitSwitchClosed());
+			
+//			setDouble("drive_left_pos", Drive.getInstance().getEncoderLeft());
+//			setDouble("drive_right_pos", Drive.getInstance().getEncoderRight());
 		}
 	}//postSqueezerData
 	

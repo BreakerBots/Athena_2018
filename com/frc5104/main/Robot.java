@@ -2,24 +2,42 @@ package com.frc5104.main;
 
 import com.ctre.phoenix.motorcontrol.ControlMode;
 import com.ctre.phoenix.motorcontrol.can.TalonSRX;
+import com.frc5104.autopaths.AutoSelector;
+import com.frc5104.autopaths.Baseline;
 import com.frc5104.main.subsystems.Drive;
 import com.frc5104.main.subsystems.Elevator;
+import com.frc5104.main.subsystems.Elevator.Stage;
 import com.frc5104.main.subsystems.Shifters;
 import com.frc5104.main.subsystems.Squeezy;
+import com.frc5104.main.subsystems.Squeezy.SqueezyState;
 import com.frc5104.main.subsystems.SqueezySensors;
 import com.frc5104.utilities.ButtonS;
+import com.frc5104.utilities.ControllerHandler;
 import com.frc5104.utilities.Deadband;
 import com.frc5104.utilities.TalonFactory;
+import com.frc5104.utilities.ControllerHandler.Axis;
+import com.frc5104.utilities.ControllerHandler.Button;
+import com.frc5104.utilities.ControllerHandler.Dpad;
 import com.frc5104.vision.VisionThread;
 
 import edu.wpi.first.wpilibj.DoubleSolenoid;
+import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.IterativeRobot;
 import edu.wpi.first.wpilibj.Joystick;
+import edu.wpi.first.wpilibj.DoubleSolenoid.Value;
+import edu.wpi.first.wpilibj.command.CommandGroup;
+import edu.wpi.first.wpilibj.command.Scheduler;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
 public class Robot extends IterativeRobot {
 
-	BasicAuto auto;
+	int[] talonIDs = new int[] {11, 12, 13, 14 //drive
+			,21, 22, 23    //squeezy
+			,31, 32        //elevator
+	};
+	TalonFactory talonFactory = new TalonFactory(talonIDs);
+
+	CommandGroup auto;
 	VisionThread vision;
 
 	Joystick joy = new Joystick(0);
@@ -29,7 +47,6 @@ public class Robot extends IterativeRobot {
 //	Drive drive = null;
 	Drive drive = Drive.getInstance();
 	Shifters shifters = Shifters.getInstance();
-	ButtonS shifterButton = new ButtonS(5);
 	
 //	Squeezy squeezy = null;
 	Squeezy squeezy = Squeezy.getInstance();
@@ -47,10 +64,11 @@ public class Robot extends IterativeRobot {
 //	TalonSRX ptoTalon = new TalonSRX(/*Athena/Ares*//*9*/  /*Babyboard*/11);
 	
 	ButtonS ptoShifter = new ButtonS(4);
-	DoubleSolenoid ptoSol = new DoubleSolenoid(4, 5);
+	DoubleSolenoid ptoSol = new DoubleSolenoid(2,3);
 	
+	public DoubleSolenoid squeezyUpDown = new DoubleSolenoid(4,5);
 	
-	DoubleSolenoid squeezyUpDown = new DoubleSolenoid(0,1);
+	ControllerHandler controller = ControllerHandler.getInstance();
 	/* ------- PTO PID Values for Elevator -------
 	 * 
 	 * p == 0.16
@@ -83,27 +101,31 @@ public class Robot extends IterativeRobot {
 		if (elevator != null)
 			elevator.initTable(null);
 		
-		squeezyUpDown.set(DoubleSolenoid.Value.kForward);
+		squeezyUpDown.set(DoubleSolenoid.Value.kReverse);
 		
-		int[] talonIDs = new int[] {11, 12, 13, 14 //drive
-									,21, 22, 23    //squeezy
-									,31, 32        //elevator
-				};
-		TalonFactory talonFactory = new TalonFactory(talonIDs);
-		talonFactory.init();
+	    drive.resetEncoders();
+		
 	}//robotInit
-	
+	long autoStartTime;
 	public void autonomousInit() {
-		SmartDashboard.putNumber("DB/Slider 0", 4);
+		squeezy.forceState(SqueezyState.HOLDING);
+		squeezyUpDown.set(Value.kReverse);//UP
 		
-//		auto = new AutoPickupCube();
-//		
-//		auto.init();
+		auto = AutoSelector.getAuto(squeezyUpDown);
+		Scheduler.getInstance().add(auto);
+		
+//		autoStartTime = System.currentTimeMillis();
 	}//autonomousInit
 	
 	public void autonomousPeriodic() {
-		
-		
+		Scheduler.getInstance().run();
+		squeezy.update();
+//		if (System.currentTimeMillis() < autoStartTime + 10000) {
+//			drive.arcadeDrive(0.3, 0);
+//		} else {
+//			drive.arcadeDrive(0, 0);
+//		}
+		SmartDashboard.putString("DB/String 7", DriverStation.getInstance().getGameSpecificMessage());
 	}//autonomousPeriodic
 	
 	public void teleopInit() {
@@ -113,23 +135,37 @@ public class Robot extends IterativeRobot {
 	}//teleopInit
 	
 	public void teleopPeriodic() {
+		controller.update();
+		
+//		if (controller.getPressed(Button.LB))
+//			elevator.goTo(Stage.kSwitch);
+//		else if (controller.getPressed(Button.RB))
+//			elevator.goTo(Stage.kTop);
+		
 //		System.out.println("Encoder Position: "+drive.getEncoderRight());
-		ptoShifter.update(); if (ptoShifter.Pressed) { 
+		if (controller.getHeldEvent(Button.X, 0.4)) { 
+//		if (controller.getPressed(Button.X))
+			System.out.println("Switching PTO!");
 			ptoSol.set(ptoSol.get() == DoubleSolenoid.Value.kReverse ? DoubleSolenoid.Value.kForward : DoubleSolenoid.Value.kReverse);
+			if (ptoSol.get() == Value.kForward)
+				controller.rumbleSoftFor(0.5, 0.2);
+			else
+				controller.rumbleHardFor(1, 0.2);
 		}
 		
 		if (drive != null) {
-			double x = -joy.getRawAxis(0),
-					y = joy.getRawAxis(1);
+			double x = joy.getRawAxis(0),
+				   y = -joy.getRawAxis(1);
+			x = Deadband.getDefault().get(x);
+			y = Deadband.getDefault().get(y);
 			
-//			x = deadband.get(x);
-//			y = deadband.get(y);
 			drive.arcadeDrive(y,x);
 		}
 		
-		shifterButton.update();
-		if (shifterButton.Pressed)
-			shifters.toggle();
+		if (controller.getAxis(Axis.RT) > 0.6)
+			shifters.shiftHigh();
+		else
+			shifters.shiftLow();
 		
 		if (elevator != null) {
 			elevator.userControl();
@@ -141,13 +177,18 @@ public class Robot extends IterativeRobot {
 			squeezy.update();
 		}
 		
-		if (joy.getPOV() == 180) {
+		if (controller.getPressed(Dpad.S)) {
 			System.out.println("DOWN!");
 			squeezyUpDown.set(DoubleSolenoid.Value.kForward);
 		}
-		if (joy.getPOV() == 0) {
-			System.out.println("UP!");
-			squeezyUpDown.set(DoubleSolenoid.Value.kReverse);
+		if (controller.getPressed(Dpad.N)) {
+			if (!squeezy.isInState(SqueezyState.INTAKE)) {
+				System.out.println("UP!");
+				squeezyUpDown.set(DoubleSolenoid.Value.kReverse);
+			} else {
+				System.out.println("Will not pull up squeezy in intake mode!!!");
+				squeezy.forceState(SqueezyState.HOLDING);
+			}
 		}
 //		if (Math.abs(drive.getEncoderLeft()+drive.getEncoderRight())/2 > 1300)
 //			shifters.shiftHigh();
@@ -202,6 +243,19 @@ public class Robot extends IterativeRobot {
 				ptoTalon.setIntegralAccumulator(0, 0, 10);
 			}
 		}
+		
+		/*
+		if (controller.getHeldEvent(Button.B, 5)) {
+			System.out.println("Disabled Elevator Forward Limit Switch");
+			elevator.disableForwardLimitSwitch();
+			controller.rumbleHardFor(1, 2);
+		}
+		if (controller.getHeldEvent(Button.Y, 5)) {
+			System.out.println("Enabled Elevator Forward Limit Switch");
+			elevator.enableForwardLimitSwitch();
+			controller.rumbleHardFor(1, 1);
+		}
+		*/
 		
 		
 	}//teleopPeriodic
