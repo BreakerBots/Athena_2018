@@ -4,13 +4,10 @@ import com.ctre.phoenix.motorcontrol.ControlMode;
 import com.ctre.phoenix.motorcontrol.can.TalonSRX;
 import com.frc5104.utilities.ButtonS;
 import com.frc5104.utilities.ControllerHandler;
-import com.frc5104.utilities.ControllerHandler.Button;
-import com.frc5104.utilities.ControllerHandler.Dpad;
+import com.frc5104.utilities.ControllerHandler.Control;
 
 import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableInstance;
-import edu.wpi.first.wpilibj.DoubleSolenoid;
-import edu.wpi.first.wpilibj.Talon;
 
 public class Squeezy {
 
@@ -186,13 +183,13 @@ public class Squeezy {
 		buttonUnjam.Pressed = false;
 		*/
 		
-		if (ControllerHandler.getInstance().getPressed(Button.B))
+		if (ControllerHandler.getInstance().getPressed(Control.B))
 			state = SqueezyState.EMPTY;
-		if (ControllerHandler.getInstance().getPressed(Dpad.E))
+		if (ControllerHandler.getInstance().getPressed(Control.E))
 			state = SqueezyState.INTAKE;
-		if (ControllerHandler.getInstance().getPressed(Dpad.W))
+		if (ControllerHandler.getInstance().getPressed(Control.W))
 			state = SqueezyState.HOLDING;
-		if (ControllerHandler.getInstance().getPressed(Button.LB)) {
+		if (ControllerHandler.getInstance().getPressed(Control.LB)) {
 			System.out.println("EJECTING!!!");
 			ejectTime = System.currentTimeMillis();
 			state = SqueezyState.EJECT;

@@ -10,9 +10,7 @@ import com.frc5104.main.subsystems.Squeezy.SqueezyState;
 import com.frc5104.main.subsystems.SqueezySensors;
 import com.frc5104.utilities.ButtonS;
 import com.frc5104.utilities.ControllerHandler;
-import com.frc5104.utilities.ControllerHandler.Axis;
-import com.frc5104.utilities.ControllerHandler.Button;
-import com.frc5104.utilities.ControllerHandler.Dpad;
+import com.frc5104.utilities.ControllerHandler.Control;
 import com.frc5104.utilities.Deadband;
 import com.frc5104.utilities.TalonFactory;
 
@@ -134,7 +132,7 @@ public class Robot extends IterativeRobot {
 //			elevator.goTo(Stage.kTop);
 		
 //		System.out.println("Encoder Position: "+drive.getEncoderRight());
-		if (controller.getHeldEvent(Button.X, 0.4)) { 
+		if (controller.getHeldEvent(Control.X, 0.4)) { 
 //		if (controller.getPressed(Button.X))
 			System.out.println("Switching PTO!");
 			ptoSol.set(ptoSol.get() == DoubleSolenoid.Value.kReverse ? DoubleSolenoid.Value.kForward : DoubleSolenoid.Value.kReverse);
@@ -153,7 +151,7 @@ public class Robot extends IterativeRobot {
 			drive.arcadeDrive(y,x);
 		}
 		
-		if (controller.getAxis(Axis.RT) > 0.6)
+		if (controller.getAxis(Control.RT) > 0.6)
 			shifters.shiftHigh();
 		else
 			shifters.shiftLow();
@@ -168,11 +166,11 @@ public class Robot extends IterativeRobot {
 			squeezy.update();
 		}
 		
-		if (controller.getPressed(Dpad.S)) {
+		if (controller.getPressed(Control.S)) {
 			System.out.println("DOWN!");
 			squeezyUpDown.set(DoubleSolenoid.Value.kForward);
 		}
-		if (controller.getPressed(Dpad.N)) {
+		if (controller.getPressed(Control.N)) {
 			if (!squeezy.isInState(SqueezyState.INTAKE)) {
 				System.out.println("UP!");
 				squeezyUpDown.set(DoubleSolenoid.Value.kReverse);
