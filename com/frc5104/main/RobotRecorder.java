@@ -208,36 +208,46 @@ public class RobotRecorder extends IterativeRobot {
 	}//teleopPeriodic
 	
 	public void initRecorderFile() {
-		Calendar today = Calendar.getInstance();
-		int month	= today.get(Calendar.MONTH),
-			day		= today.get(Calendar.DAY_OF_MONTH),
-			year	= today.get(Calendar.YEAR);
-
-		/* Creates a new directory for the day */
-		File date = new File(root, String.format("%d-%d-%d",month,day,year));
-		if (date.mkdir())
-			System.out.println("Successfully created this date's directory");
-		else
-			System.out.println("Failed to create this date's directory");
-
-		String fileName = SmartDashboard.getString("DB/String 5", "robotPath");
-		if (fileName.equals("")) {
-			fileName = "robot_path";
+		String pathName = SmartDashboard.getString("DB/String 5", "robot_path");
+		if (pathName.equals("")) {
+			pathName = "robot_path";
 		}
+
+		File dir = new File(root, pathName);
+		
+		if (!dir.exists()) dir.mkdir();
 		
 		int index = 0;
-		File pathFile = new File(date, fileName);
-		while (pathFile.exists()) {
-			pathFile = new File(date, fileName+"_"+index);
+		File pathFile;
+		do {
+			pathFile = new File(dir, ""+index);
 			index++;
-		}
-		
-		SmartDashboard.putString("DB/String 5", pathFile.getName());
+		} while (pathFile.exists());
 		
 		recorder = new CSVFileWriter(pathFile);
 		recorderFile = pathFile;
 		
 	}//initRecorderFile
+	
+	public boolean initPlaybackFile() {
+		String pathName = SmartDashboard.getString("DB/String 5", "robot_path");
+		if (pathName.equals("")) {
+			pathName = "robot_path";
+		}
+		
+		File dir = new File(root, pathName);
+		
+		if (!dir.exists()) {
+			return false;
+		}
+		
+		String[] files = dir.list();
+		if (files.length == 0) return false;
+		
+		recorderFile = new File(dir, files[files.length-1]);
+		
+		return true;
+	}//initPlaybackFile
 	
 	public void setupRecorderData() {
 		recorder.addLogDouble("joy_x", new LogDouble() {
