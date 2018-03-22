@@ -3,18 +3,12 @@ package com.frc5104.main.subsystems;
 import com.ctre.phoenix.motorcontrol.ControlMode;
 import com.ctre.phoenix.motorcontrol.can.TalonSRX;
 import com.frc5104.utilities.ControllerHandler;
-import com.frc5104.utilities.ControllerHandler.Control;
 
 import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableInstance;
 
 public class Squeezy {
 	
-	public static final Control kOpenButton = Control.E;
-	public static final Control kCloseButton = Control.W;
-	public static final Control kEjectButton = Control.LB;
-	public static final Control kNeutralButton = Control.B;
-
 	public static final int MAIN_ID = 21;
 	public static final int LEFT_ID = 22;
 	public static final int RIGHT_ID = 23;

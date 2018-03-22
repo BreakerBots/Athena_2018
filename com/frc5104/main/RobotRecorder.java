@@ -3,7 +3,6 @@ package com.frc5104.main;
 import java.io.File;
 import java.util.Calendar;
 
-import com.ctre.phoenix.motorcontrol.can.TalonSRX;
 import com.frc5104.logging.CSVFileReader;
 import com.frc5104.logging.CSVFileWriter;
 import com.frc5104.logging.LogDouble;
@@ -13,40 +12,22 @@ import com.frc5104.main.subsystems.Shifters;
 import com.frc5104.main.subsystems.Squeezy;
 import com.frc5104.main.subsystems.Squeezy.SqueezyState;
 import com.frc5104.main.subsystems.SqueezySensors;
-import com.frc5104.utilities.ButtonS;
 import com.frc5104.utilities.ControllerHandler;
 import com.frc5104.utilities.ControllerHandler.Control;
 import com.frc5104.utilities.Deadband;
+import com.frc5104.utilities.HMI;
 import com.frc5104.utilities.TalonFactory;
 
 import edu.wpi.first.wpilibj.DoubleSolenoid;
 import edu.wpi.first.wpilibj.DoubleSolenoid.Value;
 import edu.wpi.first.wpilibj.DriverStation;
-import edu.wpi.first.wpilibj.GenericHID.RumbleType;
 import edu.wpi.first.wpilibj.IterativeRobot;
-import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.command.CommandGroup;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
 public class RobotRecorder extends IterativeRobot {
 
-	static class HMI{
-		public static final Control kStartRecording = Control.MENU;
-		public static final Control kStopRecording = Control.MENU;
-		public static final Control kPlayback = Control.LIST;
-		
-		public static final Control kDriveX = Control.LX;
-		public static final Control kDriveY = Control.LY;
-		public static final Control kShift = Control.RT;
-		
-		public static final Control kPtoButton = Control.X;
-		public static final Control kElevator = Control.RY;
-		
-		public static final Control kSqueezyUp = Control.N;
-		public static final Control kSqueezyDown = Control.S;
-	}
-	
 	//------------ Recording ----------------//
 	public static final String root = "/home/lvuser/aresPaths";
 	enum RecorderState {
