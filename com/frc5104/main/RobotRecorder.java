@@ -33,7 +33,7 @@ public class RobotRecorder extends IterativeRobot {
 
 	static class HMI{
 		public static final Control kStartRecording = Control.MENU;
-		public static final Control kStopRecording = Control.LIST;
+		public static final Control kStopRecording = Control.MENU;
 		public static final Control kPlayback = Control.LIST;
 		
 		public static final Control kDriveX = Control.LX;
@@ -108,13 +108,13 @@ public class RobotRecorder extends IterativeRobot {
 		
 	}//robotInit
 	
-	public void autonomousInit() {
+	public double getDriveX() {
+		return -Deadband.getDefault().get(controller.getAxis(HMI.kDriveX));
+	}//getDriveX
 
-	}//autonomousInit
-	
-	public void autonomousPeriodic() {
-		
-	}//autonomousPeriodic
+	public double getDriveY() {
+		return -Deadband.getDefault().get(controller.getAxis(HMI.kDriveY));
+	}//getDriveX
 	
 	public void teleopInit() {
 		if (shifters != null)
@@ -191,10 +191,8 @@ public class RobotRecorder extends IterativeRobot {
 		}
 		
 		if (drive != null) {
-			double x = controller.getAxis(HMI.kDriveX),
-				   y = -controller.getAxis(HMI.kDriveY);
-			x = Deadband.getDefault().get(x);
-			y = Deadband.getDefault().get(y);
+			double x = getDriveX();
+			double y = getDriveY();
 			
 			drive.arcadeDrive(y*10/batteryVoltage,x*10/batteryVoltage);
 		}
@@ -268,12 +266,12 @@ public class RobotRecorder extends IterativeRobot {
 	public void setupRecorderData() {
 		recorder.addLogDouble("joy_x", new LogDouble() {
 			public double get() {
-				return Deadband.getDefault().get(controller.getAxis(HMI.kDriveX));
+				return getDriveX();
 			}
 		});
 		recorder.addLogDouble("joy_y", new LogDouble() {
 			public double get() {
-				return -Deadband.getDefault().get(controller.getAxis(HMI.kDriveY));
+				return getDriveY();
 			}
 		});
 		recorder.addLogDouble("elevator_effort", new LogDouble() {
