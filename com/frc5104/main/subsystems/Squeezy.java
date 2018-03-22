@@ -2,7 +2,6 @@ package com.frc5104.main.subsystems;
 
 import com.ctre.phoenix.motorcontrol.ControlMode;
 import com.ctre.phoenix.motorcontrol.can.TalonSRX;
-import com.frc5104.utilities.ButtonS;
 import com.frc5104.utilities.ControllerHandler;
 import com.frc5104.utilities.ControllerHandler.Control;
 
@@ -10,6 +9,11 @@ import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableInstance;
 
 public class Squeezy {
+	
+	public static final Control kOpenButton = Control.E;
+	public static final Control kCloseButton = Control.W;
+	public static final Control kEjectButton = Control.LB;
+	public static final Control kNeutralButton = Control.B;
 
 	public static final int MAIN_ID = 21;
 	public static final int LEFT_ID = 22;
@@ -46,14 +50,6 @@ public class Squeezy {
 	private SqueezyState prevState = SqueezyState.EJECT;
 	SqueezyState state = SqueezyState.HOLDING;
 	
-	public enum ButtonType {
-		kIntake, kEject, kCancel, kUnjam
-	}
-	ButtonS buttonIntake = new ButtonS(6),//RB
-			buttonEject = new ButtonS(5),//LB
-			buttonCancel = new ButtonS(2),
-			buttonUnjam = new ButtonS(8);
-	
 	//Talon IDs fall are contained in [20,30)
 	TalonSRX squeezer  = new TalonSRX(MAIN_ID);
 	TalonSRX leftSpin  = new TalonSRX(LEFT_ID);
@@ -78,30 +74,6 @@ public class Squeezy {
 		update();
 	}//Squeezy
 	
-	public void pollButtons() {
-		buttonIntake.update();
-		buttonEject.update();
-		buttonCancel.update();
-		buttonUnjam.update();
-	}//pollButtons
-	
-	public void forceButtonOn(ButtonType buttonType) {
-		switch (buttonType) {
-		case kIntake:
-			buttonIntake.Pressed = true;
-			break;
-		case kEject:
-			buttonEject.Pressed = true;
-			break;
-		case kCancel:
-			buttonCancel.Pressed = true;
-			break;
-		case kUnjam:
-			buttonUnjam.Pressed = true;
-			break;
-		}
-	}//forceButtonOn
-		
 	long ejectTime = System.currentTimeMillis();
 	
 	public void updateState() {
@@ -177,19 +149,17 @@ public class Squeezy {
 		postUltrasonicData();
 		postSqueezerData();
 		
-		buttonIntake.Pressed = false;
-		buttonEject.Pressed = false;\
-		buttonCancel.Pressed = false;
-		buttonUnjam.Pressed = false;
 		*/
 		
-		if (ControllerHandler.getInstance().getPressed(Control.B))
+		ControllerHandler controller = ControllerHandler.getInstance();
+		
+		if (controller.getPressed(kNeutralButton))
 			state = SqueezyState.EMPTY;
-		if (ControllerHandler.getInstance().getPressed(Control.E))
+		if (controller.getPressed(kOpenButton))
 			state = SqueezyState.INTAKE;
-		if (ControllerHandler.getInstance().getPressed(Control.W))
+		if (controller.getPressed(kCloseButton))
 			state = SqueezyState.HOLDING;
-		if (ControllerHandler.getInstance().getPressed(Control.LB)) {
+		if (controller.getPressed(kEjectButton)) {
 			System.out.println("EJECTING!!!");
 			ejectTime = System.currentTimeMillis();
 			state = SqueezyState.EJECT;
@@ -203,7 +173,6 @@ public class Squeezy {
 	}//poll
 	
 	public void update() {
-//		System.out.printf("Squeezy State: %10s\t",state.toString());
 		switch (state) {
 		case EMPTY:
 			raise();
@@ -269,8 +238,6 @@ public class Squeezy {
 	
 	//--------- Squeezy Actions ---------//
 	private void setSpinners(double effort) {
-//		leftSpin.set(ControlMode.PercentOutput, effort);
-//		rightSpin.set(ControlMode.PercentOutput, effort);
 		leftSpin.set(ControlMode.PercentOutput, effort);
 		rightSpin.set(ControlMode.PercentOutput, -kRightSpinMultiplier*effort);
 	}//setSpinners

@@ -31,6 +31,21 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
 public class RobotRecorder extends IterativeRobot {
 
+	static class HMI{
+		public static final Control kStartRecording = Control.MENU;
+		public static final Control kStopRecording = Control.LIST;
+		public static final Control kPlayback = Control.LIST;
+		
+		public static final Control kDriveX = Control.LX;
+		public static final Control kDriveY = Control.LY;
+		public static final Control kShift = Control.RT;
+		
+		public static final Control kPtoButton = Control.X;
+		public static final Control kElevator = Control.RY;
+		
+		public static final Control kSqueezyUp = Control.N;
+		public static final Control kSqueezyDown = Control.S;
+	}
 	
 	//------------ Recording ----------------//
 	public static final String root = "/home/lvuser/aresPaths";
@@ -57,7 +72,6 @@ public class RobotRecorder extends IterativeRobot {
 
 	CommandGroup auto;
 
-	Joystick joy = new Joystick(0);
 	Deadband deadband = new Deadband(0.05);
 	
 	//Drive Squeezy Elevator Climber
@@ -74,11 +88,7 @@ public class RobotRecorder extends IterativeRobot {
 	Elevator elevator = Elevator.getInstance();
 	
 	long startTime = System.currentTimeMillis();
-	TalonSRX ptoTalon = null;
-//	TalonSRX ptoTalon = new TalonSRX(9);
-//	TalonSRX ptoTalon = new TalonSRX(/*Athena/Ares*//*9*/  /*Babyboard*/11);
 	
-	ButtonS ptoShifter = new ButtonS(4);
 	DoubleSolenoid ptoSol = new DoubleSolenoid(2,3);
 	
 	DoubleSolenoid squeezyUpDown = new DoubleSolenoid(4,5);
@@ -126,14 +136,14 @@ public class RobotRecorder extends IterativeRobot {
 		switch (recorderState) {
 		case kUser:
 			userTeleop();
-			if (joy.getRawButton(4)) {
+			if (controller.getPressed(HMI.kStartRecording)) {
 				System.out.println("Started Recording");
 				recorderState = RecorderState.kRecording;
 				getBatteryVoltage();
 				initRecorderFile();
 				setupRecorderData();
 			}
-			if (joy.getRawButton(8)) {
+			if (controller.getPressed(HMI.kPlayback)) {
 				System.out.println("Started Playback");
 				recorderState = RecorderState.kPlayback;
 				getBatteryVoltage();
@@ -146,7 +156,7 @@ public class RobotRecorder extends IterativeRobot {
 			userTeleop();
 			recorder.collectAtTime(System.currentTimeMillis());
 			
-			if (joy.getRawButton(1)) {
+			if (controller.getPressed(HMI.kStopRecording)) {
 				System.out.println("Stopped Recording");
 				recorderState = RecorderState.kUser;
 				closeRecorderFile();
@@ -181,8 +191,8 @@ public class RobotRecorder extends IterativeRobot {
 		}
 		
 		if (drive != null) {
-			double x = joy.getRawAxis(0),
-				   y = -joy.getRawAxis(1);
+			double x = controller.getAxis(HMI.kDriveX),
+				   y = -controller.getAxis(HMI.kDriveY);
 			x = Deadband.getDefault().get(x);
 			y = Deadband.getDefault().get(y);
 			
@@ -196,11 +206,10 @@ public class RobotRecorder extends IterativeRobot {
 		
 		if (elevator != null) {
 //			elevator.userControl();
-			elevator.setEffort(joy.getRawAxis(3));
+			elevator.setEffort(controller.getAxis(HMI.kElevator));
 		}
 
 		if (squeezy != null) {
-			squeezy.pollButtons();
 			squeezy.updateState();
 			squeezy.update();
 		}
@@ -259,17 +268,17 @@ public class RobotRecorder extends IterativeRobot {
 	public void setupRecorderData() {
 		recorder.addLogDouble("joy_x", new LogDouble() {
 			public double get() {
-				return Deadband.getDefault().get(joy.getRawAxis(0));
+				return Deadband.getDefault().get(controller.getAxis(HMI.kDriveX));
 			}
 		});
 		recorder.addLogDouble("joy_y", new LogDouble() {
 			public double get() {
-				return -Deadband.getDefault().get(joy.getRawAxis(1));
+				return -Deadband.getDefault().get(controller.getAxis(HMI.kDriveY));
 			}
 		});
 		recorder.addLogDouble("elevator_effort", new LogDouble() {
 			public double get() {
-				return joy.getRawAxis(3);
+				return controller.getAxis(HMI.kElevator);
 			}
 		});
 //		recorder.addLogDouble("buttons", new LogDouble() {
@@ -309,9 +318,9 @@ public class RobotRecorder extends IterativeRobot {
 	private void getBatteryVoltage() {
 		drive.arcadeDrive(0, 0);
 		
-		joy.setRumble(RumbleType.kRightRumble, 1);
+		controller.rumbleHard(1);
 		Timer.delay(0.5);
-		joy.setRumble(RumbleType.kRightRumble, 0);
+		controller.rumbleHard(0);
 
 		batteryVoltage = DriverStation.getInstance().getBatteryVoltage();
 		SmartDashboard.putString("DB/String 4", ""+batteryVoltage);

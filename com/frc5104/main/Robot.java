@@ -8,7 +8,6 @@ import com.frc5104.main.subsystems.Shifters;
 import com.frc5104.main.subsystems.Squeezy;
 import com.frc5104.main.subsystems.Squeezy.SqueezyState;
 import com.frc5104.main.subsystems.SqueezySensors;
-import com.frc5104.utilities.ButtonS;
 import com.frc5104.utilities.ControllerHandler;
 import com.frc5104.utilities.ControllerHandler.Control;
 import com.frc5104.utilities.Deadband;
@@ -24,6 +23,14 @@ import edu.wpi.first.wpilibj.command.Scheduler;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
 public class Robot extends IterativeRobot {
+	
+	public static final Control kDriveX = Control.LX;
+	public static final Control kDriveY = Control.LY;
+	public static final Control kShift = Control.RT;
+	
+	public static final Control kPtoButton = Control.X;
+	public static final Control kSqueezyUp = Control.N;
+	public static final Control kSqueezyDown = Control.S;
 
 	int[] talonIDs = new int[] {11, 12, 13, 14 //drive
 			,21, 22, 23    //squeezy
@@ -33,7 +40,6 @@ public class Robot extends IterativeRobot {
 
 	CommandGroup auto;
 
-	Joystick joy = new Joystick(0);
 	Deadband deadband = new Deadband(0.05);
 	
 	//Drive Squeezy Elevator Climber
@@ -54,7 +60,6 @@ public class Robot extends IterativeRobot {
 //	TalonSRX ptoTalon = new TalonSRX(9);
 //	TalonSRX ptoTalon = new TalonSRX(/*Athena/Ares*//*9*/  /*Babyboard*/11);
 	
-	ButtonS ptoShifter = new ButtonS(4);
 	DoubleSolenoid ptoSol = new DoubleSolenoid(2,3);
 	
 	public DoubleSolenoid squeezyUpDown = new DoubleSolenoid(4,5);
@@ -131,9 +136,7 @@ public class Robot extends IterativeRobot {
 //		else if (controller.getPressed(Button.RB))
 //			elevator.goTo(Stage.kTop);
 		
-//		System.out.println("Encoder Position: "+drive.getEncoderRight());
-		if (controller.getHeldEvent(Control.X, 0.4)) { 
-//		if (controller.getPressed(Button.X))
+		if (controller.getHeldEvent(kPtoButton, 0.4)) { 
 			System.out.println("Switching PTO!");
 			ptoSol.set(ptoSol.get() == DoubleSolenoid.Value.kReverse ? DoubleSolenoid.Value.kForward : DoubleSolenoid.Value.kReverse);
 			if (ptoSol.get() == Value.kForward)
@@ -143,15 +146,15 @@ public class Robot extends IterativeRobot {
 		}
 		
 		if (drive != null) {
-			double x = joy.getRawAxis(0),
-				   y = -joy.getRawAxis(1);
+			double x = controller.getAxis(kDriveX),
+				   y = -controller.getAxis(kDriveY);
 			x = Deadband.getDefault().get(x);
 			y = Deadband.getDefault().get(y);
 			
 			drive.arcadeDrive(y,x);
 		}
 		
-		if (controller.getAxis(Control.RT) > 0.6)
+		if (controller.getAxis(kShift) > 0.6)
 			shifters.shiftHigh();
 		else
 			shifters.shiftLow();
@@ -161,16 +164,15 @@ public class Robot extends IterativeRobot {
 		}
 
 		if (squeezy != null) {
-			squeezy.pollButtons();
 			squeezy.updateState();
 			squeezy.update();
 		}
 		
-		if (controller.getPressed(Control.S)) {
+		if (controller.getPressed(kSqueezyDown)) {
 			System.out.println("DOWN!");
 			squeezyUpDown.set(DoubleSolenoid.Value.kForward);
 		}
-		if (controller.getPressed(Control.N)) {
+		if (controller.getPressed(kSqueezyUp)) {
 			if (!squeezy.isInState(SqueezyState.INTAKE)) {
 				System.out.println("UP!");
 				squeezyUpDown.set(DoubleSolenoid.Value.kReverse);
