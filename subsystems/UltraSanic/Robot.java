@@ -1,17 +1,23 @@
-package org.usfirst.frc.team9104.robot;
+package org.usfirst.frc.team5104.robot;
 
 import edu.wpi.first.wpilibj.IterativeRobot;
+import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
 public class Robot extends IterativeRobot {
-	UltraS sanic = new UltraS();
+	//Makes filtered ultrasonic at ports (0, 1) taking only readings from (0 - 10)
+	SanicCache sc = new SanicCache(0, 1, 0, 10);
 	
-	public void robotInit() {
-		sanic.RInit();
-	}
-
 	public void teleopPeriodic() {
-		sanic.Update();
+		sc.collect();
 		
-		System.out.println(sanic.getDistance());
+		//Get an average from the last five filtered readings
+		sc.getAvg(5);
+		
+		//Gets the last filtered reading
+		sc.getLast();
+		
+		//Gets the last unfiltered reading
+		sc.getRaw();
 	}
 }
