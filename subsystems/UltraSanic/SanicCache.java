@@ -1,14 +1,14 @@
 package org.usfirst.frc.team5104.robot;
 
-import java.util.ArrayList;
-
 import edu.wpi.first.wpilibj.Ultrasonic;
 
 public class SanicCache {
 	private Ultrasonic sanic;
-	private ArrayList<Double> cache = new ArrayList<Double>();
-	private double max = 100;
-	private double min = 0;
+	private double[] cache = new double[100];
+	private double maxi = 100;
+	private double mini = 0;
+	private int index = 0;
+	private int loops = 0;
 	
 	public SanicCache(int input, int output) {
 		sanic = new Ultrasonic(input, output);
@@ -16,30 +16,31 @@ public class SanicCache {
 	
 	public SanicCache(int input, int output, double minReading, double maxReading) {
 		sanic = new Ultrasonic(input, output);
-		max = maxReading; min = minReading;
+		maxi = maxReading; mini = minReading;
 	}
 	
 	public void collect() {
-		cache.add(uclamp(sanic.getRangeInches()));
+		cache[index] = (clamp(sanic.getRangeInches(), mini, maxi));
+		index++; if (index >= 100) { index = 0; } loops++;
 	}
 	
 	public double getAvg(int cacheSize) {
-		Double avg = 0.0;
-		for (int i = cache.size(); i > cacheSize; i++) {
-			avg += cache.get(i);
+		double avg = 0.0;
+		for (int i = loops < 100 ? loops - 1 : cache.length; i > cacheSize; i++) {
+			avg += cache[i];
 		}
 		return avg / cacheSize;
 	}
 	
 	public double getLast() {
-		return cache.get(cache.size() - 1);
+		return (clamp(sanic.getRangeInches(), mini, maxi));
 	}
 	
 	public double getRaw() {
 		return sanic.getRangeInches();
 	}
 	
-	private Double uclamp(Double val) {
+	private double clamp(double val, double min, double max) {
 		if (val > max) { return max; }
 		if (val < min) { return min; }
 		return val;
