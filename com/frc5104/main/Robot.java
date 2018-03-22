@@ -1,6 +1,5 @@
 package com.frc5104.main;
 
-import com.ctre.phoenix.motorcontrol.ControlMode;
 import com.ctre.phoenix.motorcontrol.can.TalonSRX;
 import com.frc5104.autopaths.AutoSelector;
 import com.frc5104.main.subsystems.Drive;
@@ -16,7 +15,6 @@ import com.frc5104.utilities.ControllerHandler.Button;
 import com.frc5104.utilities.ControllerHandler.Dpad;
 import com.frc5104.utilities.Deadband;
 import com.frc5104.utilities.TalonFactory;
-import com.frc5104.vision.VisionThread;
 
 import edu.wpi.first.wpilibj.DoubleSolenoid;
 import edu.wpi.first.wpilibj.DoubleSolenoid.Value;
@@ -36,7 +34,6 @@ public class Robot extends IterativeRobot {
 	TalonFactory talonFactory = new TalonFactory(talonIDs);
 
 	CommandGroup auto;
-	VisionThread vision;
 
 	Joystick joy = new Joystick(0);
 	Deadband deadband = new Deadband(0.05);
@@ -54,8 +51,6 @@ public class Robot extends IterativeRobot {
 //	Elevator elevator = null;
 	Elevator elevator = Elevator.getInstance();
 	
-	PTO pto = null;
-//	PTO pto = PTO.getInstance();
 	long startTime = System.currentTimeMillis();
 	TalonSRX ptoTalon = null;
 //	TalonSRX ptoTalon = new TalonSRX(9);
@@ -186,68 +181,6 @@ public class Robot extends IterativeRobot {
 				squeezy.forceState(SqueezyState.HOLDING);
 			}
 		}
-		
-//		if (joy.getRawAxis(3) > 0.2) {
-		if (pto != null) {
-			if ((System.currentTimeMillis() - startTime)%2000 > 1000) {
-	//			elevator.disable();
-				pto.powerClimber();
-				System.out.println("Powering climber");
-			} else {
-	//			elevator.enable();
-				pto.powerElevator();
-				System.out.println("Powering elevator");
-			}
-		}
-		
-		
-		if (ptoTalon != null) {
-			double elevatorEffort = ptoTalon.getMotorOutputPercent();
-			if (SmartDashboard.getBoolean("pto_driven_by_joystick", true)) {
-				elevatorEffort = -(joy.getRawButton(5) ? 1: -1) + (joy.getRawButton(6) ? 1 : -1);
-				elevatorEffort = deadband.get(elevatorEffort);
-				ptoTalon.set(ControlMode.PercentOutput, elevatorEffort);
-			} else {
-				ptoTalon.set(ControlMode.Position, SmartDashboard.getNumber("elevator_setpoint", 
-						ptoTalon.getSelectedSensorPosition(0)));
-			}
-
-			boolean lower = ptoTalon.getSensorCollection().isFwdLimitSwitchClosed();
-			boolean upper = ptoTalon.getSensorCollection().isRevLimitSwitchClosed();
-			if (lower) {
-				ptoTalon.setSelectedSensorPosition(0, 0, 10);
-			}
-			SmartDashboard.putBoolean("limits/lower-fwd", lower);
-			SmartDashboard.putBoolean("limits/upper-rev", upper);
-			
-			SmartDashboard.putNumber(""
-					+ "", elevatorEffort);
-			SmartDashboard.putNumber("pto_current", ptoTalon.getOutputCurrent());
-			SmartDashboard.putNumber("pto_voltage", ptoTalon.getMotorOutputVoltage());
-			
-			SmartDashboard.putNumber("elevator_pos", ptoTalon.getSelectedSensorPosition(0));
-			SmartDashboard.putNumber("elevator_vel", ptoTalon.getSelectedSensorVelocity(0));
-			
-			SmartDashboard.putNumber("i_accum", ptoTalon.getIntegralAccumulator(0));
-			if (SmartDashboard.getBoolean("clear_i_accum", false)) {
-				SmartDashboard.putBoolean("clear_i_accum", false);
-				ptoTalon.setIntegralAccumulator(0, 0, 10);
-			}
-		}
-		
-		/*
-		if (controller.getHeldEvent(Button.B, 5)) {
-			System.out.println("Disabled Elevator Forward Limit Switch");
-			elevator.disableForwardLimitSwitch();
-			controller.rumbleHardFor(1, 2);
-		}
-		if (controller.getHeldEvent(Button.Y, 5)) {
-			System.out.println("Enabled Elevator Forward Limit Switch");
-			elevator.enableForwardLimitSwitch();
-			controller.rumbleHardFor(1, 1);
-		}
-		*/
-		
 		
 	}//teleopPeriodic
 	

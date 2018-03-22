@@ -20,7 +20,6 @@ import com.frc5104.utilities.ControllerHandler.Button;
 import com.frc5104.utilities.ControllerHandler.Dpad;
 import com.frc5104.utilities.Deadband;
 import com.frc5104.utilities.TalonFactory;
-import com.frc5104.vision.VisionThread;
 
 import edu.wpi.first.wpilibj.DoubleSolenoid;
 import edu.wpi.first.wpilibj.DoubleSolenoid.Value;
@@ -59,7 +58,6 @@ public class RobotRecorder extends IterativeRobot {
 	TalonFactory talonFactory = new TalonFactory(talonIDs);
 
 	CommandGroup auto;
-	VisionThread vision;
 
 	Joystick joy = new Joystick(0);
 	Deadband deadband = new Deadband(0.05);
@@ -77,8 +75,6 @@ public class RobotRecorder extends IterativeRobot {
 //	Elevator elevator = null;
 	Elevator elevator = Elevator.getInstance();
 	
-	PTO pto = null;
-//	PTO pto = PTO.getInstance();
 	long startTime = System.currentTimeMillis();
 	TalonSRX ptoTalon = null;
 //	TalonSRX ptoTalon = new TalonSRX(9);
@@ -222,23 +218,6 @@ public class RobotRecorder extends IterativeRobot {
 			} else {
 				System.out.println("Will not pull up squeezy in intake mode!!!");
 				squeezy.forceState(SqueezyState.HOLDING);
-			}
-		}
-//		if (Math.abs(drive.getEncoderLeft()+drive.getEncoderRight())/2 > 1300)
-//			shifters.shiftHigh();
-//		else if (Math.abs(drive.getEncoderLeft()+drive.getEncoderRight())/2 < 800)
-//			shifters.shiftLow();
-
-//		if (joy.getRawAxis(3) > 0.2) {
-		if (pto != null) {
-			if ((System.currentTimeMillis() - startTime)%2000 > 1000) {
-	//			elevator.disable();
-				pto.powerClimber();
-				System.out.println("Powering climber");
-			} else {
-	//			elevator.enable();
-				pto.powerElevator();
-				System.out.println("Powering elevator");
 			}
 		}
 		
