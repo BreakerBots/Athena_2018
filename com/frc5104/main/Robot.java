@@ -54,11 +54,6 @@ public class Robot extends IterativeRobot {
 //	Elevator elevator = null;
 	Elevator elevator = Elevator.getInstance();
 	
-	long startTime = System.currentTimeMillis();
-	TalonSRX ptoTalon = null;
-//	TalonSRX ptoTalon = new TalonSRX(9);
-//	TalonSRX ptoTalon = new TalonSRX(/*Athena/Ares*//*9*/  /*Babyboard*/11);
-	
 	DoubleSolenoid ptoSol = new DoubleSolenoid(2,3);
 	
 	public DoubleSolenoid squeezyUpDown = new DoubleSolenoid(4,5);
@@ -113,12 +108,6 @@ public class Robot extends IterativeRobot {
 	public void autonomousPeriodic() {
 		Scheduler.getInstance().run();
 		squeezy.update();
-//		if (System.currentTimeMillis() < autoStartTime + 10000) {
-//			drive.arcadeDrive(0.3, 0);
-//		} else {
-//			drive.arcadeDrive(0, 0);
-//		}
-		SmartDashboard.putString("DB/String 7", DriverStation.getInstance().getGameSpecificMessage());
 	}//autonomousPeriodic
 	
 	public void teleopInit() {

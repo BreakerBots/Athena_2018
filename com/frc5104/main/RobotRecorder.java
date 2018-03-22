@@ -68,8 +68,6 @@ public class RobotRecorder extends IterativeRobot {
 //	Elevator elevator = null;
 	Elevator elevator = Elevator.getInstance();
 	
-	long startTime = System.currentTimeMillis();
-	
 	DoubleSolenoid ptoSol = new DoubleSolenoid(2,3);
 	
 	DoubleSolenoid squeezyUpDown = new DoubleSolenoid(4,5);
@@ -214,9 +212,6 @@ public class RobotRecorder extends IterativeRobot {
 		int month	= today.get(Calendar.MONTH),
 			day		= today.get(Calendar.DAY_OF_MONTH),
 			year	= today.get(Calendar.YEAR);
-		int hour	= today.get(Calendar.HOUR),
-			minute	= today.get(Calendar.MINUTE),
-			second	= today.get(Calendar.SECOND);
 
 		/* Creates a new directory for the day */
 		File date = new File(root, String.format("%d-%d-%d",month,day,year));
