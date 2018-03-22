@@ -3,6 +3,7 @@ package com.frc5104.main.subsystems;
 import com.ctre.phoenix.motorcontrol.ControlMode;
 import com.ctre.phoenix.motorcontrol.can.TalonSRX;
 import com.frc5104.utilities.ControllerHandler;
+import com.frc5104.utilities.HMI;
 
 import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableInstance;
@@ -147,13 +148,13 @@ public class Squeezy {
 		
 		ControllerHandler controller = ControllerHandler.getInstance();
 		
-		if (controller.getPressed(kNeutralButton))
+		if (controller.getPressed(HMI.kNeutralButton))
 			state = SqueezyState.EMPTY;
-		if (controller.getPressed(kOpenButton))
+		if (controller.getPressed(HMI.kOpenButton))
 			state = SqueezyState.INTAKE;
-		if (controller.getPressed(kCloseButton))
+		if (controller.getPressed(HMI.kCloseButton))
 			state = SqueezyState.HOLDING;
-		if (controller.getPressed(kEjectButton)) {
+		if (controller.getPressed(HMI.kEjectButton)) {
 			System.out.println("EJECTING!!!");
 			ejectTime = System.currentTimeMillis();
 			state = SqueezyState.EJECT;
