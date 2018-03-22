@@ -102,8 +102,6 @@ public class RobotRecorder extends IterativeRobot {
 		
 		squeezyUpDown.set(DoubleSolenoid.Value.kReverse);
 		
-		drive.resetEncoders();
-		
 	}//robotInit
 	
 	public void autonomousInit() {

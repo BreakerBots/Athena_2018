@@ -3,28 +3,26 @@ package com.frc5104.main;
 import com.ctre.phoenix.motorcontrol.ControlMode;
 import com.ctre.phoenix.motorcontrol.can.TalonSRX;
 import com.frc5104.autopaths.AutoSelector;
-import com.frc5104.autopaths.Baseline;
 import com.frc5104.main.subsystems.Drive;
 import com.frc5104.main.subsystems.Elevator;
-import com.frc5104.main.subsystems.Elevator.Stage;
 import com.frc5104.main.subsystems.Shifters;
 import com.frc5104.main.subsystems.Squeezy;
 import com.frc5104.main.subsystems.Squeezy.SqueezyState;
 import com.frc5104.main.subsystems.SqueezySensors;
 import com.frc5104.utilities.ButtonS;
 import com.frc5104.utilities.ControllerHandler;
-import com.frc5104.utilities.Deadband;
-import com.frc5104.utilities.TalonFactory;
 import com.frc5104.utilities.ControllerHandler.Axis;
 import com.frc5104.utilities.ControllerHandler.Button;
 import com.frc5104.utilities.ControllerHandler.Dpad;
+import com.frc5104.utilities.Deadband;
+import com.frc5104.utilities.TalonFactory;
 import com.frc5104.vision.VisionThread;
 
 import edu.wpi.first.wpilibj.DoubleSolenoid;
+import edu.wpi.first.wpilibj.DoubleSolenoid.Value;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.IterativeRobot;
 import edu.wpi.first.wpilibj.Joystick;
-import edu.wpi.first.wpilibj.DoubleSolenoid.Value;
 import edu.wpi.first.wpilibj.command.CommandGroup;
 import edu.wpi.first.wpilibj.command.Scheduler;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
@@ -102,8 +100,6 @@ public class Robot extends IterativeRobot {
 			elevator.initTable(null);
 		
 		squeezyUpDown.set(DoubleSolenoid.Value.kReverse);
-		
-	    drive.resetEncoders();
 		
 	}//robotInit
 	long autoStartTime;
@@ -190,11 +186,6 @@ public class Robot extends IterativeRobot {
 				squeezy.forceState(SqueezyState.HOLDING);
 			}
 		}
-//		if (Math.abs(drive.getEncoderLeft()+drive.getEncoderRight())/2 > 1300)
-//			shifters.shiftHigh();
-//		else if (Math.abs(drive.getEncoderLeft()+drive.getEncoderRight())/2 < 800)
-//			shifters.shiftLow();
-
 		
 //		if (joy.getRawAxis(3) > 0.2) {
 		if (pto != null) {
