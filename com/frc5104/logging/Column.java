@@ -16,6 +16,10 @@ public class Column {
 		values = new ArrayList<Double>();
 	}//Data
 	
+	public String getName() {
+		return name;
+	}//getName
+	
 	public void collect() {
 		values.add(callback.get());
 	}//collect
