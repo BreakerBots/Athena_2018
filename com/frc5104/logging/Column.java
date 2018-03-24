@@ -14,11 +14,22 @@ public class Column {
 		this.callback = callback;
 		
 		values = new ArrayList<Double>();
-	}//Data
+	}//Column
+	
+	public Column (String name, LogDouble callback, List<Double>values) {
+		this.name = name;
+		this.callback = callback;
+		
+		this.values = values;
+	}//Column
 	
 	public String getName() {
 		return name;
 	}//getName
+	
+	public LogDouble getCallback() {
+		return callback;
+	}//getCallback
 	
 	public void collect() {
 		values.add(callback.get());
