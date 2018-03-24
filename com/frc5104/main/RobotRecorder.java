@@ -1,11 +1,15 @@
 package com.frc5104.main;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Calendar;
+import java.util.List;
+
+import javax.xml.crypto.Data;
 
 import com.frc5104.logging.CSVFileReader;
 import com.frc5104.logging.CSVFileWriter;
+import com.frc5104.logging.Column;
 import com.frc5104.logging.LogDouble;
 import com.frc5104.main.subsystems.Drive;
 import com.frc5104.main.subsystems.Elevator;
@@ -144,6 +148,9 @@ public class RobotRecorder extends IterativeRobot {
 			if (controller.getPressed(HMI.kStopRecording)) {
 				System.out.println("Stopped Recording");
 				recorderState = RecorderState.kUser;
+				closeRecorderFile();
+				cropRecorderFile();
+				recorder.setFile("/home/lvuser/aresPaths/test");
 				closeRecorderFile();
 			}
 			break;
@@ -285,6 +292,53 @@ public class RobotRecorder extends IterativeRobot {
 //			}
 //		});
 	}//setupRecorderData
+	
+	public void cropRecorderFile() {
+		List<Column> oldData = recorder.getColumns();
+		List<Column> newData = new ArrayList<Column>();
+		
+		boolean flag = true;
+		int beginning, end;
+		
+		beginning = 0;
+		while (flag) {
+			//Check Joystick X+Y
+			Column[] cols = new Column[]{oldData.get(1), oldData.get(2)};
+			for (Column c: cols)
+				if (c.getValue(beginning) != 0) {
+					flag = false;
+					break;
+				}
+			if (beginning == cols[0].size())
+				flag = false;
+			if (flag)
+				beginning++;
+		}
+		
+		end = oldData.get(0).size()-1;
+		flag = true;
+		while (flag && end >= 0) {
+			//Check Joystick X+Y
+			Column[] cols = new Column[]{oldData.get(1), oldData.get(2)};
+			for (Column c: cols)
+				if (c.getValue(end) != 0) {
+					flag = false;
+					break;
+				}
+			if (flag)
+				end--;
+		}
+		
+		//Transfer over Columns, cropping out bounds
+		for (Column c: oldData) {
+			List<Double> data = new ArrayList<Double>();
+			for (int i=beginning; i<=end; i++)
+				data.add(c.getValue(i));
+			newData.add(new Column(c.getName(),c.getCallback(),data));
+		}
+		
+		recorder.setColumns(newData);
+	}//cropRecorderFile
 	
 	public void closeRecorderFile() {
 		recorder.writeValuesToFile();

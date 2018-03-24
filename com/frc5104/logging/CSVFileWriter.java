@@ -44,6 +44,16 @@ public class CSVFileWriter {
 		columns.add(new Column("time", timeCallback));
 	}//CSVFile
 	
+	public void setFile(String fileName) {
+		file = new File(fileName);
+		
+		try {
+			writer = new FileWriter(file);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}//setFile
+	
 	private void writeTitles() throws IOException{
 		boolean first = true;
 		for (int i=0; i<columns.size(); i++) {
@@ -99,11 +109,11 @@ public class CSVFileWriter {
 		return file.getAbsolutePath();
 	}
 	
-	public List<Column> getColumn(){
+	public List<Column> getColumns(){
 		return columns;
 	}//getColumn
 	
-	public void setColumn(List<Column> newColumns) {
+	public void setColumns(List<Column> newColumns) {
 		columns = newColumns;
 	}//setColumn
 
