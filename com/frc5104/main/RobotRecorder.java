@@ -1,6 +1,7 @@
 package com.frc5104.main;
 
 import java.io.File;
+import java.util.Arrays;
 import java.util.Calendar;
 
 import com.frc5104.logging.CSVFileReader;
@@ -123,12 +124,17 @@ public class RobotRecorder extends IterativeRobot {
 				setupRecorderData();
 			}
 			if (controller.getPressed(HMI.kPlayback)) {
-				System.out.println("Started Playback");
-				recorderState = RecorderState.kPlayback;
-				getBatteryVoltage();
-				loadPlaybackFile();
-				
-				playbackIndex = 0;
+				boolean success = loadPlaybackFile();
+
+				if (success) {
+					System.out.println("Started Playback");
+					recorderState = RecorderState.kPlayback;
+					getBatteryVoltage();
+					
+					playbackIndex = 0;
+				} else {
+					System.out.println("Failed to start playback!");
+				}
 			}
 			break;
 		case kRecording:
@@ -229,7 +235,7 @@ public class RobotRecorder extends IterativeRobot {
 		
 	}//initRecorderFile
 	
-	public boolean initPlaybackFile() {
+	public File getPlaybackFile() {
 		String pathName = SmartDashboard.getString("DB/String 5", "robot_path");
 		if (pathName.equals("")) {
 			pathName = "robot_path";
@@ -238,15 +244,20 @@ public class RobotRecorder extends IterativeRobot {
 		File dir = new File(root, pathName);
 		
 		if (!dir.exists()) {
-			return false;
+			return null;
 		}
 		
 		String[] files = dir.list();
-		if (files.length == 0) return false;
+		if (files.length == 0) return null;
 		
-		recorderFile = new File(dir, files[files.length-1]);
+		Arrays.sort(files);
+		System.out.println("Files: ");
+		for (String s: files)
+			System.out.println(s);
 		
-		return true;
+		File playbackFile = new File(dir, files[files.length-1]);
+		
+		return playbackFile;
 	}//initPlaybackFile
 	
 	public void setupRecorderData() {
@@ -279,9 +290,16 @@ public class RobotRecorder extends IterativeRobot {
 		recorder.writeValuesToFile();
 	}//closeRecorderFile
 	
-	public void loadPlaybackFile() {
-		reader = new CSVFileReader(recorderFile);
-		reader.readFile();
+	public boolean loadPlaybackFile() {
+		File readFile = getPlaybackFile();
+		if (readFile == null) {
+			System.out.println("No valid file to read from!!!");
+			return false;
+		} else {
+			reader = new CSVFileReader(readFile);
+			reader.readFile();
+			return true;
+		}
 	}//loadPlaybackFile
 	
 	public boolean playback() {
