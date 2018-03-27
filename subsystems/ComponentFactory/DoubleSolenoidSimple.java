@@ -26,8 +26,10 @@ public class DoubleSolenoidSimple implements Component {
 
 	public void update() {
 		if (toggle) {
-			if (ControllerHandler.getInstance().getPressed(control) ) { sol.set(DoubleSolenoid.Value.kForward); }
-			if (ControllerHandler.getInstance().getReleased(control)) { sol.set(DoubleSolenoid.Value.kReverse); }
+			if (ControllerHandler.getInstance().getPressed(control)) {
+				sol.set(sol.get() == DoubleSolenoid.Value.kForward ? DoubleSolenoid.Value.kForward : DoubleSolenoid.Value.kReverse);
+				ControllerHandler.getInstance().rumbleHardFor(1, 0.1);
+			}
 		}
 		else {
 			sol.set(ControllerHandler.getInstance().getHeld(control) ? DoubleSolenoid.Value.kForward : DoubleSolenoid.Value.kReverse);
