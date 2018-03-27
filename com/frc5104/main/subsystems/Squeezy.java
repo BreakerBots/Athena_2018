@@ -205,6 +205,11 @@ public class Squeezy {
 			open();
 		}
 		
+		postSqueezerData();
+		postStateChange();
+		postUltrasonicData();
+		
+		
 	}//updateState
 	
 	//--------- Squeezy States ----------//
