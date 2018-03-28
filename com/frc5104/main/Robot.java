@@ -1,6 +1,5 @@
 package com.frc5104.main;
 
-import com.ctre.phoenix.motorcontrol.can.TalonSRX;
 import com.frc5104.autopaths.AutoSelector;
 import com.frc5104.main.subsystems.Drive;
 import com.frc5104.main.subsystems.Elevator;
@@ -9,28 +8,18 @@ import com.frc5104.main.subsystems.Squeezy;
 import com.frc5104.main.subsystems.Squeezy.SqueezyState;
 import com.frc5104.main.subsystems.SqueezySensors;
 import com.frc5104.utilities.ControllerHandler;
-import com.frc5104.utilities.ControllerHandler.Control;
 import com.frc5104.utilities.Deadband;
+import com.frc5104.utilities.HMI;
 import com.frc5104.utilities.TalonFactory;
 
 import edu.wpi.first.wpilibj.DoubleSolenoid;
 import edu.wpi.first.wpilibj.DoubleSolenoid.Value;
-import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.IterativeRobot;
 import edu.wpi.first.wpilibj.command.CommandGroup;
 import edu.wpi.first.wpilibj.command.Scheduler;
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
 public class Robot extends IterativeRobot {
 	
-	public static final Control kDriveX = Control.LX;
-	public static final Control kDriveY = Control.LY;
-	public static final Control kShift = Control.RT;
-	
-	public static final Control kPtoButton = Control.X;
-	public static final Control kSqueezyUp = Control.N;
-	public static final Control kSqueezyDown = Control.S;
-
 	int[] talonIDs = new int[] {11, 12, 13, 14 //drive
 			,21, 22, 23    //squeezy
 			,31, 32        //elevator
@@ -124,7 +113,7 @@ public class Robot extends IterativeRobot {
 //		else if (controller.getPressed(Button.RB))
 //			elevator.goTo(Stage.kTop);
 		
-		if (controller.getHeldEvent(kPtoButton, 0.4)) { 
+		if (controller.getHeldEvent(HMI.kPtoButton, 0.4)) { 
 			System.out.println("Switching PTO!");
 			ptoSol.set(ptoSol.get() == DoubleSolenoid.Value.kReverse ? DoubleSolenoid.Value.kForward : DoubleSolenoid.Value.kReverse);
 			if (ptoSol.get() == Value.kForward)
@@ -134,15 +123,15 @@ public class Robot extends IterativeRobot {
 		}
 		
 		if (drive != null) {
-			double x = controller.getAxis(kDriveX),
-				   y = -controller.getAxis(kDriveY);
+			double x = controller.getAxis(HMI.kDriveX),
+				   y = -controller.getAxis(HMI.kDriveY);
 			x = Deadband.getDefault().get(x);
 			y = Deadband.getDefault().get(y);
 			
 			drive.arcadeDrive(y,x);
 		}
 		
-		if (controller.getAxis(kShift) > 0.6)
+		if (controller.getAxis(HMI.kShift) > 0.6)
 			shifters.shiftHigh();
 		else
 			shifters.shiftLow();
@@ -156,11 +145,11 @@ public class Robot extends IterativeRobot {
 			squeezy.update();
 		}
 		
-		if (controller.getPressed(kSqueezyDown)) {
+		if (controller.getPressed(HMI.kSqueezyDown)) {
 			System.out.println("DOWN!");
 			squeezyUpDown.set(DoubleSolenoid.Value.kForward);
 		}
-		if (controller.getPressed(kSqueezyUp)) {
+		if (controller.getPressed(HMI.kSqueezyUp)) {
 			if (!squeezy.isInState(SqueezyState.INTAKE)) {
 				System.out.println("UP!");
 				squeezyUpDown.set(DoubleSolenoid.Value.kReverse);

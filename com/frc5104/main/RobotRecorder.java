@@ -172,7 +172,7 @@ public class RobotRecorder extends IterativeRobot {
 //			elevator.goTo(Stage.kTop);
 		
 //		System.out.println("Encoder Position: "+drive.getEncoderRight());
-		if (controller.getHeldEvent(Control.X, 0.4)) { 
+		if (controller.getHeldEvent(HMI.kPtoButton, 0.4)) { 
 //		if (controller.getPressed(Button.X))
 			System.out.println("Switching PTO!");
 			ptoSol.set(ptoSol.get() == DoubleSolenoid.Value.kReverse ? DoubleSolenoid.Value.kForward : DoubleSolenoid.Value.kReverse);
@@ -189,7 +189,7 @@ public class RobotRecorder extends IterativeRobot {
 			drive.arcadeDrive(y*10/batteryVoltage,x*10/batteryVoltage);
 		}
 		
-		if (controller.getAxis(Control.RT) > 0.6)
+		if (controller.getAxis(HMI.kShift) > 0.6)
 			shifters.shiftHigh();
 		else
 			shifters.shiftLow();
@@ -204,11 +204,11 @@ public class RobotRecorder extends IterativeRobot {
 			squeezy.update();
 		}
 		
-		if (controller.getPressed(Control.S)) {
+		if (controller.getPressed(HMI.kSqueezyDown)) {
 			System.out.println("DOWN!");
 			squeezyUpDown.set(DoubleSolenoid.Value.kForward);
 		}
-		if (controller.getPressed(Control.N)) {
+		if (controller.getPressed(HMI.kSqueezyUp)) {
 			if (!squeezy.isInState(SqueezyState.INTAKE)) {
 				System.out.println("UP!");
 				squeezyUpDown.set(DoubleSolenoid.Value.kReverse);

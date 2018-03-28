@@ -6,11 +6,10 @@ import com.ctre.phoenix.motorcontrol.LimitSwitchSource;
 import com.ctre.phoenix.motorcontrol.can.TalonSRX;
 import com.frc5104.utilities.ControllerHandler;
 import com.frc5104.utilities.Deadband;
+import com.frc5104.utilities.HMI;
 
 import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableInstance;
-import edu.wpi.first.wpilibj.Joystick;
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
 public class Elevator {
 
@@ -20,7 +19,6 @@ public class Elevator {
 	public static final boolean TWO_TALONS = true;
 	public static final int TALON1_ID = 31;
 	public static final int TALON2_ID = 32;
-	public static final int AXIS_ID = 5;
 	
 	public enum Stage {
 		kBottom(0),
@@ -46,7 +44,7 @@ public class Elevator {
 		return m_instance;
 	}//getInstance
 
-	private Joystick joy = new Joystick(0);
+	private ControllerHandler controller = ControllerHandler.getInstance();
 	private TalonSRX talon1 = new TalonSRX(TALON1_ID),
 					 talon2;
 	private NetworkTable table = null;
@@ -121,7 +119,7 @@ public class Elevator {
 	}//moveDown
 	
 	public void userControl() {
-		double userInput = joy.getRawAxis(AXIS_ID);
+		double userInput = controller.getAxis(HMI.kElevator);
 		userInput = userDeadband.get(userInput);
 		
 		if (0 <= Math.abs(userInput))
