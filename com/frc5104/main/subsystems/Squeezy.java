@@ -1,5 +1,7 @@
 package com.frc5104.main.subsystems;
 
+import java.lang.reflect.Field;
+
 import com.ctre.phoenix.motorcontrol.ControlMode;
 import com.ctre.phoenix.motorcontrol.can.TalonSRX;
 import com.frc5104.utilities.ControllerHandler;
@@ -51,15 +53,13 @@ public class Squeezy {
 	TalonSRX rightSpin = new TalonSRX(RIGHT_ID);
 	
 	//Eject Timing
-	long lastTime;
+	long ejectTime = System.currentTimeMillis();
 	
 	//DoubleSolenoid lifter = new DoubleSolenoid(0,1);
 	
 	SqueezySensors sensors = SqueezySensors.getInstance();
 
 	private Squeezy () {
-		
-		
 		//Make sure that the motor output and encoder counts are in sync
 			//OTHERWISE, the finely tuned closed-loop control becomes
 			//chaotic and accelerates away from the setpoint
@@ -69,9 +69,12 @@ public class Squeezy {
 		update();
 	}//Squeezy
 	
-	long ejectTime = System.currentTimeMillis();
 	
 	public void updateState() {
+		if (squeezer.getSensorCollection().isFwdLimitSwitchClosed()) {
+			squeezer.setSelectedSensorPosition(0, 0, 10);
+			calibrated = true;
+		}
 		
 		/*
 		sensors.updateSensors();
@@ -206,18 +209,31 @@ public class Squeezy {
 		}
 		
 		postSqueezerData();
-		postStateChange();
+		postState();
 		postUltrasonicData();
-		
 		
 	}//updateState
 	
 	//--------- Squeezy States ----------//
-	
+	public double getRelativeEncoderPosition() {
+		double raw_pos = getEncoderPosition();
+		double rel_pos = raw_pos / -120000;
+		
+		return rel_pos;
+	}//getRelativeEncoderPosition
+	public double getRelativeEncoderVelocity() {
+		int raw_vel = getEncoderVelocity();
+		
+		//if raw_vel = (raw_pos - raw_prev_pos) / time
+		//and pos = raw_pos / -120000.0
+		
+		double rel_vel = raw_vel / -120000;
+				
+		return rel_vel;
+	}//getRelativeEncoderVelocity
 	public int getEncoderPosition() {
 		return squeezer.getSelectedSensorPosition(0);
 	}//getEncoderPosition
-
 	public int getEncoderVelocity() {
 		return squeezer.getSelectedSensorVelocity(0);
 	}//getEncoderVelocity
@@ -240,23 +256,19 @@ public class Squeezy {
 	private void setSpinners(double effort) {
 		leftSpin.set(ControlMode.PercentOutput, effort);
 		rightSpin.set(ControlMode.PercentOutput, -kRightSpinMultiplier*effort);
-	}//setSpinners
-	
+	}//setSpinners	
 	private void spinIn() {
 		setSpinners(kIntakeEffort);
 //		System.out.printf("Spin Effort: %1.1f\t",kIntakeEffort);
 	}//spinIn
-	
 	private void spinOut() {
 		setSpinners(kEjectEffort);
 //		System.out.printf("Spin Effort: %1.1f\t",kEjectEffort);
 	}//spinOut
-	
 	private void spinStop() {
 		setSpinners(0);
 //		System.out.printf("Spin Effort: %1.1f\t", 0.0);
 	}//setSpinnerState
-	
 	private void spinPinch() {
 		setSpinners(kPinchEffort);
 	}//spinPinch
@@ -265,17 +277,14 @@ public class Squeezy {
 		squeezer.set(ControlMode.PercentOutput, kOpenEffort);
 //		System.out.printf("Squeezer Effort: %1.1f\t",kOpenEffort);
 	}//open
-	
 	private void close() {
 		squeezer.set(ControlMode.PercentOutput, kCloseEffort);
 //		System.out.printf("Squeezer Effort: %1.1f\t",kCloseEffort);
 	}//close
-
 	private void shootSqueeze() {
 		squeezer.set(ControlMode.PercentOutput, kShootSqueezeEffort);
 //		System.out.printf("Squeezer Effort: %1.1f\t",kCloseEffort);
 	}//close
-	
 	private void hold() {
 		squeezer.set(ControlMode.PercentOutput, kHoldEffort);
 	}//hold
@@ -285,7 +294,6 @@ public class Squeezy {
 			//lifter.set(DoubleSolenoid.Value.kReverse);
 //		System.out.printf("Lifter Value: %s\t", DoubleSolenoid.Value.kForward.toString());
 	}//raise
-	
 	private void lower() {
 		//lifter.set(DoubleSolenoid.Value.kForward);
 //		System.out.printf("Lifter Value: %s\t", DoubleSolenoid.Value.kReverse.toString());
@@ -297,7 +305,6 @@ public class Squeezy {
 		}
 		table = inst;
 	}//initTable
-	
 	public void postUltrasonicData() {
 		if (table != null) {
 			setBoolean("sensors/detect_box", sensors.detectBox());
@@ -310,52 +317,46 @@ public class Squeezy {
 			setDouble("ultrasonic/left", dists[1]);
 			setDouble("ultrasonic/right", dists[2]);
 		}
-	}//postUltrasonicData
-	
-	public void postStateChange() {
+	}//postUltrasonicData	
+	public void postState() {
 		if (table != null) {
 			setString("prevState", prevState.toString());
 			setString("state", state.toString());
-			
-//			setString("lifter", lifter.get().toString());
 		}
 	}//updateTable
-
 	public void postSqueezerData() {
 		if (table != null) {
-			setDouble("squeezer_voltage", squeezer.getMotorOutputVoltage());
-//			setDouble("leftspin_voltage", leftSpin.getMotorOutputVoltage());
-//			setDouble("rightspin_voltage", rightSpin.getMotorOutputVoltage());
+			setDouble("debug/squeezer_voltage", squeezer.getMotorOutputVoltage());
+			setDouble("debug/leftspin_voltage", leftSpin.getMotorOutputVoltage());
+			setDouble("debug/rightspin_voltage", rightSpin.getMotorOutputVoltage());
 			
-			setDouble("squeezer_current", squeezer.getOutputCurrent());
-//			setDouble("leftspin_current", leftSpin.getOutputCurrent());
-//			setDouble("rightspin_current", rightSpin.getOutputCurrent());
+			setDouble("debug/squeezer_current", squeezer.getOutputCurrent());
+			setDouble("debug/leftspin_current", leftSpin.getOutputCurrent());
+			setDouble("debug/rightspin_current", rightSpin.getOutputCurrent());
 			
-			setDouble("squeezer_pos", squeezer.getSelectedSensorPosition(0));
-			setDouble("squeezer_vel", squeezer.getSelectedSensorVelocity(0));
+			//Adding 1 to the hopefully non-negative encoder position should eliminate 1/0
+			setDouble("pos_as_percent", -120000.0/(1+squeezer.getSelectedSensorPosition(0)));
+			setDouble("pos", squeezer.getSelectedSensorPosition(0));
+			setDouble("vel", squeezer.getSelectedSensorVelocity(0));
 			
-			setBoolean("Eject", state == SqueezyState.EJECT);
-			setBoolean("Intake", state == SqueezyState.INTAKE);
+			setBoolean("debug/Eject", state == SqueezyState.EJECT);
+			setBoolean("debug/Intake", state == SqueezyState.INTAKE);
 			
 			setBoolean("DetectedBox", sensors.detectBox());
 			setBoolean("BoxHeld", sensors.detectBoxHeld());
 
-			setBoolean("limits/fwd", squeezer.getSensorCollection().isFwdLimitSwitchClosed());
-			setBoolean("limits/rev", squeezer.getSensorCollection().isRevLimitSwitchClosed());
+			setBoolean("debug/fwd-limit", squeezer.getSensorCollection().isFwdLimitSwitchClosed());
+			setBoolean("debug/rev-limit", squeezer.getSensorCollection().isRevLimitSwitchClosed());
 			
-//			setDouble("drive_left_pos", Drive.getInstance().getEncoderLeft());
-//			setDouble("drive_right_pos", Drive.getInstance().getEncoderRight());
 		}
 	}//postSqueezerData
 	
 	private void setString(String key, String value) {
 		table.getEntry(key).setString(value);
 	}//setString
-
 	private void setDouble(String key, double value) {
 		table.getEntry(key).setDouble(value);
 	}//setDouble
-
 	private void setBoolean(String key, boolean value) {
 		table.getEntry(key).setBoolean(value);
 	}//setBoolean
