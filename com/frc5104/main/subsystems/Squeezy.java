@@ -1,7 +1,5 @@
 package com.frc5104.main.subsystems;
 
-import java.lang.reflect.Field;
-
 import com.ctre.phoenix.motorcontrol.ControlMode;
 import com.ctre.phoenix.motorcontrol.can.TalonSRX;
 import com.frc5104.utilities.ControllerHandler;
@@ -43,6 +41,7 @@ public class Squeezy {
 	NetworkTable table = null;
 	
 	//An unreasonable starting value
+	private boolean useManualControls = false;
 	private boolean calibrated = false;
 	private SqueezyState prevState = SqueezyState.EJECT;
 	SqueezyState state = SqueezyState.HOLDING;
@@ -326,27 +325,28 @@ public class Squeezy {
 	}//updateTable
 	public void postSqueezerData() {
 		if (table != null) {
-			setDouble("debug/squeezer_voltage", squeezer.getMotorOutputVoltage());
-			setDouble("debug/leftspin_voltage", leftSpin.getMotorOutputVoltage());
-			setDouble("debug/rightspin_voltage", rightSpin.getMotorOutputVoltage());
+			setDouble("debug/voltage_squeezer", squeezer.getMotorOutputVoltage());
+			setDouble("debug/voltage_leftspin", leftSpin.getMotorOutputVoltage());
+			setDouble("debug/voltage_rightspin", rightSpin.getMotorOutputVoltage());
 			
-			setDouble("debug/squeezer_current", squeezer.getOutputCurrent());
-			setDouble("debug/leftspin_current", leftSpin.getOutputCurrent());
-			setDouble("debug/rightspin_current", rightSpin.getOutputCurrent());
+			setDouble("debug/current_squeezer", squeezer.getOutputCurrent());
+			setDouble("debug/current_leftspin", leftSpin.getOutputCurrent());
+			setDouble("debug/current_rightspin", rightSpin.getOutputCurrent());
 			
 			//Adding 1 to the hopefully non-negative encoder position should eliminate 1/0
-			setDouble("pos_as_percent", -120000.0/(1+squeezer.getSelectedSensorPosition(0)));
-			setDouble("pos", squeezer.getSelectedSensorPosition(0));
-			setDouble("vel", squeezer.getSelectedSensorVelocity(0));
+			setDouble("pos_rel", getRelativeEncoderPosition());
+			setDouble("vel_rel", getRelativeEncoderVelocity());
+			setDouble("pos", getEncoderPosition());
+			setDouble("vel", getEncoderVelocity());
 			
-			setBoolean("debug/Eject", state == SqueezyState.EJECT);
-			setBoolean("debug/Intake", state == SqueezyState.INTAKE);
+			setBoolean("debug/state_Eject", state == SqueezyState.EJECT);
+			setBoolean("debug/state_Intake", state == SqueezyState.INTAKE);
 			
 			setBoolean("DetectedBox", sensors.detectBox());
 			setBoolean("BoxHeld", sensors.detectBoxHeld());
 
-			setBoolean("debug/fwd-limit", squeezer.getSensorCollection().isFwdLimitSwitchClosed());
-			setBoolean("debug/rev-limit", squeezer.getSensorCollection().isRevLimitSwitchClosed());
+			setBoolean("debug/limit-fwd", squeezer.getSensorCollection().isFwdLimitSwitchClosed());
+			setBoolean("debug/limit-rev", squeezer.getSensorCollection().isRevLimitSwitchClosed());
 			
 		}
 	}//postSqueezerData
