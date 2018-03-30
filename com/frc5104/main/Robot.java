@@ -95,6 +95,7 @@ public class Robot extends IterativeRobot {
 	}//autonomousInit
 	
 	public void autonomousPeriodic() {
+		HMI.PutOnDashboard();
 		Scheduler.getInstance().run();
 		squeezy.update();
 	}//autonomousPeriodic
