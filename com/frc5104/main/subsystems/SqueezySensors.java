@@ -16,8 +16,8 @@ public class SqueezySensors {
 	}//getInstance
 	
 	FilteredUltraSonic centerUltra = new FilteredUltraSonic(0, 1, 50);
-	FilteredUltraSonic leftUltra = new FilteredUltraSonic(2, 3);
-	FilteredUltraSonic rightUltra = new FilteredUltraSonic(4, 5);
+	FilteredUltraSonic leftUltra = new FilteredUltraSonic(2, 3, 5);
+	FilteredUltraSonic rightUltra = new FilteredUltraSonic(4, 5, 5);
 	
 	private SqueezySensors() {
 		centerUltra.init();

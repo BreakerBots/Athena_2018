@@ -1,7 +1,5 @@
 package com.frc5104.main.subsystems;
 
-import java.lang.reflect.Field;
-
 import com.ctre.phoenix.motorcontrol.ControlMode;
 import com.ctre.phoenix.motorcontrol.can.TalonSRX;
 import com.frc5104.utilities.ControllerHandler;
@@ -18,7 +16,7 @@ public class Squeezy {
 	
 	static final double kHoldEffort = -0.25;
 	static final double kShootSqueezeEffort = -0.05;
-	static final double kCloseEffort = -0.0;
+	static final double kCloseEffort = -0.30;
 	static final double kOpenEffort  = 0.25;
 	
 	static final double kRightSpinMultiplier = 1.1;
@@ -28,7 +26,7 @@ public class Squeezy {
 	
 	public enum SqueezyState {
 		EMPTY, INTAKE, CLOSING, HOLDING, LOADED, EJECT,
-					UNJAM
+					UNJAM,      TILT_UNJAM
 	}
 	
 	static Squeezy m_instance;
@@ -43,9 +41,11 @@ public class Squeezy {
 	NetworkTable table = null;
 	
 	//An unreasonable starting value
+	private boolean useManualControls = false;
 	private boolean calibrated = false;
 	private SqueezyState prevState = SqueezyState.EJECT;
 	SqueezyState state = SqueezyState.HOLDING;
+	ControllerHandler controller = ControllerHandler.getInstance();
 	
 	//Talon IDs fall are contained in [20,30)
 	TalonSRX squeezer  = new TalonSRX(MAIN_ID);
@@ -69,104 +69,117 @@ public class Squeezy {
 		update();
 	}//Squeezy
 	
-	
+	TimedButton grabbedSensor = new TimedButton();
+	boolean leftUnjam = true;
 	public void updateState() {
-		if (squeezer.getSensorCollection().isFwdLimitSwitchClosed()) {
-			squeezer.setSelectedSensorPosition(0, 0, 10);
-			calibrated = true;
-		}
-		
-		/*
-		sensors.updateSensors();
-
 		if (squeezer.getSensorCollection().isFwdLimitSwitchClosed()) {
 			if (!calibrated)
 				squeezer.setSelectedSensorPosition(0, 0, 10);
 			calibrated = true;
 		}
 		
-		switch (state) {
-		case EMPTY:
-			if (buttonIntake.Pressed)
-				state = SqueezyState.INTAKE;
-			break;
-		case INTAKE:
-			//UltraSonic: Move directly to holding when box is detected by motor stalls
-			if (buttonCancel.Pressed)
-				state = SqueezyState.EMPTY;
-			if (sensors.detectBox() && squeezer.getSelectedSensorPosition(0) > -90000)
-				state = SqueezyState.CLOSING;
-			break;
-		case CLOSING: //Should not exist with Ultrasonic
-			if (buttonCancel.Pressed)
-				state = SqueezyState.UNJAM;
-			if (!(sensors.detectBox() && squeezer.getSelectedSensorPosition(0) > -90000))
-				state = SqueezyState.INTAKE;
-			if (sensors.detectBoxHeld()) {
-				state = SqueezyState.HOLDING;
-				ControllerHandler.getInstance().rumbleHardFor(0.5, 0.5);
-			}
-			break;
-		case HOLDING:
-			if (sensors.detectBoxGone())
-				state = SqueezyState.EMPTY;
-			break;
-		case LOADED:
-			if (buttonEject.Pressed)
-				state = SqueezyState.EJECT;
-			if(sensors.detectBoxGone())
-				state = SqueezyState.EMPTY;
-			break;
-		case EJECT:
-			if ((System.currentTimeMillis() - lastTime) > 1000)
-				state = SqueezyState.UNJAM;
-			if (buttonCancel.Pressed)
-				state = SqueezyState.EMPTY;
-			break;
-		case UNJAM:
-			if (squeezer.getSensorCollection().isFwdLimitSwitchClosed())
-				state = SqueezyState.INTAKE;
-			if (buttonIntake.Pressed)
-				state = SqueezyState.INTAKE;
-			break;
-		}//switch
 		
-		if (buttonEject.Pressed) {
-			state = SqueezyState.EJECT;
-			lastTime = System.currentTimeMillis();
-		}
-		
-		if (buttonUnjam.Pressed)
-			state = SqueezyState.UNJAM;
-		
-		if (state != prevState) {
-			postStateChange();
+		if (!useManualControls) {
+			sensors.updateSensors();
+	
 			prevState = state;
+			
+			switch (state) {
+			case EMPTY:
+				if (controller.getPressed(HMI.kSqueezyIntake))
+					state = SqueezyState.INTAKE;
+				break;
+			case INTAKE:
+				//UltraSonic: Move directly to holding when box is detected by motor stalls
+				if (sensors.detectBox()) {
+					state = SqueezyState.CLOSING;
+					grabbedSensor.reset();
+				}
+				break;
+			case CLOSING: //Should not exist with Ultrasonic
+	//			if (controller.getPressed(HMI.kSqueezyCancel))
+	//				state = SqueezyState.UNJAM;
+	//			if (!(sensors.detectBox() && squeezer.getSelectedSensorPosition(0) > -90000))
+	//				state = SqueezyState.INTAKE;
+	//			if (sensors.detectBoxHeld()) {
+	//				state = SqueezyState.HOLDING;
+	//				ControllerHandler.getInstance().rumbleHardFor(0.5, 0.5);
+				int vel = getEncoderVelocity();
+				int pos = getEncoderPosition();
+				boolean bool = vel < 10 && vel > -500;
+//				bool = bool && pos < -60000;
+				grabbedSensor.update(bool);
+					
+				if (grabbedSensor.get(20)) {
+//				if (bool) {
+					state = SqueezyState.HOLDING;
+					controller.rumbleHardFor(0.5, 0.5);
+				}
+				if (squeezer.getSensorCollection().isRevLimitSwitchClosed())
+					state = SqueezyState.INTAKE;
+				break;
+			case HOLDING:
+	//			if (sensors.detectBoxGone())
+				if (squeezer.getSensorCollection().isRevLimitSwitchClosed())
+					state = SqueezyState.EMPTY;
+				if (getEncoderPosition() > -78000) {
+					leftUnjam = sensors.getDistances()[1] > sensors.getDistances()[2];
+					ejectTime = System.currentTimeMillis();
+					state = SqueezyState.TILT_UNJAM;
+				}
+				break;
+			case TILT_UNJAM:
+				if (System.currentTimeMillis() - ejectTime > 500) {
+					state = SqueezyState.HOLDING;
+				}
+				break;
+			case LOADED:
+	//			if(sensors.detectBoxGone())
+	//				state = SqueezyState.EMPTY;
+				if (controller.getPressed(HMI.kEjectButton))
+					state = SqueezyState.EJECT;
+				break;
+			case EJECT:
+				if ((System.currentTimeMillis() - ejectTime) > 1000)
+					state = SqueezyState.UNJAM;
+				break;
+			case UNJAM:
+				if (squeezer.getSensorCollection().isFwdLimitSwitchClosed())
+					state = SqueezyState.INTAKE;
+				if (controller.getPressed(HMI.kSqueezyIntake))
+					state = SqueezyState.INTAKE;
+				break;
+			}//switch
+			
+//			if (buttonEject.Pressed) {
+//				state = SqueezyState.EJECT;
+//				lastTime = System.currentTimeMillis();
+//			}
+			
+//			if (buttonUnjam.Pressed)
+//				state = SqueezyState.UNJAM;
+			
+		} else {
+			ControllerHandler controller = ControllerHandler.getInstance();
+			
+			if (controller.getPressed(HMI.kOpenButton))
+				state = SqueezyState.INTAKE;
+			if (controller.getPressed(HMI.kCloseButton))
+				state = SqueezyState.HOLDING;
+			
+			if (state == SqueezyState.EJECT) {
+				if (System.currentTimeMillis()-ejectTime > 1000)
+					state = SqueezyState.HOLDING;
+			}
 		}
 		
-		postUltrasonicData();
-		postSqueezerData();
-		
-		*/
-		
-		ControllerHandler controller = ControllerHandler.getInstance();
-		
-		if (controller.getPressed(HMI.kNeutralButton))
-			state = SqueezyState.EMPTY;
-		if (controller.getPressed(HMI.kOpenButton))
-			state = SqueezyState.INTAKE;
-		if (controller.getPressed(HMI.kCloseButton))
-			state = SqueezyState.HOLDING;
 		if (controller.getPressed(HMI.kEjectButton)) {
 			System.out.println("EJECTING!!!");
 			ejectTime = System.currentTimeMillis();
 			state = SqueezyState.EJECT;
 		}
-		
-		if (state == SqueezyState.EJECT) {
-			if (System.currentTimeMillis()-ejectTime > 1000)
-				state = SqueezyState.HOLDING;
-		}
+		if (controller.getPressed(HMI.kNeutralButton))
+			state = SqueezyState.EMPTY;
 		
 	}//poll
 	
@@ -175,7 +188,7 @@ public class Squeezy {
 		case EMPTY:
 			raise();
 			spinStop();
-			close();
+			leave();
 			break;
 		case INTAKE:
 			lower();
@@ -190,6 +203,11 @@ public class Squeezy {
 		case HOLDING:
 			raise();
 			spinPinch();
+			hold();
+			break;
+		case TILT_UNJAM:
+			raise();
+			spinUnjam();
 			hold();
 			break;
 		case LOADED:
@@ -254,8 +272,27 @@ public class Squeezy {
 	
 	//--------- Squeezy Actions ---------//
 	private void setSpinners(double effort) {
-		leftSpin.set(ControlMode.PercentOutput, effort);
-		rightSpin.set(ControlMode.PercentOutput, -kRightSpinMultiplier*effort);
+		setSpinners(effort, 0);
+	}//setSpinners	
+	private void setSpinners(double effort, int invert) {
+		//invert
+		//0 invert none
+		//-1 invert left
+		//1 invert right
+		switch (invert) {
+		case -1:
+			leftSpin.set(ControlMode.PercentOutput, -effort);
+			rightSpin.set(ControlMode.PercentOutput, -kRightSpinMultiplier*effort);
+			break;
+		case 0:
+			leftSpin.set(ControlMode.PercentOutput, effort);
+			rightSpin.set(ControlMode.PercentOutput, -kRightSpinMultiplier*effort);
+			break;
+		case 1:
+			leftSpin.set(ControlMode.PercentOutput, effort);
+			rightSpin.set(ControlMode.PercentOutput, kRightSpinMultiplier*effort);
+			break;
+		}
 	}//setSpinners	
 	private void spinIn() {
 		setSpinners(kIntakeEffort);
@@ -272,6 +309,9 @@ public class Squeezy {
 	private void spinPinch() {
 		setSpinners(kPinchEffort);
 	}//spinPinch
+	private void spinUnjam() {
+		setSpinners(kIntakeEffort, leftUnjam?-1:1);
+	}//spinUnjam
 	
 	private void open() {
 		squeezer.set(ControlMode.PercentOutput, kOpenEffort);
@@ -288,6 +328,9 @@ public class Squeezy {
 	private void hold() {
 		squeezer.set(ControlMode.PercentOutput, kHoldEffort);
 	}//hold
+	private void leave() {
+		squeezer.set(ControlMode.PercentOutput, 0);
+	}//leave
 	
 	private void raise() {
 		//if (squeezer.getSelectedSensorPosition(0) < -10000)
@@ -326,27 +369,28 @@ public class Squeezy {
 	}//updateTable
 	public void postSqueezerData() {
 		if (table != null) {
-			setDouble("debug/squeezer_voltage", squeezer.getMotorOutputVoltage());
-			setDouble("debug/leftspin_voltage", leftSpin.getMotorOutputVoltage());
-			setDouble("debug/rightspin_voltage", rightSpin.getMotorOutputVoltage());
+			setDouble("debug/voltage_squeezer", squeezer.getMotorOutputVoltage());
+			setDouble("debug/voltage_leftspin", leftSpin.getMotorOutputVoltage());
+			setDouble("debug/voltage_rightspin", rightSpin.getMotorOutputVoltage());
 			
-			setDouble("debug/squeezer_current", squeezer.getOutputCurrent());
-			setDouble("debug/leftspin_current", leftSpin.getOutputCurrent());
-			setDouble("debug/rightspin_current", rightSpin.getOutputCurrent());
+			setDouble("debug/current_squeezer", squeezer.getOutputCurrent());
+			setDouble("debug/current_leftspin", leftSpin.getOutputCurrent());
+			setDouble("debug/current_rightspin", rightSpin.getOutputCurrent());
 			
 			//Adding 1 to the hopefully non-negative encoder position should eliminate 1/0
-			setDouble("pos_as_percent", -120000.0/(1+squeezer.getSelectedSensorPosition(0)));
-			setDouble("pos", squeezer.getSelectedSensorPosition(0));
-			setDouble("vel", squeezer.getSelectedSensorVelocity(0));
+			setDouble("pos_rel", getRelativeEncoderPosition());
+			setDouble("vel_rel", getRelativeEncoderVelocity());
+			setDouble("pos", getEncoderPosition());
+			setDouble("vel", getEncoderVelocity());
 			
-			setBoolean("debug/Eject", state == SqueezyState.EJECT);
-			setBoolean("debug/Intake", state == SqueezyState.INTAKE);
+			setBoolean("debug/state_Eject", state == SqueezyState.EJECT);
+			setBoolean("debug/state_Intake", state == SqueezyState.INTAKE);
 			
 			setBoolean("DetectedBox", sensors.detectBox());
 			setBoolean("BoxHeld", sensors.detectBoxHeld());
 
-			setBoolean("debug/fwd-limit", squeezer.getSensorCollection().isFwdLimitSwitchClosed());
-			setBoolean("debug/rev-limit", squeezer.getSensorCollection().isRevLimitSwitchClosed());
+			setBoolean("debug/limit-fwd", squeezer.getSensorCollection().isFwdLimitSwitchClosed());
+			setBoolean("debug/limit-rev", squeezer.getSensorCollection().isRevLimitSwitchClosed());
 			
 		}
 	}//postSqueezerData

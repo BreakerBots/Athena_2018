@@ -27,6 +27,7 @@ import edu.wpi.first.wpilibj.DoubleSolenoid;
 import edu.wpi.first.wpilibj.DoubleSolenoid.Value;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.IterativeRobot;
+import edu.wpi.first.wpilibj.Servo;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.command.CommandGroup;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
@@ -74,6 +75,7 @@ public class RobotRecorder extends IterativeRobot {
 	Elevator elevator = Elevator.getInstance();
 	
 	DoubleSolenoid ptoSol = new DoubleSolenoid(2,3);
+	Servo hookHolder = new Servo(7);
 	
 	DoubleSolenoid squeezyUpDown = new DoubleSolenoid(4,5);
 	
@@ -87,6 +89,7 @@ public class RobotRecorder extends IterativeRobot {
 		
 		if (elevator != null)
 			elevator.initTable(null);
+		hookHolder.setPosition(0.2);
 		
 		squeezyUpDown.set(DoubleSolenoid.Value.kReverse);
 		
@@ -173,13 +176,15 @@ public class RobotRecorder extends IterativeRobot {
 		
 //		System.out.println("Encoder Position: "+drive.getEncoderRight());
 		if (controller.getHeldEvent(HMI.kPtoButton, 0.4)) { 
-//		if (controller.getPressed(Button.X))
 			System.out.println("Switching PTO!");
 			ptoSol.set(ptoSol.get() == DoubleSolenoid.Value.kReverse ? DoubleSolenoid.Value.kForward : DoubleSolenoid.Value.kReverse);
 			if (ptoSol.get() == Value.kForward)
 				controller.rumbleSoftFor(0.5, 0.2);
 			else
 				controller.rumbleHardFor(1, 0.2);
+		}
+		if (controller.getPressed(HMI.kOpenHookHolder)) {
+			hookHolder.setPosition(1 - hookHolder.getPosition());
 		}
 		
 		if (drive != null) {
