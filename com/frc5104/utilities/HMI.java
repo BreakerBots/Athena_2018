@@ -1,6 +1,9 @@
-package com.frc5104.utilities;
+package org.usfirst.frc.team5104.robot;
 
-import com.frc5104.utilities.ControllerHandler.Control;
+import org.usfirst.frc.team5104.robot.ControllerHandler.Control;
+
+import edu.wpi.first.networktables.NetworkTable;
+import edu.wpi.first.networktables.NetworkTableInstance;
 
 public class HMI {
 
@@ -26,4 +29,25 @@ public class HMI {
 	public static final Control kEjectButton = Control.LB;
 	public static final Control kNeutralButton = Control.B;
 
+	private static NetworkTable table = null;
+	public static void PutOnDashboard() {
+		if (table == null) { table = NetworkTableInstance.getDefault().getTable("HMI"); }
+		
+		try {
+			for (int i = 0; i < HMI.class.getFields().length; i++) {
+				putControl(HMI.class.getFields()[i].getName(), HMI.class.getFields()[i].get(new HMI()));
+			}
+		} catch (SecurityException e) {
+			e.printStackTrace();
+		} catch (IllegalArgumentException e) {
+			e.printStackTrace();
+		} catch (IllegalAccessException e) {
+			e.printStackTrace();
+		}
+	}
+	
+	private static void putControl(String name, Object object) {
+		System.out.println(name + " = " + object);
+		table.getEntry(name).setString(object.toString());
+	}
 }
