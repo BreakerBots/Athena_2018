@@ -163,6 +163,7 @@ public class Robot extends IterativeRobot {
 	}//teleopPeriodic
 	
 	public void robotPeriodic() {
+		
 	}
 	
 	public void testInit() {

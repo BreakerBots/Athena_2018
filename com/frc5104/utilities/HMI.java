@@ -17,7 +17,7 @@ public class HMI {
 	//Elevator
 	public static final Control kPtoButton = Control.A;
 	public static final Control kElevator = Control.RY;
-	public static final Control kOpenHookHolder = Control.A;
+	public static final Control kOpenHookHolder = /*Control.A -- Changed ToY*/ Control.Y;
 	
 	//Squeezy
 	public static final Control kSqueezyUp = Control.N;

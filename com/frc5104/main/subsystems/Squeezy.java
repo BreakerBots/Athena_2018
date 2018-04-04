@@ -41,7 +41,7 @@ public class Squeezy {
 	NetworkTable table = null;
 	
 	//An unreasonable starting value
-	private boolean useManualControls = false;
+	private boolean useManualControls = false;/* (!)Add Mixin For Auto and Manual Controls */
 	private boolean calibrated = false;
 	private SqueezyState prevState = SqueezyState.EJECT;
 	SqueezyState state = SqueezyState.HOLDING;
