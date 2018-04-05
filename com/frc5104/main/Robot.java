@@ -163,8 +163,12 @@ public class Robot extends IterativeRobot {
 	}//teleopPeriodic
 	
 	public void robotPeriodic() {
+		squeezy.postSqueezerData();
+		squeezy.postState();
+		squeezy.postUltrasonicData();
 		
-	}
+		elevator.updateTables();
+	}//robotPeriodic
 	
 	public void testInit() {
 
