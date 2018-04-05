@@ -390,7 +390,7 @@ public class RobotRecorder extends IterativeRobot {
 		
 		long now = System.currentTimeMillis();
 		if (playbackLastTime != null){
-			long delay = dt - (now-playbackLastTime));
+			long delay = dt - (now-playbackLastTime);
 			if (delay > 0){
 				try {
 					Thread.sleep(delay);
