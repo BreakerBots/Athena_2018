@@ -14,20 +14,29 @@ public class Squeezy {
 	public static final int LEFT_ID = 22;
 	public static final int RIGHT_ID = 23;
 	
+	static final int kHasCubePosition = -68000;
+	
+	//For Opening/Closing Arms
 	static final double kHoldEffort = -0.25;
 	static final double kShootSqueezeEffort = -0.05;
 	static final double kCloseEffort = -0.30;
 	static final double kOpenEffort  = 0.25;
 	
+	//For Spinning Wheels
 	static final double kRightSpinMultiplier = 1.1;
 	static final double kIntakeEffort = -/*0.4*//*3-12-18 0.2*/0.2;
 	static final double kPinchEffort = -0.2;
 	public static double kEjectEffort = 0.6;
 	
 	public enum SqueezyState {
-		EMPTY, INTAKE, CLOSING, HOLDING, LOADED, EJECT,
-					UNJAM,      TILT_UNJAM
+		EMPTY, EJECT,
+		//Auto State Chart
+		INTAKE, CLOSING, HOLDING, TILT_UNJAM, UNJAM,
+		//Manual State Chart
+		MANUAL_OPEN, MANUAL_CLOSE
+		
 	}
+	boolean manualStateDiagram = false;
 	
 	static Squeezy m_instance;
 	
@@ -73,104 +82,102 @@ public class Squeezy {
 	boolean leftUnjam = true;
 	public void updateState() {
 		if (squeezer.getSensorCollection().isFwdLimitSwitchClosed()) {
-			if (!calibrated)
-				squeezer.setSelectedSensorPosition(0, 0, 10);
+//			if (!calibrated)
+			squeezer.setSelectedSensorPosition(0, 0, 10);
 			calibrated = true;
 		}
 		
 		
-		if (!useManualControls) {
-			sensors.updateSensors();
-	
-			prevState = state;
-			
-			switch (state) {
-			case EMPTY:
-				if (controller.getPressed(HMI.kSqueezyIntake))
-					state = SqueezyState.INTAKE;
-				break;
-			case INTAKE:
-				//UltraSonic: Move directly to holding when box is detected by motor stalls
-				if (sensors.detectBox()) {
-					state = SqueezyState.CLOSING;
-					grabbedSensor.reset();
-				}
-				break;
-			case CLOSING: //Should not exist with Ultrasonic
-	//			if (controller.getPressed(HMI.kSqueezyCancel))
-	//				state = SqueezyState.UNJAM;
-	//			if (!(sensors.detectBox() && squeezer.getSelectedSensorPosition(0) > -90000))
-	//				state = SqueezyState.INTAKE;
-	//			if (sensors.detectBoxHeld()) {
-	//				state = SqueezyState.HOLDING;
-	//				ControllerHandler.getInstance().rumbleHardFor(0.5, 0.5);
-				int vel = getEncoderVelocity();
-				int pos = getEncoderPosition();
-				boolean bool = vel < 10 && vel > -500;
-//				bool = bool && pos < -60000;
-				grabbedSensor.update(bool);
-					
-				if (grabbedSensor.get(20)) {
-//				if (bool) {
-					state = SqueezyState.HOLDING;
-					controller.rumbleHardFor(0.5, 0.5);
-				}
-				if (squeezer.getSensorCollection().isRevLimitSwitchClosed())
-					state = SqueezyState.INTAKE;
-				break;
-			case HOLDING:
-	//			if (sensors.detectBoxGone())
-				if (squeezer.getSensorCollection().isRevLimitSwitchClosed())
-					state = SqueezyState.EMPTY;
-				if (getEncoderPosition() > -78000) {
-					leftUnjam = sensors.getDistances()[1] > sensors.getDistances()[2];
-					ejectTime = System.currentTimeMillis();
-					state = SqueezyState.TILT_UNJAM;
-				}
-				break;
-			case TILT_UNJAM:
-				if (System.currentTimeMillis() - ejectTime > 500) {
-					state = SqueezyState.HOLDING;
-				}
-				break;
-			case LOADED:
-	//			if(sensors.detectBoxGone())
-	//				state = SqueezyState.EMPTY;
-				if (controller.getPressed(HMI.kEjectButton))
-					state = SqueezyState.EJECT;
-				break;
-			case EJECT:
-				if ((System.currentTimeMillis() - ejectTime) > 1000)
-					state = SqueezyState.UNJAM;
-				break;
-			case UNJAM:
-				if (squeezer.getSensorCollection().isFwdLimitSwitchClosed())
-					state = SqueezyState.INTAKE;
-				if (controller.getPressed(HMI.kSqueezyIntake))
-					state = SqueezyState.INTAKE;
-				break;
-			}//switch
-			
-//			if (buttonEject.Pressed) {
-//				state = SqueezyState.EJECT;
-//				lastTime = System.currentTimeMillis();
-//			}
-			
-//			if (buttonUnjam.Pressed)
-//				state = SqueezyState.UNJAM;
-			
-		} else {
-			ControllerHandler controller = ControllerHandler.getInstance();
-			
-			if (controller.getPressed(HMI.kOpenButton))
+		sensors.updateSensors();
+
+		prevState = state;
+		
+		switch (state) {
+		case EMPTY:
+			if (controller.getPressed(HMI.kSqueezyIntake)) {
 				state = SqueezyState.INTAKE;
-			if (controller.getPressed(HMI.kCloseButton))
-				state = SqueezyState.HOLDING;
-			
-			if (state == SqueezyState.EJECT) {
-				if (System.currentTimeMillis()-ejectTime > 1000)
-					state = SqueezyState.HOLDING;
+				manualStateDiagram = false;
 			}
+			break;
+		case EJECT:
+			if ((System.currentTimeMillis() - ejectTime) > 1000)
+				if (manualStateDiagram)
+					state = SqueezyState.MANUAL_OPEN;
+				else
+					state = SqueezyState.UNJAM;
+			break;
+		//--------------------------Auto State Chart--------------------------//
+		case INTAKE:
+			//UltraSonic: Move directly to holding when box is detected by motor stalls
+			if (sensors.detectBox()) {
+				state = SqueezyState.CLOSING;
+				grabbedSensor.reset();
+			}
+			break;
+		case CLOSING:
+//			if (controller.getPressed(HMI.kSqueezyCancel))
+//				state = SqueezyState.UNJAM;
+//			if (!(sensors.detectBox() && squeezer.getSelectedSensorPosition(0) > -90000))
+//				state = SqueezyState.INTAKE;
+//			if (sensors.detectBoxHeld()) {
+//				state = SqueezyState.HOLDING;
+//				ControllerHandler.getInstance().rumbleHardFor(0.5, 0.5);
+			int vel = getEncoderVelocity();
+			int pos = getEncoderPosition();
+			boolean bool = vel < 10 && vel > -500;
+//				bool = bool && pos < -60000;
+			grabbedSensor.update(bool);
+				
+			if (grabbedSensor.get(20)) {
+				state = SqueezyState.HOLDING;
+				controller.rumbleHardFor(0.5, 0.5);
+			}
+			if (squeezer.getSensorCollection().isRevLimitSwitchClosed())
+				state = SqueezyState.INTAKE;
+			break;
+		case HOLDING:
+			if (squeezer.getSensorCollection().isRevLimitSwitchClosed())
+				state = SqueezyState.EMPTY;
+			if (getEncoderPosition() > kHasCubePosition) {
+				leftUnjam = sensors.getDistances()[1] > sensors.getDistances()[2];
+				ejectTime = System.currentTimeMillis();
+				state = SqueezyState.TILT_UNJAM;
+			}
+			break;
+		case TILT_UNJAM:
+			if (squeezer.getSensorCollection().isRevLimitSwitchClosed())
+				state = SqueezyState.EMPTY;
+			if (System.currentTimeMillis() - ejectTime > 500) {
+				state = SqueezyState.HOLDING;
+			}
+			break;
+		case UNJAM:
+			if (squeezer.getSensorCollection().isFwdLimitSwitchClosed())
+				state = SqueezyState.INTAKE;
+			if (controller.getPressed(HMI.kSqueezyIntake))
+				state = SqueezyState.INTAKE;
+			break;
+			
+		//---------------------Manual State Chart------------------------//
+		case MANUAL_OPEN:
+		case MANUAL_CLOSE:
+			//Manual Controls are available at any time,
+				// thus they do not fall in here.
+			//However, we do want the ability to go back into auto/intake mode.
+			if (controller.getPressed(HMI.kSqueezyIntake)) {
+				state = SqueezyState.INTAKE;
+				manualStateDiagram = false;
+			}
+			break;
+		}//switch
+		
+		if (controller.getPressed(HMI.kOpenButton)) {
+			state = SqueezyState.MANUAL_OPEN;
+			manualStateDiagram = true;
+		}
+		if (controller.getPressed(HMI.kCloseButton)) {
+			state = SqueezyState.MANUAL_CLOSE;
+			manualStateDiagram = true;
 		}
 		
 		if (controller.getPressed(HMI.kEjectButton)) {
@@ -190,6 +197,13 @@ public class Squeezy {
 			spinStop();
 			leave();
 			break;
+		case EJECT:
+			lower();
+			spinOut();
+			shootSqueeze();
+			break;
+
+		//-------------Auto State Chart--------------//
 		case INTAKE:
 			lower();
 			spinIn();
@@ -210,21 +224,23 @@ public class Squeezy {
 			spinUnjam();
 			hold();
 			break;
-		case LOADED:
-			lower();
-			spinStop();
-			hold();
-			break;
-		case EJECT:
-			lower();
-			spinOut();
-			shootSqueeze();
-			break;
 		case UNJAM:
 			lower();
 			spinStop();
 			open();
-		}
+			break;
+		//-------------Manual State Chart--------------//
+		case MANUAL_OPEN:
+			lower();
+			spinIn();
+			open();
+			break;
+		case MANUAL_CLOSE:
+			lower();
+			spinIn();
+			close();
+			break;
+		}//switch
 		
 		postSqueezerData();
 		postState();
@@ -267,7 +283,7 @@ public class Squeezy {
 	}//isInState
 	
 	public boolean hasCube() {
-		return state == SqueezyState.HOLDING || state == SqueezyState.LOADED;
+		return state == SqueezyState.HOLDING;
 	}//hasCube
 	
 	//--------- Squeezy Actions ---------//

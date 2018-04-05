@@ -44,9 +44,9 @@ public class Robot extends IterativeRobot {
 //	Elevator elevator = null;
 	Elevator elevator = Elevator.getInstance();
 	
-	DoubleSolenoid ptoSol = new DoubleSolenoid(2,3);
+	DoubleSolenoid ptoSol = new DoubleSolenoid(4, 5);
 	
-	public DoubleSolenoid squeezyUpDown = new DoubleSolenoid(4,5);
+	public DoubleSolenoid squeezyUpDown = new DoubleSolenoid(0, 1);
 	
 	ControllerHandler controller = ControllerHandler.getInstance();
 	/* ------- PTO PID Values for Elevator -------
@@ -124,8 +124,8 @@ public class Robot extends IterativeRobot {
 		}
 		
 		if (drive != null) {
-			double x = controller.getAxis(HMI.kDriveX),
-				   y = -controller.getAxis(HMI.kDriveY);
+			double x = -controller.getAxis(HMI.kDriveX),
+				   y = controller.getAxis(HMI.kDriveY);
 			x = Deadband.getDefault().get(x);
 			y = Deadband.getDefault().get(y);
 			

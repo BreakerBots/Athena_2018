@@ -44,7 +44,10 @@ public class SqueezySensors {
 		 * at the largest distance, any significant block-sized object, (11-13in)
 		 * will bring the Left+Right distance down to (19-11)+(0) == 8in.
 		 */
-		if (leftUltra.getDistance() + rightUltra.getDistance() < 18)
+		double left = leftUltra.getDistance();
+		double right = rightUltra.getDistance();
+//		if (leftUltra.getDistance() + rightUltra.getDistance() < 18)
+		if (left < 10 || right < 10)
 			return true;
 		else
 			return false;

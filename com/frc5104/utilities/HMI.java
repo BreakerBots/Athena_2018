@@ -15,7 +15,7 @@ public class HMI {
 	public static final Control kShift = Control.RT;
 	
 	//Elevator
-	public static final Control kPtoButton = Control.A;
+	public static final Control kPtoButton = Control.Y; //hold for 0.4 sec
 	public static final Control kElevator = Control.RY;
 	public static final Control kOpenHookHolder = /*Control.A -- Changed ToY*/ Control.Y;
 	
@@ -23,8 +23,8 @@ public class HMI {
 	public static final Control kSqueezyUp = Control.N;
 	public static final Control kSqueezyDown = Control.S;
 	
-	public static final Control kOpenButton = Control.E;
-	public static final Control kCloseButton = Control.W;
+	public static final Control kOpenButton = Control.W;
+	public static final Control kCloseButton = Control.E;
 	
 	public static final Control kEjectButton = Control.LB;
 	public static final Control kNeutralButton = Control.B;

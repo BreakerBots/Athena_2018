@@ -74,10 +74,10 @@ public class RobotRecorder extends IterativeRobot {
 //	Elevator elevator = null;
 	Elevator elevator = Elevator.getInstance();
 	
-	DoubleSolenoid ptoSol = new DoubleSolenoid(2,3);
+	DoubleSolenoid ptoSol = new DoubleSolenoid(4, 5);
 	Servo hookHolder = new Servo(7);
 	
-	DoubleSolenoid squeezyUpDown = new DoubleSolenoid(4,5);
+	DoubleSolenoid squeezyUpDown = new DoubleSolenoid(0, 1);
 	
 	ControllerHandler controller = ControllerHandler.getInstance();
 	

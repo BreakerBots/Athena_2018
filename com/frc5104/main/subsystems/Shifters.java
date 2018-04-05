@@ -4,8 +4,8 @@ import edu.wpi.first.wpilibj.DoubleSolenoid;
 
 public class Shifters {
 
-	public static final int FORWARD_ID = 0;
-	public static final int REVERSE_ID = 1;
+	public static final int FORWARD_ID = 2;
+	public static final int REVERSE_ID = 3;
 	
 	static Shifters instance = null;
 	
