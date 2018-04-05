@@ -1,5 +1,8 @@
 package com.frc5104.autocommands;
 
+import java.lang.Thread;
+import java.lang.InterruptedException;
+
 import com.frc5104.logging.CSVFileReader;
 import com.frc5104.main.subsystems.Drive;
 import com.frc5104.main.subsystems.Elevator;
@@ -31,11 +34,26 @@ public class ProcessRecording extends Command {
     	System.out.println("Reading has "+src.size()+" points.");
     }
 
+    private long playbackLastTime = null;
     protected void execute() {
+	long dt = (long) reader.get("time", playbackIndex);
     	double x = src.get("joy_x", index);
     	double y = src.get("joy_y", index);
     	
 //    	boolean squeezyEject = src.get("squeezyEject", index) == 1.0;
+
+	if (playbackLastTime != null){
+		long delay = dt - (now-playbackLastTime);
+		if (delay > 0){
+			try {
+				Thread.sleep(delay);
+			} catch (InterruptedException e){
+				e.printStackTrace();
+			}
+		}
+	}
+	playbackLastTime = now;
+
     	
     	Drive.getInstance().arcadeDrive(y*10/batteryVoltage, x*10/batteryVoltage);
     	
