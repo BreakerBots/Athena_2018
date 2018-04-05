@@ -5,6 +5,9 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import java.lang.Thread;
+import java.lang.InterruptedException;
+
 import javax.xml.crypto.Data;
 
 import com.frc5104.logging.CSVFileReader;
@@ -376,13 +379,29 @@ public class RobotRecorder extends IterativeRobot {
 		}
 	}//loadPlaybackFile
 	
+	private long playbackLastTime = null;
 	public boolean playback() {
 		System.out.println("Playback! -- Delta: "+getDeltaTime());
 		
+		long dt = (long) reader.get("time", playbackIndex);
 		double x = reader.get("joy_x", playbackIndex);
 		double y = reader.get("joy_y", playbackIndex);
 		double elev = reader.get("elevator_effort", playbackIndex);
 		
+		long now = System.currentTimeMillis();
+		if (playbackLastTime != null){
+			long delay = dt - (now-playbackLastTime));
+			if (delay > 0){
+				try {
+					Thread.sleep(delay);
+				} catch (InterruptedException e){
+					e.printStackTrace();
+				}
+			}
+		}
+		playbackLastTime = now;
+
+
 		drive.arcadeDrive(y*10/batteryVoltage, x*10/batteryVoltage);
 		elevator.setEffort(elev);
 		
