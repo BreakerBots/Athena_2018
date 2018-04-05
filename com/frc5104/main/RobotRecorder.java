@@ -23,6 +23,7 @@ import com.frc5104.utilities.Deadband;
 import com.frc5104.utilities.HMI;
 import com.frc5104.utilities.TalonFactory;
 
+import edu.wpi.first.wpilibj.CameraServer;
 import edu.wpi.first.wpilibj.DoubleSolenoid;
 import edu.wpi.first.wpilibj.DoubleSolenoid.Value;
 import edu.wpi.first.wpilibj.DriverStation;
@@ -93,6 +94,8 @@ public class RobotRecorder extends IterativeRobot {
 		
 		squeezyUpDown.set(DoubleSolenoid.Value.kReverse);
 		
+		CameraServer.getInstance().startAutomaticCapture();
+
 	}//robotInit
 	
 	public double getDriveX() {

@@ -1,6 +1,6 @@
-package org.usfirst.frc.team5104.robot;
+package com.frc5104.utilities;
 
-import org.usfirst.frc.team5104.robot.ControllerHandler.Control;
+import com.frc5104.utilities.ControllerHandler.Control;
 
 import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableInstance;

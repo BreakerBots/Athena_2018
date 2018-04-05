@@ -12,6 +12,7 @@ import com.frc5104.utilities.Deadband;
 import com.frc5104.utilities.HMI;
 import com.frc5104.utilities.TalonFactory;
 
+import edu.wpi.first.wpilibj.CameraServer;
 import edu.wpi.first.wpilibj.DoubleSolenoid;
 import edu.wpi.first.wpilibj.DoubleSolenoid.Value;
 import edu.wpi.first.wpilibj.IterativeRobot;
@@ -82,6 +83,8 @@ public class Robot extends IterativeRobot {
 			elevator.initTable(null);
 		
 		squeezyUpDown.set(DoubleSolenoid.Value.kReverse);
+		
+		CameraServer.getInstance().startAutomaticCapture();
 		
 	}//robotInit
 	long autoStartTime;
