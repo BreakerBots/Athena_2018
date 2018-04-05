@@ -1,30 +1,28 @@
 package org.usfirst.frc.team5104.robot;
 
-import org.usfirst.frc.team5104.robot.ControllerHandler.Axis;
-import org.usfirst.frc.team5104.robot.ControllerHandler.Button;
-import org.usfirst.frc.team5104.robot.ControllerHandler.Dpad;
+import org.usfirst.frc.team5104.robot.ControllerHandler.Control;
 
-import edu.wpi.first.networktables.NetworkTable;
-import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.wpilibj.IterativeRobot;
 
 public class Robot extends IterativeRobot {
 	ControllerHandler controller = ControllerHandler.getInstance();
 	
+	//For an easier control in main robot programs I would recomend a control sceme like this:
+	Control SqueezyIntake = Control.A;
+	//and then:
+	//controller.getPressed(SqueezyIntake);
+	
 	public void autonomousPeriodic() {
 		//Make Sure to Call this functions
 		controller.update();
 	
-		//Button Functions [ inputs can be anythings under "Button.", "Dpad." or "Axis." ]
-			controller.getHeld(Button.B);
-			controller.getHeldTime(Button.X);
-			controller.getPressed(Dpad.N);
-			controller.getReleased(Axis.RT);
-			controller.getClickTime(Button.A);
-			controller.getHeldEvent(Button.A, 0.4);
-		
-		//Axis Functions [ inputs can be anything under "Axis." ]
-			controller.getAxis(Axis.LY);
+		//Control Functions [ inputs can be anythings under "Control.", "Control." or "Control." ]
+			controller.getHeld(Control.B);
+			controller.getHeldTime(Control.X);
+			controller.getPressed(Control.N);
+			controller.getReleased(Control.RT);
+			controller.getClickTime(Control.A);
+			controller.getHeldEvent(Control.A, 0.4);
 			
 		//Rumble Function [ hard rumble is a deep rumble and soft rumble is lighter rumble ]
 			controller.rumbleHard(1);
@@ -39,27 +37,27 @@ public class Robot extends IterativeRobot {
 		
 		//Examples			
 			//Pressed
-			if ( controller.getPressed(Dpad.N) ) {
-				//Button has been pressed
+			if ( controller.getPressed(Control.N) ) {
+				//Control has been pressed
 				controller.rumbleHardFor(1, 0.2);
 			}
 			
 			//Released
-			if ( controller.getReleased(Axis.RT) ) {
-				//Button has been released
+			if ( controller.getReleased(Control.RT) ) {
+				//Control has been released
 				controller.rumbleSoftFor(1, 0.2);
 			}
 			
 			//Click Time
-			if ( controller.getClickTime(Button.A) >= 0.4 ) {
+			if ( controller.getClickTime(Control.A) >= 0.4 ) {
 				//Long Click
 			} else {
 				//Short Click				
 			}
 			
 			//Hold Event
-			if ( controller.getHeldEvent(Button.A, 0.4) ) {
-				//Button has been held for 0.4 seconds
+			if ( controller.getHeldEvent(Control.A, 0.4) ) {
+				//Control has been held for 0.4 seconds
 			}
 	}
 }

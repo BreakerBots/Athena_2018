@@ -87,7 +87,8 @@ public class CSVFileReader {
 	}//get by key
 	
 	public int size() {
-		return size;
+//		return size;
+		return map.get("time").size();
 	}//size
 	
 //	public double get(int index, int arrayIndex) {

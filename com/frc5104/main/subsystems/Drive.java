@@ -34,26 +34,12 @@ public class Drive {
 		drive.setDeadband(0);
 		talonLeftFollower.set(ControlMode.Follower, 11);
 		talonRightFollower.set(ControlMode.Follower, 13);
+		
 	}
 	
 	public void arcadeDrive(double moveVal, double rotateVal) {
 		drive.arcadeDrive(moveVal, rotateVal);
-		
-		SmartDashboard.putNumberArray("Drive Encoders", new double[] {getEncoderLeft(), getEncoderRight()});
 	}//arcadeDrive
-	
-	public int getEncoderLeft() {
-		return talonLeftMain.getSelectedSensorPosition(0);
-	}//getEncoderLeft
-	
-	public int getEncoderRight() {
-		return talonRightMain.getSelectedSensorPosition(0);
-	}//getEncoderRight
-	
-	public void resetEncoders() {
-		talonLeftMain.setSelectedSensorPosition(0, 0, 20);
-		talonRightMain.setSelectedSensorPosition(0, 0, 20);
-	}//resetEncoders
 	
 	public void postValuesToNetworkTable() {
 

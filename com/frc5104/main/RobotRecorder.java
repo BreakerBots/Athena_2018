@@ -1,33 +1,40 @@
 package com.frc5104.main;
 
 import java.io.File;
-import java.util.Calendar;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
-import com.ctre.phoenix.motorcontrol.ControlMode;
-import com.ctre.phoenix.motorcontrol.can.TalonSRX;
+import javax.xml.crypto.Data;
+
 import com.frc5104.logging.CSVFileReader;
 import com.frc5104.logging.CSVFileWriter;
+import com.frc5104.logging.Column;
 import com.frc5104.logging.LogDouble;
 import com.frc5104.main.subsystems.Drive;
 import com.frc5104.main.subsystems.Elevator;
 import com.frc5104.main.subsystems.Shifters;
 import com.frc5104.main.subsystems.Squeezy;
+import com.frc5104.main.subsystems.Squeezy.SqueezyState;
 import com.frc5104.main.subsystems.SqueezySensors;
-import com.frc5104.utilities.ButtonS;
+import com.frc5104.utilities.ControllerHandler;
+import com.frc5104.utilities.ControllerHandler.Control;
 import com.frc5104.utilities.Deadband;
-import com.frc5104.vision.VisionThread;
+import com.frc5104.utilities.HMI;
+import com.frc5104.utilities.TalonFactory;
 
+import edu.wpi.first.wpilibj.CameraServer;
 import edu.wpi.first.wpilibj.DoubleSolenoid;
+import edu.wpi.first.wpilibj.DoubleSolenoid.Value;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.IterativeRobot;
-import edu.wpi.first.wpilibj.Joystick;
+import edu.wpi.first.wpilibj.Servo;
 import edu.wpi.first.wpilibj.Timer;
-import edu.wpi.first.wpilibj.GenericHID.RumbleType;
+import edu.wpi.first.wpilibj.command.CommandGroup;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
 public class RobotRecorder extends IterativeRobot {
 
-	
 	//------------ Recording ----------------//
 	public static final String root = "/home/lvuser/aresPaths";
 	enum RecorderState {
@@ -45,17 +52,20 @@ public class RobotRecorder extends IterativeRobot {
 	
 	//---------------------------------------//
 	
-	BasicAuto auto;
-	VisionThread vision;
+	int[] talonIDs = new int[] {11, 12, 13, 14 //drive
+			,21, 22, 23    //squeezy
+			,31, 32        //elevator
+	};
+	TalonFactory talonFactory = new TalonFactory(talonIDs);
 
-	Joystick joy = new Joystick(0);
+	CommandGroup auto;
+
 	Deadband deadband = new Deadband(0.05);
 	
 	//Drive Squeezy Elevator Climber
 //	Drive drive = null;
 	Drive drive = Drive.getInstance();
 	Shifters shifters = Shifters.getInstance();
-	ButtonS shifterButton = new ButtonS(5);
 	
 //	Squeezy squeezy = null;
 	Squeezy squeezy = Squeezy.getInstance();
@@ -65,67 +75,37 @@ public class RobotRecorder extends IterativeRobot {
 //	Elevator elevator = null;
 	Elevator elevator = Elevator.getInstance();
 	
-	PTO pto = null;
-//	PTO pto = PTO.getInstance();
-	long startTime = System.currentTimeMillis();
-	TalonSRX ptoTalon = null;
-//	TalonSRX ptoTalon = new TalonSRX(9);
-//	TalonSRX ptoTalon = new TalonSRX(/*Athena/Ares*//*9*/  /*Babyboard*/11);
-	
-	ButtonS ptoShifter = new ButtonS(4);
 	DoubleSolenoid ptoSol = new DoubleSolenoid(4, 5);
+	Servo hookHolder = new Servo(0);
 	
+	DoubleSolenoid squeezyUpDown = new DoubleSolenoid(0, 1);
 	
-	DoubleSolenoid squeezyUpDown = new DoubleSolenoid(0,1);
-	/* ------- PTO PID Values for Elevator -------
-	 * 
-	 * p == 0.16
-	 * i == 0.00002
-	 * d == 0.15
-	 * izone == 1000
-	 * 
-	 * fwd soft limit == 0
-	 * rev soft limit == -16150
-	 * 
-	 * ------- PTO PID Values for Squeezy -------
-	 * 
-	 * p == 0.01
-	 * i == 0.0001
-	 * d == 
-	 * izone == 3000
-	 * 
-	 * fwd soft limit == 0
-	 * rev soft limit == -100000
-	 * 
-	 * -------   						  -------
-	 */
-	
+	ControllerHandler controller = ControllerHandler.getInstance();
 	
 	public void robotInit() {
-		System.out.println("Running Athena code");
+		System.out.println("Running Athena Recorder");
 		
 		if (squeezy != null)
 			squeezy.initTable(null);
 		
 		if (elevator != null)
 			elevator.initTable(null);
+		hookHolder.setPosition(0.2);
 		
-		squeezyUpDown.set(DoubleSolenoid.Value.kForward);
+		squeezyUpDown.set(DoubleSolenoid.Value.kReverse);
 		
+		CameraServer.getInstance().startAutomaticCapture();
+		HMI.PutOnDashboard();
+
 	}//robotInit
 	
-	public void autonomousInit() {
-		SmartDashboard.putNumber("DB/Slider 0", 4);
-		
-//		auto = new AutoPickupCube();
-//		
-//		auto.init();
-	}//autonomousInit
-	
-	public void autonomousPeriodic() {
-		
-		
-	}//autonomousPeriodic
+	public double getDriveX() {
+		return -Deadband.getDefault().get(controller.getAxis(HMI.kDriveX));
+	}//getDriveX
+
+	public double getDriveY() {
+		return Deadband.getDefault().get(controller.getAxis(HMI.kDriveY));
+	}//getDriveX
 	
 	public void teleopInit() {
 		if (shifters != null)
@@ -138,9 +118,8 @@ public class RobotRecorder extends IterativeRobot {
 	}//teleopInit
 	
 	public void teleopPeriodic() {
-		int pov = joy.getPOV();
+		controller.update();
 		
-		SmartDashboard.putString("DB/String 0", "POV: "+pov);
 		SmartDashboard.putString("DB/String 1", recorderState.toString());
 		
 //		System.out.println(recorderState.toString() + "\t" + pov);
@@ -148,34 +127,44 @@ public class RobotRecorder extends IterativeRobot {
 		switch (recorderState) {
 		case kUser:
 			userTeleop();
-			if (pov == 270) {
+			if (controller.getPressed(HMI.kStartRecording)) {
 				System.out.println("Started Recording");
 				recorderState = RecorderState.kRecording;
 				getBatteryVoltage();
 				initRecorderFile();
 				setupRecorderData();
 			}
-			if (pov == 90) {
-				System.out.println("Started Playback");
-				recorderState = RecorderState.kPlayback;
-				getBatteryVoltage();
-				loadPlaybackFile();
-				
-				playbackIndex = 0;
+			if (controller.getPressed(HMI.kPlayback)) {
+				boolean success = loadPlaybackFile();
+
+				if (success) {
+					System.out.println("Started Playback");
+					recorderState = RecorderState.kPlayback;
+					getBatteryVoltage();
+					
+					playbackIndex = 0;
+				} else {
+					System.out.println("Failed to start playback!");
+				}
 			}
 			break;
 		case kRecording:
+			System.out.println("Recording -- Delta: "+getDeltaTime());
 			userTeleop();
 			recorder.collectAtTime(System.currentTimeMillis());
 			
-			if (pov == 180) {
+			if (controller.getPressed(HMI.kStopRecording)) {
 				System.out.println("Stopped Recording");
 				recorderState = RecorderState.kUser;
+//				closeRecorderFile();
+				cropRecorderFile();
+//				recorder.setFile("/home/lvuser/aresPaths/test");
 				closeRecorderFile();
+				getBatteryVoltage();
 			}
 			break;
 		case kPlayback:
-			if (!playback()) {
+			if (playback()) {
 				recorderState = RecorderState.kUser;
 				getBatteryVoltage();
 			}
@@ -184,183 +173,238 @@ public class RobotRecorder extends IterativeRobot {
 	}//teleopPeriodic
 	
 	public void userTeleop() {
+//		controller.update();
+		
+//		if (controller.getPressed(Button.LB))
+//			elevator.goTo(Stage.kSwitch);
+//		else if (controller.getPressed(Button.RB))
+//			elevator.goTo(Stage.kTop);
+		
 //		System.out.println("Encoder Position: "+drive.getEncoderRight());
-		ptoShifter.update(); if (ptoShifter.Pressed) { 
+		if (controller.getHeldEvent(HMI.kPtoHoldAndHookPressButton, 0.4)) { 
+			System.out.println("Switching PTO!");
 			ptoSol.set(ptoSol.get() == DoubleSolenoid.Value.kReverse ? DoubleSolenoid.Value.kForward : DoubleSolenoid.Value.kReverse);
+			if (ptoSol.get() == Value.kForward)
+				controller.rumbleSoftFor(0.5, 0.2);
+			else
+				controller.rumbleHardFor(1, 0.2);
+		}
+		if (controller.getPressed(HMI.kOpenHookHolder)) {
+			hookHolder.setPosition(1 - hookHolder.getPosition());
 		}
 		
 		if (drive != null) {
-			double x = -joy.getRawAxis(0),
-					y = joy.getRawAxis(1);
+			double x = getDriveX();
+			double y = getDriveY();
 			
-//			x = deadband.get(x);
-//			y = deadband.get(y);
 			drive.arcadeDrive(y*10/batteryVoltage,x*10/batteryVoltage);
-//			drive.arcadeDrive(y, x);
 		}
 		
-		shifterButton.update();
-		if (shifterButton.Pressed)
-			shifters.toggle();
+		if (controller.getAxis(HMI.kDriveShift) > 0.6)
+			shifters.shiftHigh();
+		else
+			shifters.shiftLow();
 		
 		if (elevator != null) {
-			elevator.userControl();
+			elevator.setEffort(controller.getAxis(HMI.kElevatorUpDown));
 		}
 
 		if (squeezy != null) {
-			squeezy.pollButtons();
+			squeezy.updateState();
 			squeezy.update();
 		}
 		
-//		if (joy.getPOV() == 90) {
-//			System.out.println("DOWN!");
-//			squeezyUpDown.set(DoubleSolenoid.Value.kForward);
-//		}
-//		if (joy.getPOV() == 180) {
-//			System.out.println("UP!");
-//			squeezyUpDown.set(DoubleSolenoid.Value.kReverse);
-//		}
-//		if (Math.abs(drive.getEncoderLeft()+drive.getEncoderRight())/2 > 1300)
-//			shifters.shiftHigh();
-//		else if (Math.abs(drive.getEncoderLeft()+drive.getEncoderRight())/2 < 800)
-//			shifters.shiftLow();
-
-		
-//		if (joy.getRawAxis(3) > 0.2) {
-		if (pto != null) {
-			if ((System.currentTimeMillis() - startTime)%2000 > 1000) {
-	//			elevator.disable();
-				pto.powerClimber();
-				System.out.println("Powering climber");
+		if (controller.getPressed(HMI.kSqueezyDown)) {
+			System.out.println("DOWN!");
+			squeezyUpDown.set(DoubleSolenoid.Value.kForward);
+		}
+		if (controller.getPressed(HMI.kSqueezyUp)) {
+			if (!squeezy.isInState(SqueezyState.INTAKE)) {
+				System.out.println("UP!");
+				squeezyUpDown.set(DoubleSolenoid.Value.kReverse);
 			} else {
-	//			elevator.enable();
-				pto.powerElevator();
-				System.out.println("Powering elevator");
+				System.out.println("Will not pull up squeezy in intake mode!!!");
+				squeezy.forceState(SqueezyState.HOLDING);
 			}
 		}
 		
-		
-		if (ptoTalon != null) {
-			double elevatorEffort = ptoTalon.getMotorOutputPercent();
-			if (SmartDashboard.getBoolean("pto_driven_by_joystick", true)) {
-				elevatorEffort = -(joy.getRawButton(5) ? 1: -1) + (joy.getRawButton(6) ? 1 : -1);
-				elevatorEffort = deadband.get(elevatorEffort);
-				ptoTalon.set(ControlMode.PercentOutput, elevatorEffort);
-			} else {
-				ptoTalon.set(ControlMode.Position, SmartDashboard.getNumber("elevator_setpoint", 
-						ptoTalon.getSelectedSensorPosition(0)));
-			}
-
-			boolean lower = ptoTalon.getSensorCollection().isFwdLimitSwitchClosed();
-			boolean upper = ptoTalon.getSensorCollection().isRevLimitSwitchClosed();
-			if (lower) {
-				ptoTalon.setSelectedSensorPosition(0, 0, 10);
-			}
-			SmartDashboard.putBoolean("limits/lower-fwd", lower);
-			SmartDashboard.putBoolean("limits/upper-rev", upper);
-			
-			SmartDashboard.putNumber(""
-					+ "", elevatorEffort);
-			SmartDashboard.putNumber("pto_current", ptoTalon.getOutputCurrent());
-			SmartDashboard.putNumber("pto_voltage", ptoTalon.getMotorOutputVoltage());
-			
-			SmartDashboard.putNumber("elevator_pos", ptoTalon.getSelectedSensorPosition(0));
-			SmartDashboard.putNumber("elevator_vel", ptoTalon.getSelectedSensorVelocity(0));
-			
-			SmartDashboard.putNumber("i_accum", ptoTalon.getIntegralAccumulator(0));
-			if (SmartDashboard.getBoolean("clear_i_accum", false)) {
-				SmartDashboard.putBoolean("clear_i_accum", false);
-				ptoTalon.setIntegralAccumulator(0, 0, 10);
-			}
-		}
 	}//teleopPeriodic
 	
+	public void robotPeriodic() {
+		squeezySensors.updateSensors();
+		
+		squeezy.postSqueezerData();
+		squeezy.postState();
+		squeezy.postUltrasonicData();
+		
+		elevator.updateTables();
+	}//robotPeriodic
+
 	public void initRecorderFile() {
-		Calendar today = Calendar.getInstance();
-		int month	= today.get(Calendar.MONTH),
-			day		= today.get(Calendar.DAY_OF_MONTH),
-			year	= today.get(Calendar.YEAR);
-		int hour	= today.get(Calendar.HOUR),
-			minute	= today.get(Calendar.MINUTE),
-			second	= today.get(Calendar.SECOND);
-
-		/* Creates a new directory for the day */
-		File date = new File(root, String.format("%d-%d-%d",month,day,year));
-		if (date.mkdir())
-			System.out.println("Successfully created this date's directory");
-		else
-			System.out.println("Failed to create this date's directory");
-
-		String fileName = SmartDashboard.getString("DB/String 5", "robotPath");
-		if (fileName.equals("")) {
-			fileName = "robot_path";
+		String pathName = SmartDashboard.getString("DB/String 5", "robot_path");
+		if (pathName.equals("")) {
+			pathName = "robot_path";
 		}
+
+		File dir = new File(root, pathName);
+		
+		if (!dir.exists()) dir.mkdir();
 		
 		int index = 0;
-		File pathFile = new File(date, fileName);
-		while (pathFile.exists()) {
-			pathFile = new File(date, fileName+"_"+index);
+		File pathFile;
+		do {
+			pathFile = new File(dir, ""+index);
 			index++;
-		}
-		
-		SmartDashboard.putString("DB/String 5", pathFile.getName());
+		} while (pathFile.exists());
 		
 		recorder = new CSVFileWriter(pathFile);
 		recorderFile = pathFile;
 		
 	}//initRecorderFile
 	
+	public File getPlaybackFile() {
+		String pathName = SmartDashboard.getString("DB/String 5", "robot_path");
+		if (pathName.equals("")) {
+			pathName = "robot_path";
+		}
+		
+		File dir = new File(root, pathName);
+		
+		if (!dir.exists()) {
+			return null;
+		}
+		
+		String[] files = dir.list();
+		if (files.length == 0) return null;
+		
+		Arrays.sort(files);
+		System.out.println("Files: ");
+		for (String s: files)
+			System.out.println(s);
+		
+		File playbackFile = new File(dir, files[files.length-1]);
+		
+		return playbackFile;
+	}//initPlaybackFile
+	
 	public void setupRecorderData() {
 		recorder.addLogDouble("joy_x", new LogDouble() {
 			public double get() {
-				return -joy.getRawAxis(0);
+				return getDriveX();
 			}
 		});
 		recorder.addLogDouble("joy_y", new LogDouble() {
 			public double get() {
-				return joy.getRawAxis(1);
+				return getDriveY();
 			}
 		});
 		recorder.addLogDouble("elevator_effort", new LogDouble() {
 			public double get() {
-				return elevator.effort;
+				return controller.getAxis(HMI.kElevatorUpDown);
 			}
 		});
-		recorder.addLogDouble("elevator_position", new LogDouble() {
+		recorder.addLogDouble("buttons", new LogDouble() {
 			public double get() {
-				return elevator.getEncoderPosition();
+				for (int i=0; i<Control.values().length; i++)
+					if (controller.getPressed(Control.values()[i]))
+						return i;
+				return -1;
 			}
 		});
 	}//setupRecorderData
+	
+	public void cropRecorderFile() {
+		List<Column> oldData = recorder.getColumns();
+		List<Column> newData = new ArrayList<Column>();
+		
+		boolean flag = true;
+		int beginning, end;
+		
+		beginning = 0;
+		while (flag) {
+			//Check Joystick X+Y
+			Column[] cols = new Column[]{oldData.get(1), oldData.get(2)};
+			for (Column c: cols)
+				if (c.getValue(beginning) != 0) {
+					flag = false;
+					break;
+				}
+			if (beginning == cols[0].size())
+				flag = false;
+			if (flag)
+				beginning++;
+		}
+		
+		end = oldData.get(0).size()-1;
+		flag = true;
+		while (flag && end >= 0) {
+			//Check Joystick X+Y
+			Column[] cols = new Column[]{oldData.get(1), oldData.get(2)};
+			for (Column c: cols)
+				if (c.getValue(end) != 0) {
+					flag = false;
+					break;
+				}
+			if (flag)
+				end--;
+		}
+		
+		//Transfer over Columns, cropping out bounds
+		for (Column c: oldData) {
+			List<Double> data = new ArrayList<Double>();
+			for (int i=beginning; i<=end; i++)
+				data.add(c.getValue(i));
+			newData.add(new Column(c.getName(),c.getCallback(),data));
+		}
+		
+		recorder.setColumns(newData);
+	}//cropRecorderFile
 	
 	public void closeRecorderFile() {
 		recorder.writeValuesToFile();
 	}//closeRecorderFile
 	
-	public void loadPlaybackFile() {
-		reader = new CSVFileReader(recorderFile);
+	public boolean loadPlaybackFile() {
+		File readFile = getPlaybackFile();
+		if (readFile == null) {
+			System.out.println("No valid file to read from!!!");
+			return false;
+		} else {
+			reader = new CSVFileReader(readFile);
+			reader.readFile();
+			return true;
+		}
 	}//loadPlaybackFile
 	
 	public boolean playback() {
-		System.out.println("Playback!");
+		System.out.println("Playback! -- Delta: "+getDeltaTime());
 		
 		double x = reader.get("joy_x", playbackIndex);
 		double y = reader.get("joy_y", playbackIndex);
-		double elevatorEffort = reader.get("elevator_effort", playbackIndex);
+		double elev = reader.get("elevator_effort", playbackIndex);
 		
 		drive.arcadeDrive(y*10/batteryVoltage, x*10/batteryVoltage);
-		elevator.setEffort(elevatorEffort);
+		elevator.setEffort(elev);
 		
 		playbackIndex++;
+
 		return playbackIndex == reader.size();
 	}//playback
+	
+	long lastTime = 0;
+	public int getDeltaTime() {
+		long now = System.currentTimeMillis();
+		int delta = (int)(now-lastTime);
+		lastTime = now;
+		return delta;
+	}//getDeltaTime
 	
 	private void getBatteryVoltage() {
 		drive.arcadeDrive(0, 0);
 		
-		joy.setRumble(RumbleType.kRightRumble, 1);
-		Timer.delay(0.1);
-		joy.setRumble(RumbleType.kRightRumble, 0);
+		controller.rumbleHard(1);
+		Timer.delay(0.5);
+		controller.rumbleHard(0);
 
 		batteryVoltage = DriverStation.getInstance().getBatteryVoltage();
 		SmartDashboard.putString("DB/String 4", ""+batteryVoltage);

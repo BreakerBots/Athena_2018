@@ -8,32 +8,6 @@ import java.util.List;
 
 public class CSVFileWriter {
 
-	static class Data {
-		public final String name;
-		public final LogDouble callback;
-		
-		public List<Double> values;
-		
-		public Data (String name, LogDouble callback) {
-			this.name = name;
-			this.callback = callback;
-			
-			values = new ArrayList<Double>();
-		}//Data
-		
-		public void collect() {
-			values.add(callback.get());
-		}//collect
-		
-		public int age() {
-			return values.size();
-		}//age
-		
-		public double getValue(int index) {
-			return values.get(index);
-		}//getValue
-	}//Data
-	
 	private File file;
 	private FileWriter writer;
 	
@@ -42,7 +16,7 @@ public class CSVFileWriter {
 
 	final long startTime = System.currentTimeMillis();
 	long tickTime = startTime;
-	List<Data> data;
+	List<Column> columns;
 	
 	public CSVFileWriter (File file) {
 		this.file = file;
@@ -61,20 +35,30 @@ public class CSVFileWriter {
 		separator = ", ";
 		endline = "\n";
 		
-		data = new ArrayList<Data>();
+		columns = new ArrayList<Column>();
 		LogDouble timeCallback = new LogDouble() {
 			public double get() {
 				return (double)(tickTime-startTime);
 			}
 		};
-		data.add(new Data("time", timeCallback));
+		columns.add(new Column("time", timeCallback));
 	}//CSVFile
+	
+	public void setFile(String fileName) {
+		file = new File(fileName);
+		
+		try {
+			writer = new FileWriter(file);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}//setFile
 	
 	private void writeTitles() throws IOException{
 		boolean first = true;
-		for (int i=0; i<data.size(); i++) {
+		for (int i=0; i<columns.size(); i++) {
 			if (!first) writer.write(separator);
-			writer.write(data.get(i).name);
+			writer.write(columns.get(i).name);
 			first = false;
 		}
 		writer.write(endline);
@@ -83,7 +67,7 @@ public class CSVFileWriter {
 	public void collectAtTime(long time) {
 		tickTime = time;
 		
-		for (Data d: data) {
+		for (Column d: columns) {
 			d.collect();
 		}
 		
@@ -97,13 +81,13 @@ public class CSVFileWriter {
 			writeTitles();
 	
 			//For each line
-			for (int i=0; i<data.get(0).age(); i++) {
-				//Scan across the Data callbacks, and 
+			for (int i=0; i<columns.get(0).size(); i++) {
+				//Scan across the Column callbacks, and 
 				//  write each recorded value for that timestamp
-				for (int j=0; j<data.size(); j++) {
+				for (int j=0; j<columns.size(); j++) {
 					if (j != 0)
 						writer.write(separator);
-					writer.write(""+data.get(j).getValue(i));
+					writer.write(""+columns.get(j).getValue(i));
 				}//j
 				writer.write(endline);
 			}//i
@@ -118,11 +102,19 @@ public class CSVFileWriter {
 	}//writeValuesToFile
 	
 	public void addLogDouble(String name, LogDouble value) {
-		data.add(new Data(name, value));
+		columns.add(new Column(name, value));
 	}//addLogDouble
 	
 	public String getAbsolutePath() {
 		return file.getAbsolutePath();
 	}
+	
+	public List<Column> getColumns(){
+		return columns;
+	}//getColumn
+	
+	public void setColumns(List<Column> newColumns) {
+		columns = newColumns;
+	}//setColumn
 
 }//CSVFile

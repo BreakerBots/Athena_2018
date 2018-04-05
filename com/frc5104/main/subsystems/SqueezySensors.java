@@ -16,8 +16,8 @@ public class SqueezySensors {
 	}//getInstance
 	
 	FilteredUltraSonic centerUltra = new FilteredUltraSonic(0, 1, 50);
-	FilteredUltraSonic leftUltra = new FilteredUltraSonic(2, 3);
-	FilteredUltraSonic rightUltra = new FilteredUltraSonic(4, 5);
+	FilteredUltraSonic leftUltra = new FilteredUltraSonic(2, 3, 5);
+	FilteredUltraSonic rightUltra = new FilteredUltraSonic(4, 5, 5);
 	
 	private SqueezySensors() {
 		centerUltra.init();
@@ -44,7 +44,10 @@ public class SqueezySensors {
 		 * at the largest distance, any significant block-sized object, (11-13in)
 		 * will bring the Left+Right distance down to (19-11)+(0) == 8in.
 		 */
-		if (leftUltra.getDistance() + rightUltra.getDistance() < 18)
+		double left = leftUltra.getDistance();
+		double right = rightUltra.getDistance();
+//		if (leftUltra.getDistance() + rightUltra.getDistance() < 18)
+		if (left < 10 || right < 10)
 			return true;
 		else
 			return false;
@@ -58,12 +61,20 @@ public class SqueezySensors {
 			return false;
 //		if (leftUltra.getDistance() > 4 && rightUltra.getDistance() > 4)
 //			return true;
+		
 //		else
 //			return false;
 	}//detectBoxGone
 	
+	public String encVel () {
+		int vel = Squeezy.getInstance().getEncoderVelocity();
+		boolean bool = Math.abs(vel) < 30;
+		return "Vel Check: "+bool+" -- "+vel;
+	}//encVel
+	
 	public boolean detectBoxHeld() {
 //		if (new Joystick(0).getRawButton(6))/*3-11-18*/
+		
 		if (centerUltra.getDistance() < /*6*//*5.5*//*New 3d plate*/3)
 //			leftUltra.getDistance() < 2 &&
 //			rightUltra.getDistance() < 2)
