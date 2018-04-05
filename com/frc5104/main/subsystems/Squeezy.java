@@ -87,9 +87,6 @@ public class Squeezy {
 			calibrated = true;
 		}
 		
-		
-		sensors.updateSensors();
-
 		prevState = state;
 		
 		switch (state) {
@@ -171,21 +168,21 @@ public class Squeezy {
 			break;
 		}//switch
 		
-		if (controller.getPressed(HMI.kOpenButton)) {
+		if (controller.getPressed(HMI.kSqueezyOpen)) {
 			state = SqueezyState.MANUAL_OPEN;
 			manualStateDiagram = true;
 		}
-		if (controller.getPressed(HMI.kCloseButton)) {
+		if (controller.getPressed(HMI.kSqueezyClose)) {
 			state = SqueezyState.MANUAL_CLOSE;
 			manualStateDiagram = true;
 		}
 		
-		if (controller.getPressed(HMI.kEjectButton)) {
+		if (controller.getPressed(HMI.kSqueezyEject)) {
 			System.out.println("EJECTING!!!");
 			ejectTime = System.currentTimeMillis();
 			state = SqueezyState.EJECT;
 		}
-		if (controller.getPressed(HMI.kNeutralButton))
+		if (controller.getPressed(HMI.kSqueezyNeutral))
 			state = SqueezyState.EMPTY;
 		
 	}//poll

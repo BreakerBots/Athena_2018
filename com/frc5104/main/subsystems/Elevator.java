@@ -119,7 +119,7 @@ public class Elevator {
 	}//moveDown
 	
 	public void userControl() {
-		double userInput = controller.getAxis(HMI.kElevator);
+		double userInput = controller.getAxis(HMI.kElevatorUpDown);
 		userInput = userDeadband.get(userInput);
 		
 		if (0 <= Math.abs(userInput))

@@ -95,6 +95,7 @@ public class RobotRecorder extends IterativeRobot {
 		squeezyUpDown.set(DoubleSolenoid.Value.kReverse);
 		
 		CameraServer.getInstance().startAutomaticCapture();
+		HMI.PutOnDashboard();
 
 	}//robotInit
 	
@@ -169,6 +170,16 @@ public class RobotRecorder extends IterativeRobot {
 		}
 	}//teleopPeriodic
 	
+	public void robotPeriodic() {
+		squeezySensors.updateSensors();
+		
+		squeezy.postSqueezerData();
+		squeezy.postState();
+		squeezy.postUltrasonicData();
+		
+		elevator.updateTables();
+	}//robotPeriodic
+	
 	public void userTeleop() {
 //		controller.update();
 		
@@ -178,7 +189,7 @@ public class RobotRecorder extends IterativeRobot {
 //			elevator.goTo(Stage.kTop);
 		
 //		System.out.println("Encoder Position: "+drive.getEncoderRight());
-		if (controller.getHeldEvent(HMI.kPtoButton, 0.4)) { 
+		if (controller.getHeldEvent(HMI.kPtoHoldAndHookPressButton, 0.4)) { 
 			System.out.println("Switching PTO!");
 			ptoSol.set(ptoSol.get() == DoubleSolenoid.Value.kReverse ? DoubleSolenoid.Value.kForward : DoubleSolenoid.Value.kReverse);
 			if (ptoSol.get() == Value.kForward)
@@ -197,14 +208,14 @@ public class RobotRecorder extends IterativeRobot {
 			drive.arcadeDrive(y*10/batteryVoltage,x*10/batteryVoltage);
 		}
 		
-		if (controller.getAxis(HMI.kShift) > 0.6)
+		if (controller.getAxis(HMI.kDriveShift) > 0.6)
 			shifters.shiftHigh();
 		else
 			shifters.shiftLow();
 		
 		if (elevator != null) {
 //			elevator.userControl();
-			elevator.setEffort(controller.getAxis(HMI.kElevator));
+			elevator.setEffort(controller.getAxis(HMI.kElevatorUpDown));
 		}
 
 		if (squeezy != null) {
@@ -288,7 +299,7 @@ public class RobotRecorder extends IterativeRobot {
 		});
 		recorder.addLogDouble("elevator_effort", new LogDouble() {
 			public double get() {
-				return controller.getAxis(HMI.kElevator);
+				return controller.getAxis(HMI.kElevatorUpDown);
 			}
 		});
 //		recorder.addLogDouble("buttons", new LogDouble() {

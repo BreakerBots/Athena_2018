@@ -86,6 +86,8 @@ public class Robot extends IterativeRobot {
 		
 		CameraServer.getInstance().startAutomaticCapture();
 		
+		HMI.PutOnDashboard();
+		
 	}//robotInit
 	long autoStartTime;
 	public void autonomousInit() {
@@ -118,7 +120,7 @@ public class Robot extends IterativeRobot {
 //		else if (controller.getPressed(Button.RB))
 //			elevator.goTo(Stage.kTop);
 		
-		if (controller.getHeldEvent(HMI.kPtoButton, 0.4)) { 
+		if (controller.getHeldEvent(HMI.kPtoHoldAndHookPressButton, 0.4)) { 
 			System.out.println("Switching PTO!");
 			ptoSol.set(ptoSol.get() == DoubleSolenoid.Value.kReverse ? DoubleSolenoid.Value.kForward : DoubleSolenoid.Value.kReverse);
 			if (ptoSol.get() == Value.kForward)
@@ -136,7 +138,7 @@ public class Robot extends IterativeRobot {
 			drive.arcadeDrive(y,x);
 		}
 		
-		if (controller.getAxis(HMI.kShift) > 0.6)
+		if (controller.getAxis(HMI.kDriveShift) > 0.6)
 			shifters.shiftHigh();
 		else
 			shifters.shiftLow();
@@ -167,6 +169,8 @@ public class Robot extends IterativeRobot {
 	}//teleopPeriodic
 	
 	public void robotPeriodic() {
+		squeezySensors.updateSensors();
+		
 		squeezy.postSqueezerData();
 		squeezy.postState();
 		squeezy.postUltrasonicData();

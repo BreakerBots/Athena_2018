@@ -15,22 +15,22 @@ public class HMI {
 	//Drive
 	public static final Control kDriveX = Control.LX;
 	public static final Control kDriveY = Control.LY;
-	public static final Control kShift = Control.RT;
+	public static final Control kDriveShift = Control.RT;
 	
 	//Elevator
-	public static final Control kPtoButton = Control.Y; //hold for 0.4 sec
-	public static final Control kElevator = Control.RY;
+	public static final Control kPtoHoldAndHookPressButton = Control.Y; //hold for 0.4 sec
+	public static final Control kElevatorUpDown = Control.RY;
 	public static final Control kOpenHookHolder = /*Control.A -- Changed ToY*/ Control.Y;
 	
 	//Squeezy
 	public static final Control kSqueezyUp = Control.N;
 	public static final Control kSqueezyDown = Control.S;
 	
-	public static final Control kOpenButton = Control.W;
-	public static final Control kCloseButton = Control.E;
+	public static final Control kSqueezyOpen = Control.W;
+	public static final Control kSqueezyClose = Control.E;
 	
-	public static final Control kEjectButton = Control.LB;
-	public static final Control kNeutralButton = Control.B;
+	public static final Control kSqueezyEject = Control.LB;
+	public static final Control kSqueezyNeutral = Control.B;
 	public static final Control kSqueezyIntake = Control.X;
 
 	private static NetworkTable table = null;
