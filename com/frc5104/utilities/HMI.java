@@ -51,7 +51,7 @@ public class HMI {
 	}
 	
 	private static void putControl(String name, Object object) {
-		System.out.println(name + " = " + object);
+//		System.out.println(name + " = " + object);
 		table.getEntry(name).setString(object.toString());
 	}
 }

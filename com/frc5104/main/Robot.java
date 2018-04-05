@@ -16,6 +16,7 @@ import edu.wpi.first.wpilibj.CameraServer;
 import edu.wpi.first.wpilibj.DoubleSolenoid;
 import edu.wpi.first.wpilibj.DoubleSolenoid.Value;
 import edu.wpi.first.wpilibj.IterativeRobot;
+import edu.wpi.first.wpilibj.Servo;
 import edu.wpi.first.wpilibj.Solenoid;
 import edu.wpi.first.wpilibj.command.CommandGroup;
 import edu.wpi.first.wpilibj.command.Scheduler;
@@ -46,7 +47,8 @@ public class Robot extends IterativeRobot {
 	Elevator elevator = Elevator.getInstance();
 	
 	DoubleSolenoid ptoSol = new DoubleSolenoid(4, 5);
-	
+	Servo hookHolder = new Servo(0);
+
 	public DoubleSolenoid squeezyUpDown = new DoubleSolenoid(0, 1);
 	
 	ControllerHandler controller = ControllerHandler.getInstance();
@@ -81,7 +83,8 @@ public class Robot extends IterativeRobot {
 		
 		if (elevator != null)
 			elevator.initTable(null);
-		
+		hookHolder.setPosition(0.2);
+
 		squeezyUpDown.set(DoubleSolenoid.Value.kReverse);
 		
 		CameraServer.getInstance().startAutomaticCapture();
@@ -89,6 +92,7 @@ public class Robot extends IterativeRobot {
 		HMI.PutOnDashboard();
 		
 	}//robotInit
+	
 	long autoStartTime;
 	public void autonomousInit() {
 		squeezy.forceState(SqueezyState.HOLDING);
@@ -128,6 +132,10 @@ public class Robot extends IterativeRobot {
 			else
 				controller.rumbleHardFor(1, 0.2);
 		}
+		if (controller.getPressed(HMI.kOpenHookHolder)) {
+			hookHolder.setPosition(1 - hookHolder.getPosition());
+		}
+	
 		
 		if (drive != null) {
 			double x = -controller.getAxis(HMI.kDriveX),

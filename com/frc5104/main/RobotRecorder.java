@@ -76,7 +76,7 @@ public class RobotRecorder extends IterativeRobot {
 	Elevator elevator = Elevator.getInstance();
 	
 	DoubleSolenoid ptoSol = new DoubleSolenoid(4, 5);
-	Servo hookHolder = new Servo(7);
+	Servo hookHolder = new Servo(0);
 	
 	DoubleSolenoid squeezyUpDown = new DoubleSolenoid(0, 1);
 	
@@ -104,7 +104,7 @@ public class RobotRecorder extends IterativeRobot {
 	}//getDriveX
 
 	public double getDriveY() {
-		return -Deadband.getDefault().get(controller.getAxis(HMI.kDriveY));
+		return Deadband.getDefault().get(controller.getAxis(HMI.kDriveY));
 	}//getDriveX
 	
 	public void teleopInit() {
@@ -149,16 +149,18 @@ public class RobotRecorder extends IterativeRobot {
 			}
 			break;
 		case kRecording:
+			System.out.println("Recording -- Delta: "+getDeltaTime());
 			userTeleop();
 			recorder.collectAtTime(System.currentTimeMillis());
 			
 			if (controller.getPressed(HMI.kStopRecording)) {
 				System.out.println("Stopped Recording");
 				recorderState = RecorderState.kUser;
-				closeRecorderFile();
+//				closeRecorderFile();
 				cropRecorderFile();
-				recorder.setFile("/home/lvuser/aresPaths/test");
+//				recorder.setFile("/home/lvuser/aresPaths/test");
 				closeRecorderFile();
+				getBatteryVoltage();
 			}
 			break;
 		case kPlayback:
@@ -169,16 +171,6 @@ public class RobotRecorder extends IterativeRobot {
 			break;
 		}
 	}//teleopPeriodic
-	
-	public void robotPeriodic() {
-		squeezySensors.updateSensors();
-		
-		squeezy.postSqueezerData();
-		squeezy.postState();
-		squeezy.postUltrasonicData();
-		
-		elevator.updateTables();
-	}//robotPeriodic
 	
 	public void userTeleop() {
 //		controller.update();
@@ -214,7 +206,6 @@ public class RobotRecorder extends IterativeRobot {
 			shifters.shiftLow();
 		
 		if (elevator != null) {
-//			elevator.userControl();
 			elevator.setEffort(controller.getAxis(HMI.kElevatorUpDown));
 		}
 
@@ -239,6 +230,16 @@ public class RobotRecorder extends IterativeRobot {
 		
 	}//teleopPeriodic
 	
+	public void robotPeriodic() {
+		squeezySensors.updateSensors();
+		
+		squeezy.postSqueezerData();
+		squeezy.postState();
+		squeezy.postUltrasonicData();
+		
+		elevator.updateTables();
+	}//robotPeriodic
+
 	public void initRecorderFile() {
 		String pathName = SmartDashboard.getString("DB/String 5", "robot_path");
 		if (pathName.equals("")) {
@@ -302,14 +303,14 @@ public class RobotRecorder extends IterativeRobot {
 				return controller.getAxis(HMI.kElevatorUpDown);
 			}
 		});
-//		recorder.addLogDouble("buttons", new LogDouble() {
-//			public double get() {
-//				for (int i=0; i<Button.values().length; i++)
-//					if (controller.getPressed(Button.values()[i]))
-//						return i;
-//				return -1;
-//			}
-//		});
+		recorder.addLogDouble("buttons", new LogDouble() {
+			public double get() {
+				for (int i=0; i<Control.values().length; i++)
+					if (controller.getPressed(Control.values()[i]))
+						return i;
+				return -1;
+			}
+		});
 	}//setupRecorderData
 	
 	public void cropRecorderFile() {
@@ -376,7 +377,7 @@ public class RobotRecorder extends IterativeRobot {
 	}//loadPlaybackFile
 	
 	public boolean playback() {
-		System.out.println("Playback!");
+		System.out.println("Playback! -- Delta: "+getDeltaTime());
 		
 		double x = reader.get("joy_x", playbackIndex);
 		double y = reader.get("joy_y", playbackIndex);
@@ -389,6 +390,14 @@ public class RobotRecorder extends IterativeRobot {
 
 		return playbackIndex == reader.size();
 	}//playback
+	
+	long lastTime = 0;
+	public int getDeltaTime() {
+		long now = System.currentTimeMillis();
+		int delta = (int)(now-lastTime);
+		lastTime = now;
+		return delta;
+	}//getDeltaTime
 	
 	private void getBatteryVoltage() {
 		drive.arcadeDrive(0, 0);
