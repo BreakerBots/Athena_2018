@@ -379,7 +379,7 @@ public class RobotRecorder extends IterativeRobot {
 		}
 	}//loadPlaybackFile
 	
-	private long playbackLastTime = null;
+	private long playbackLastTime = 0;
 	public boolean playback() {
 		System.out.println("Playback! -- Delta: "+getDeltaTime());
 		
@@ -389,7 +389,7 @@ public class RobotRecorder extends IterativeRobot {
 		double elev = reader.get("elevator_effort", playbackIndex);
 		
 		long now = System.currentTimeMillis();
-		if (playbackLastTime != null){
+		if (playbackLastTime != 0){
 			long delay = dt - (now-playbackLastTime);
 			if (delay > 0){
 				try {
