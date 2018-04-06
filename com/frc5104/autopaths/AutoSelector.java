@@ -8,11 +8,41 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
 public class AutoSelector {
 
+	public enum AutonomousPaths {
+		Baseline (kSwitchEject),
+		CenterToLeft_NoElevator(kSwitchEject),
+		CenterToRight_NoElevator(kSwitchEject),
+		LeftToLeft_NoElevator(kSwitchEject),
+		RightToRight_NoElevator(kSwitchEject);
+		
+		double ejectEffort;
+		
+		private AutonomousPaths(double ejectEffort) {
+			this.ejectEffort = ejectEffort;
+		}
+		
+		public CommandGroup getPath(boolean eject) {
+			
+			CommandGroup autoPath;
+			if (eject) {
+				autoPath = new DropSqueezyRecording(toString(), squeezySolenoid, ejectEffort);
+			} else {
+				autoPath = new Recording(toString());
+			}
+			
+			return autoPath;
+		}//getPath
+	}//AutonomusPaths
+	
 	public static int kWaitForGameDataMillis = 3000;
 	
 	public enum Position {
 		kLeft, kCenter, kRight
 	}
+	
+	public static final double kSwitchEject = 0.6;
+	public static final double kScaleEject = 1;
+	public static DoubleSolenoid squeezySolenoid;
 	
 	public static volatile String gameData = null;
 	public static Position robotPosition;
@@ -20,8 +50,9 @@ public class AutoSelector {
 	public static boolean userDecision;
 	
 	public static CommandGroup getAuto(DoubleSolenoid squeezySol) {
+		squeezySolenoid = squeezySol;
 		
-		CommandGroup auto = new Recording("Baseline");
+		CommandGroup auto = AutonomousPaths.Baseline.getPath(false);
 
 		Thread gameDataThread = new Thread() {
 			public void run() {
@@ -65,9 +96,14 @@ public class AutoSelector {
 			if (!position.equals("null")) {
 				switch (position) {
 				case "Left":
-					if (gameData.charAt(0) == 'L')
+					if (gameData.charAt(0) == 'L') {
 						System.out.println("Left to Left!");
-//						auto = new Recording("Left");
+						auto = AutonomousPaths.LeftToLeft_NoElevator.getPath(false);
+					} else if (gameData.charAt(1) == 'L') {
+						System.out.println("Left to Left Scale!");
+//						auto = AutonomousPaths.LeftToLeftScale.getPath(true);
+					}
+						
 					break;
 				case "Center":
 					if (gameData.charAt(0) == 'L')
@@ -96,18 +132,17 @@ public class AutoSelector {
 				"RightToRight_NoElevator"
 		};
 		
-//		if (gameData.charAt(0) == 'L')
-//			auto = new DropSqueezyRecording("LeftToLeft_NoElevator", squeezySol);
-//		else 
-//			auto = new Recording("LeftToLeft_NoElevator");
-
-		double switchEject = 0.6;
-		double scaleEject = 1;
-		
+		//Left Position
 		if (gameData.charAt(0) == 'L')
-			auto = new DropSqueezyRecording(paths[1], squeezySol, switchEject);
+			auto = AutonomousPaths.LeftToLeft_NoElevator.getPath(true);
 		else 
-			auto = new DropSqueezyRecording(paths[2], squeezySol, switchEject);
+			auto = AutonomousPaths.LeftToLeft_NoElevator.getPath(false);
+
+		//Center position
+		if (gameData.charAt(0) == 'L')
+			auto = AutonomousPaths.CenterToLeft_NoElevator.getPath(true);
+		else 
+			auto = AutonomousPaths.CenterToRight_NoElevator.getPath(true);
 
 		return auto;
 	}//CommandGroup

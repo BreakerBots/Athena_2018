@@ -32,6 +32,8 @@ public class HMI {
 	public static final Control kSqueezyEject = Control.LB;
 	public static final Control kSqueezyNeutral = Control.B;
 	public static final Control kSqueezyIntake = Control.X;
+	
+	public static final Control kElevatorToggleBottomSwitch = Control.A;
 
 	private static NetworkTable table = null;
 	public static void PutOnDashboard() {

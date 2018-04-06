@@ -74,7 +74,7 @@ public class Elevator {
 		talon1.configForwardSoftLimitEnable(false, 10);
 		talon1.configForwardSoftLimitThreshold(SOFT_STOP_BOTTOM, 10);
 		
-		talon1.config_kP(0, 2, 10);
+		talon1.config_kP(0, 0.5, 10);
 		talon1.config_IntegralZone(0, 2000, 10);
 		
 		currentStage = Stage.kBottom;
@@ -88,6 +88,10 @@ public class Elevator {
 		
 		update();
 	}//setEffort
+	
+	public Stage getStage() {
+		return currentStage;
+	}
 	
 	public void goTo(Stage stage) {
 		if (calibrated) {
@@ -122,11 +126,13 @@ public class Elevator {
 		double userInput = controller.getAxis(HMI.kElevatorUpDown);
 		userInput = userDeadband.get(userInput);
 		
-		if (0 <= Math.abs(userInput))
+		boolean effortControlled = controlMode == Elevator.Control.kEffort;
+		boolean overrideOthers = 0.00001 <= Math.abs(userInput);
+		
+		if (effortControlled || overrideOthers)
 			setEffort(userInput);
 		
 		update();
-		updateTables();
 //		vibrateIfApproaching();
 	}//userControl
 
@@ -141,7 +147,6 @@ public class Elevator {
 			if (talon1.getSensorCollection().isFwdLimitSwitchClosed()) {
 				//Reset Talon Encoder Position & Soft Limit
 				talon1.setSelectedSensorPosition(0, 0, 10);
-				talon1.configForwardSoftLimitEnable(true, 10);
 				
 				calibrated = true;
 				controlMode = Control.kPosition;
@@ -151,7 +156,6 @@ public class Elevator {
 	}//update
 	
 	public void calibrateBottom() {
-		talon1.configForwardSoftLimitEnable(false, 10);
 		controlMode = Control.kCalibrate;
 		update();
 	}//calibrateBottom

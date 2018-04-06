@@ -12,6 +12,7 @@ import com.frc5104.logging.Column;
 import com.frc5104.logging.LogDouble;
 import com.frc5104.main.subsystems.Drive;
 import com.frc5104.main.subsystems.Elevator;
+import com.frc5104.main.subsystems.Elevator.Stage;
 import com.frc5104.main.subsystems.Shifters;
 import com.frc5104.main.subsystems.Squeezy;
 import com.frc5104.main.subsystems.Squeezy.SqueezyState;
@@ -94,7 +95,7 @@ public class RobotRecorder extends IterativeRobot {
 		
 		squeezyUpDown.set(DoubleSolenoid.Value.kReverse);
 		
-		CameraServer.getInstance().startAutomaticCapture();
+//		CameraServer.getInstance().startAutomaticCapture();
 		HMI.PutOnDashboard();
 
 	}//robotInit
@@ -194,7 +195,6 @@ public class RobotRecorder extends IterativeRobot {
 	}//autonomousPeriodic
 	
 	public void userTeleop() {
-//		controller.update();
 		
 //		if (controller.getPressed(Button.LB))
 //			elevator.goTo(Stage.kSwitch);
@@ -227,7 +227,16 @@ public class RobotRecorder extends IterativeRobot {
 			shifters.shiftLow();
 		
 		if (elevator != null) {
-			elevator.setEffort(controller.getAxis(HMI.kElevatorUpDown));
+			
+//			elevator.setEffort(controller.getAxis(HMI.kElevatorUpDown));
+			elevator.userControl();
+			
+			if (controller.getPressed(HMI.kElevatorToggleBottomSwitch)) {
+				if (elevator.getStage() == Elevator.Stage.kBottom) {
+					elevator.goTo(Stage.kSwitch);
+				} else
+					elevator.goTo(Stage.kBottom);
+			}
 		}
 
 		if (squeezy != null) {
