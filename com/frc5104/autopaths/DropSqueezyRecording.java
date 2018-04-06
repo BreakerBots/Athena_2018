@@ -17,7 +17,7 @@ public class DropSqueezyRecording extends CommandGroup {
 	File file;
 	CSVFileReader reader;
 	
-    public DropSqueezyRecording(String recordingName, DoubleSolenoid squeezySol) {    	
+    public DropSqueezyRecording(String recordingName, DoubleSolenoid squeezySol, double ejectEffort) {    	
 //    	elevator(Stage.kLowerScale);
     	
     	file = new File("/home/lvuser/good/"+recordingName);
@@ -27,7 +27,7 @@ public class DropSqueezyRecording extends CommandGroup {
     	
     	addSequential(new ProcessRecording(reader));
     	addSequential(new DropSqueezy(squeezySol));
-    	addSequential(new EjectSqueezy(0.6));
+    	addSequential(new EjectSqueezy(ejectEffort));
     }//Recording
     
     public void elevator(Stage stage) {

@@ -99,14 +99,14 @@ public class Robot extends IterativeRobot {
 		squeezyUpDown.set(Value.kReverse);//UP
 		
 		auto = AutoSelector.getAuto(squeezyUpDown);
-		Scheduler.getInstance().add(auto);
+//		Scheduler.getInstance().add(auto);
 		
 //		autoStartTime = System.currentTimeMillis();
+		HMI.PutOnDashboard();
 	}//autonomousInit
 	
 	public void autonomousPeriodic() {
-		HMI.PutOnDashboard();
-		Scheduler.getInstance().run();
+//		Scheduler.getInstance().run();
 		squeezy.update();
 	}//autonomousPeriodic
 	
@@ -138,8 +138,8 @@ public class Robot extends IterativeRobot {
 	
 		
 		if (drive != null) {
-			double x = -controller.getAxis(HMI.kDriveX),
-				   y = controller.getAxis(HMI.kDriveY);
+			double x = controller.getAxis(HMI.kDriveX),
+				   y = -controller.getAxis(HMI.kDriveY);
 			x = Deadband.getDefault().get(x);
 			y = Deadband.getDefault().get(y);
 			

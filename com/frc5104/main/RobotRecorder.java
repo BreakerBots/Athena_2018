@@ -5,11 +5,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import java.lang.Thread;
-import java.lang.InterruptedException;
-
-import javax.xml.crypto.Data;
-
+import com.frc5104.autopaths.AutoSelector;
 import com.frc5104.logging.CSVFileReader;
 import com.frc5104.logging.CSVFileWriter;
 import com.frc5104.logging.Column;
@@ -34,6 +30,7 @@ import edu.wpi.first.wpilibj.IterativeRobot;
 import edu.wpi.first.wpilibj.Servo;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.command.CommandGroup;
+import edu.wpi.first.wpilibj.command.Scheduler;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
 public class RobotRecorder extends IterativeRobot {
@@ -93,7 +90,7 @@ public class RobotRecorder extends IterativeRobot {
 		
 		if (elevator != null)
 			elevator.initTable(null);
-		hookHolder.setPosition(0.2);
+		hookHolder.setPosition(0.8);
 		
 		squeezyUpDown.set(DoubleSolenoid.Value.kReverse);
 		
@@ -103,11 +100,11 @@ public class RobotRecorder extends IterativeRobot {
 	}//robotInit
 	
 	public double getDriveX() {
-		return -Deadband.getDefault().get(controller.getAxis(HMI.kDriveX));
+		return Deadband.getDefault().get(controller.getAxis(HMI.kDriveX));
 	}//getDriveX
 
 	public double getDriveY() {
-		return Deadband.getDefault().get(controller.getAxis(HMI.kDriveY));
+		return -Deadband.getDefault().get(controller.getAxis(HMI.kDriveY));
 	}//getDriveX
 	
 	public void teleopInit() {
@@ -117,6 +114,8 @@ public class RobotRecorder extends IterativeRobot {
 		recorderState = RecorderState.kUser;
 		
 		getBatteryVoltage();
+		
+		hookHolder.set(0.8);
 		
 	}//teleopInit
 	
@@ -174,6 +173,25 @@ public class RobotRecorder extends IterativeRobot {
 			break;
 		}
 	}//teleopPeriodic
+	
+	long autoStartTime;
+	public void autonomousInit() {
+		squeezy.forceState(SqueezyState.HOLDING);
+		squeezyUpDown.set(Value.kReverse);//UP
+		
+		auto = AutoSelector.getAuto(squeezyUpDown);
+		Scheduler.getInstance().add(auto);
+		
+		hookHolder.set(0.8);
+		
+//		autoStartTime = System.currentTimeMillis();
+		HMI.PutOnDashboard();
+	}//autonomousInit
+	
+	public void autonomousPeriodic() {
+		Scheduler.getInstance().run();
+		squeezy.update();
+	}//autonomousPeriodic
 	
 	public void userTeleop() {
 //		controller.update();
@@ -379,31 +397,34 @@ public class RobotRecorder extends IterativeRobot {
 		}
 	}//loadPlaybackFile
 	
-	private long playbackLastTime = 0;
+	int last2Time = 0;
 	public boolean playback() {
-		System.out.println("Playback! -- Delta: "+getDeltaTime());
+		int thisMs = getDeltaTime();
 		
-		long dt = (long) reader.get("time", playbackIndex);
+		int dtMs = (int) reader.get("time", playbackIndex);
+		if (last2Time != 0) {
+			last2Time = dtMs;
+			dtMs = dtMs - last2Time;
+		} else
+			last2Time = dtMs;
 		double x = reader.get("joy_x", playbackIndex);
 		double y = reader.get("joy_y", playbackIndex);
 		double elev = reader.get("elevator_effort", playbackIndex);
 		
-		long now = System.currentTimeMillis();
-		if (playbackLastTime != 0){
-			long delay = dt - (now-playbackLastTime);
-			if (delay > 0){
-				try {
-					Thread.sleep(delay);
-				} catch (InterruptedException e){
-					e.printStackTrace();
-				}
-			}
+		int waitMs = dtMs - thisMs;
+		
+		System.out.printf("Playback! File: %4dms   This: %4dms   Waiting: %4dms\n", dtMs, thisMs, waitMs);
+		
+		if (waitMs> 0){
+			Timer.delay(waitMs/1000.0);
 		}
-		playbackLastTime = now;
-
+		
+		getDeltaTime(); //Reset Delta Time
 
 		drive.arcadeDrive(y*10/batteryVoltage, x*10/batteryVoltage);
-		elevator.setEffort(elev);
+		boolean driveElevator = false;
+		if (driveElevator)
+			elevator.setEffort(elev);
 		
 		playbackIndex++;
 
@@ -412,6 +433,7 @@ public class RobotRecorder extends IterativeRobot {
 	
 	long lastTime = 0;
 	public int getDeltaTime() {
+		if (lastTime == 0) lastTime = System.currentTimeMillis();
 		long now = System.currentTimeMillis();
 		int delta = (int)(now-lastTime);
 		lastTime = now;

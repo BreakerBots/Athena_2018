@@ -88,11 +88,27 @@ public class AutoSelector {
 			System.out.println("No Game Data Provided!");
 		}
 		
-		if (gameData.charAt(0) == 'L')
-			auto = new DropSqueezyRecording("LeftToLeft_NoElevator", squeezySol);
-		else 
-			auto = new Recording("LeftToLeft_NoElevator");
+		String[] paths = {
+				"Baseline",
+				"CenterToLeft_NoElevator",
+				"CenterToRight_NoElevator",
+				"LeftToLeft_NoElevator",
+				"RightToRight_NoElevator"
+		};
 		
+//		if (gameData.charAt(0) == 'L')
+//			auto = new DropSqueezyRecording("LeftToLeft_NoElevator", squeezySol);
+//		else 
+//			auto = new Recording("LeftToLeft_NoElevator");
+
+		double switchEject = 0.6;
+		double scaleEject = 1;
+		
+		if (gameData.charAt(0) == 'L')
+			auto = new DropSqueezyRecording(paths[1], squeezySol, switchEject);
+		else 
+			auto = new DropSqueezyRecording(paths[2], squeezySol, switchEject);
+
 		return auto;
 	}//CommandGroup
 

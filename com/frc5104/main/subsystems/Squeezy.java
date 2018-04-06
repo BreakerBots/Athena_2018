@@ -396,6 +396,9 @@ public class Squeezy {
 			setDouble("pos", getEncoderPosition());
 			setDouble("vel", getEncoderVelocity());
 			
+			setDouble("in-out", getEncoderPosition()/1000);
+			setBoolean("Up", false);
+			
 			setBoolean("debug/state_Eject", state == SqueezyState.EJECT);
 			setBoolean("debug/state_Intake", state == SqueezyState.INTAKE);
 			

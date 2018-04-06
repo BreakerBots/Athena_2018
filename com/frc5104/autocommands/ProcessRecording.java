@@ -34,26 +34,31 @@ public class ProcessRecording extends Command {
     	System.out.println("Reading has "+src.size()+" points.");
     }
 
-    private long playbackLastTime = null;
+    private long playbackLastTime = 0;
+    private int last2Time = 0;
     protected void execute() {
-	long dt = (long) reader.get("time", playbackIndex);
+    	
+		int thisMs = getDeltaTime();
+		int dtMs = (int) src.get("time", index);
+		if (last2Time != 0) {
+			last2Time = dtMs;
+			dtMs = dtMs - last2Time;
+		} else
+			last2Time = dtMs;
     	double x = src.get("joy_x", index);
     	double y = src.get("joy_y", index);
     	
+    	int waitMs = dtMs - thisMs;
+
 //    	boolean squeezyEject = src.get("squeezyEject", index) == 1.0;
 
-	if (playbackLastTime != null){
-		long delay = dt - (now-playbackLastTime);
-		if (delay > 0){
-			try {
-				Thread.sleep(delay);
-			} catch (InterruptedException e){
-				e.printStackTrace();
-			}
-		}
-	}
-	playbackLastTime = now;
+    	System.out.printf("Playback! File: %4dms   This: %4dms   Waiting: %dms\n", dtMs, thisMs, waitMs);
 
+		if (waitMs> 0){
+			Timer.delay(waitMs/1000.0);
+		}
+    	
+    	getDeltaTime(); //Reset Delta Time
     	
     	Drive.getInstance().arcadeDrive(y*10/batteryVoltage, x*10/batteryVoltage);
     	
@@ -84,4 +89,14 @@ public class ProcessRecording extends Command {
 		batteryVoltage = DriverStation.getInstance().getBatteryVoltage();
 		System.out.println("Measured Battery Voltage at: "+batteryVoltage);
 	}
+    
+    long lastTime = 0;
+	public int getDeltaTime() {
+		if (lastTime == 0) lastTime = System.currentTimeMillis();
+		long now = System.currentTimeMillis();
+		int delta = (int)(now-lastTime);
+		lastTime = now;
+		return delta;
+	}//getDeltaTime
+	
 }//getBatteryVoltage

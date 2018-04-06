@@ -258,6 +258,8 @@ public class Elevator {
 		setDouble("pid/position", talon1.getSelectedSensorPosition(0));
 		setDouble("pid/velocity", talon1.getSelectedSensorVelocity(0));
 		
+		setDouble("UpDown",talon1.getSelectedSensorPosition(0) / 1000);
+		
 		setDouble("pid/i_accum", talon1.getIntegralAccumulator(0));
 		if (getBoolean("pid/clear_i_accum", false)) {
 			setBoolean("pid/clear_i_accum", false);
