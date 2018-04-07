@@ -11,7 +11,7 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 public class AutoSelector {
 
 	public enum AutonomousPaths {
-		Baseline (),
+		Baseline(),
 		
 		CenterToLeft(),
 		CenterToRight(),
