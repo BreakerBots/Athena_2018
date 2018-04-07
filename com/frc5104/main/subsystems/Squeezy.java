@@ -151,7 +151,7 @@ public class Squeezy {
 			break;
 		case HOLDING:
 			if (squeezer.getSensorCollection().isRevLimitSwitchClosed())
-				state = SqueezyState.EMPTY;
+				state = SqueezyState.INTAKE;
 			if (getEncoderPosition() > kHasCubePosition) {
 				leftUnjam = sensors.getDistances()[1] > sensors.getDistances()[2];
 				ejectTime = System.currentTimeMillis();
@@ -205,11 +205,17 @@ public class Squeezy {
 	}//poll
 	
 	public void update() {
+		update(false);
+	}//update no squeezy up
+	public void update(boolean squeezyIsUp) {
 		switch (state) {
 		case EMPTY:
 			raise();
 			spinStop();
-			leave();
+			if (squeezyIsUp)
+				close();
+			else
+				leave();
 			break;
 		case EJECT:
 			lower();
@@ -221,7 +227,10 @@ public class Squeezy {
 		case INTAKE:
 			lower();
 			spinIn();
-			open();
+			if (squeezyIsUp)
+				close();
+			else
+				open();
 			break;
 		case CLOSING:
 			lower();
@@ -241,13 +250,19 @@ public class Squeezy {
 		case UNJAM:
 			lower();
 			spinStop();
-			open();
+			if (squeezyIsUp)
+				close();
+			else
+				open();
 			break;
 		//-------------Manual State Chart--------------//
 		case MANUAL_OPEN:
 			lower();
 			spinIn();
-			open();
+			if (!squeezyIsUp)
+				open();
+			else
+				close();
 			break;
 		case MANUAL_CLOSE:
 			lower();

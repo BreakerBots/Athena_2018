@@ -186,7 +186,7 @@ public class RobotRecorder extends IterativeRobot {
 		squeezy.forceState(SqueezyState.HOLDING);
 		squeezyUpDown.set(Value.kReverse);//UP
 		
-		elevator.calibrateBottom();
+//		elevator.calibrateBottom();
 		
 		auto = AutoSelector.getAuto(squeezyUpDown);
 		Scheduler.getInstance().add(auto);
@@ -257,26 +257,26 @@ public class RobotRecorder extends IterativeRobot {
 			}
 		}
 
-		if (squeezy != null) {
-			squeezy.updateState();
-			squeezy.update();
-		}
 		
 		if (controller.getPressed(HMI.kSqueezyDown)) {
 			System.out.println("DOWN!");
 			squeezyUpDown.set(DoubleSolenoid.Value.kForward);
 		}
 		if (controller.getPressed(HMI.kSqueezyUp)) {
-//			if (!squeezy.isInState(SqueezyState.INTAKE) && !squeezy.isInState(SqueezyState.MANUAL_OPEN)) {
-			if (!squeezy.getOpenLimitSwitch()) {
+////			if (!squeezy.isInState(SqueezyState.INTAKE) && !squeezy.isInState(SqueezyState.MANUAL_OPEN)) {
+//			if (!squeezy.getOpenLimitSwitch()) {
 				System.out.println("UP!");
 				squeezyUpDown.set(DoubleSolenoid.Value.kReverse);
-			} else {
-				System.out.println("Will not pull up squeezy if the limit switch is tripped!!!");
-				squeezy.forceState(SqueezyState.HOLDING);
-			}
+//			} else {
+//				System.out.println("Will not pull up squeezy if the limit switch is tripped!!!");
+//				squeezy.forceState(SqueezyState.HOLDING);
+//			}
 		}
 		
+		if (squeezy != null) {
+			squeezy.updateState();
+			squeezy.update(squeezyUpDown.get() == DoubleSolenoid.Value.kReverse);
+		}
 	}//teleopPeriodic
 	
 	public void robotPeriodic() {
