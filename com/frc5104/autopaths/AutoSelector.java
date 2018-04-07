@@ -134,13 +134,14 @@ public class AutoSelector {
 					}
 					break;
 				case "Right":
-					if (gameData.charAt(1) == 'R') {
-						System.out.println("Right to Right Scale!");
-						auto = AutonomousPaths.RightToRightScale.getPath(true);
-					} else if (gameData.charAt(0) == 'R') {
-						System.out.println("Right To Right!");
+					if (gameData.charAt(0) == 'R') {
+						System.out.println("Right to Right Switch!");
 						auto = AutonomousPaths.RightToRight.getPath(true);
 					}
+//					else if (gameData.charAt(1) == 'R') {
+//						System.out.println("Right To Right Scale!");
+//						auto = AutonomousPaths.RightToRightScale.getPath(true);
+//					}
 					break;
 				}
 			}
@@ -151,7 +152,7 @@ public class AutoSelector {
 		//Left Position
 //		if (gameData.charAt(0) == 'L')
 //			auto = AutonomousPaths.LeftToLeft_NoElevator.getPath(true);
-//		else 
+//		else
 //			auto = AutonomousPaths.LeftToLeft_NoElevator.getPath(false);
 
 		//Center position
