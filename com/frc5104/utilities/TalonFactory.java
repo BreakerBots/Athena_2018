@@ -19,10 +19,12 @@ public class TalonFactory {
 	}//TalonFactory
 	
 	public void init() {
+		System.out.printf("Configured Talon:");
 		for (TalonSRX taloni:talons) {
 			fixTalon(taloni);
-			System.out.println("Configured Talon: "+taloni.getDeviceID());
+			System.out.printf(" %d", taloni.getDeviceID());
 		}
+		System.out.println();
 	}//init
 	
 	public static void fixTalon (TalonSRX talon) {
