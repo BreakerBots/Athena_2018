@@ -6,6 +6,7 @@ import com.frc5104.autocommands.DropSqueezy;
 import com.frc5104.autocommands.EjectSqueezy;
 import com.frc5104.autocommands.MoveElevator;
 import com.frc5104.autocommands.ProcessRecording;
+import com.frc5104.autocommands.StopDrive;
 import com.frc5104.logging.CSVFileReader;
 import com.frc5104.main.subsystems.Elevator.Stage;
 
@@ -26,6 +27,7 @@ public class DropSqueezyRecording extends CommandGroup {
     	reader.readFile();
     	
     	addSequential(new ProcessRecording(reader));
+    	addParallel(new StopDrive());
     	addSequential(new DropSqueezy(squeezySol));
     	addSequential(new EjectSqueezy(ejectEffort));
     }//Recording

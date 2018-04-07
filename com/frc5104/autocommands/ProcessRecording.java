@@ -19,7 +19,7 @@ public class ProcessRecording extends Command {
 	double batteryVoltage;
 	
 	//---- Debug ----//
-	double totalThisMs = 0,
+	int totalThisMs = 0,
 		   totalDtMs = 0,
 		   totalWaitMs = 0;
 
@@ -40,8 +40,9 @@ public class ProcessRecording extends Command {
 		int thisMs = getDeltaTime();
 		int dtMs = (int) src.get("time", index);
 		if (last2Time != 0) {
-			last2Time = dtMs;
+			int temp = dtMs;
 			dtMs = dtMs - last2Time;
+			last2Time = temp;
 		} else
 			last2Time = dtMs;
     	double x = src.get("joy_x", index);
@@ -61,7 +62,8 @@ public class ProcessRecording extends Command {
 			Timer.delay(waitMs/1000.0);
 		}
     	
-    	getDeltaTime(); //Reset Delta Time
+//    	getDeltaTime(); //Reset Delta Time
+		lastTime = System.currentTimeMillis();
     	
     	Drive.getInstance().arcadeDrive(y*10/batteryVoltage, x*10/batteryVoltage);
     	

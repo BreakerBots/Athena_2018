@@ -4,6 +4,7 @@ import java.io.File;
 
 import com.frc5104.autocommands.MoveElevator;
 import com.frc5104.autocommands.ProcessRecording;
+import com.frc5104.autocommands.StopDrive;
 import com.frc5104.logging.CSVFileReader;
 import com.frc5104.main.subsystems.Elevator.Stage;
 
@@ -23,6 +24,7 @@ public class Recording extends CommandGroup {
     	reader.readFile();
     	
     	addSequential(new ProcessRecording(reader));
+    	addParallel(new StopDrive());
     }//Recording
     
     public void elevator(Stage stage) {
