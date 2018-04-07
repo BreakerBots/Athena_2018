@@ -214,10 +214,13 @@ public class RobotRecorder extends IterativeRobot {
 		if (controller.getHeldEvent(HMI.kPtoHoldAndHookPressButton, 0.4)) { 
 			System.out.println("Switching PTO!");
 			ptoSol.set(!ptoSol.get());
-			if (ptoSol.get())
-				controller.rumbleSoftFor(0.5, 0.2);
-			else
-				controller.rumbleHardFor(1, 0.2);
+//			if (ptoSol.get())
+//				controller.rumbleSoftFor(0.5, 0.2);
+//			else
+//				controller.rumbleHardFor(1, 0.2);
+		}
+		if (!ptoSol.get()) {
+			controller.rumbleHardFor(0.7, 0.2);
 		}
 		if (controller.getPressed(HMI.kOpenHookHolder)) {
 			hookHolder.setPosition(1 - hookHolder.getPosition());

@@ -11,14 +11,14 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 public class AutoSelector {
 
 	public enum AutonomousPaths {
-		BaselineFresno (),
+		Baseline (),
 		
-		CenterToLeft_NoElevator(),
-		CenterToRight_NoElevator(),
+		CenterToLeft(),
+		CenterToRight(),
 		
-		LeftToLeft_NoElevator(),
+		LeftToLeft(),
 		
-		RightToRight_NoElevator(),
+		RightToRight(),
 		RightToRightScale(kScaleEject);
 		
 		double ejectEffort;
@@ -71,7 +71,7 @@ public class AutoSelector {
 	public static CommandGroup getAuto(DoubleSolenoid squeezySol) {
 		squeezySolenoid = squeezySol;
 		
-		CommandGroup auto = AutonomousPaths.BaselineFresno.getPath(false);
+		CommandGroup auto = AutonomousPaths.Baseline.getPath(false);
 
 		Thread gameDataThread = new Thread() {
 			public void run() {
@@ -117,7 +117,7 @@ public class AutoSelector {
 				case "Left":
 					if (gameData.charAt(0) == 'L') {
 						System.out.println("Left to Left!");
-						auto = AutonomousPaths.LeftToLeft_NoElevator.getPath(true);
+						auto = AutonomousPaths.LeftToLeft.getPath(true);
 					} else if (gameData.charAt(1) == 'L') {
 						System.out.println("Left to Left Scale!");
 //						auto = AutonomousPaths.LeftToLeftScale.getPath(true);
@@ -127,10 +127,10 @@ public class AutoSelector {
 				case "Center":
 					if (gameData.charAt(0) == 'L') {
 						System.out.println("Center To Left!");
-						auto = AutonomousPaths.CenterToLeft_NoElevator.getPath(true);
+						auto = AutonomousPaths.CenterToLeft.getPath(true);
 					} else if (gameData.charAt(0) == 'R') {
 						System.out.println("Center To Right!");
-						auto = AutonomousPaths.CenterToRight_NoElevator.getPath(true);
+						auto = AutonomousPaths.CenterToRight.getPath(true);
 					}
 					break;
 				case "Right":
@@ -139,7 +139,7 @@ public class AutoSelector {
 						auto = AutonomousPaths.RightToRightScale.getPath(true);
 					} else if (gameData.charAt(0) == 'R') {
 						System.out.println("Right To Right!");
-						auto = AutonomousPaths.RightToRight_NoElevator.getPath(true);
+						auto = AutonomousPaths.RightToRight.getPath(true);
 					}
 					break;
 				}
