@@ -269,6 +269,14 @@ public class Squeezy {
 		return squeezer.getSelectedSensorVelocity(0);
 	}//getEncoderVelocity
 	
+	public boolean getOpenLimitSwitch() {
+		return squeezer.getSensorCollection().isFwdLimitSwitchClosed();
+	}//getOpenLimitSwitch
+
+	public boolean getClosedLimitSwitch() {
+		return squeezer.getSensorCollection().isRevLimitSwitchClosed();
+	}//getOpenLimitSwitch
+
 	public void forceState(SqueezyState newState) {
 		state = newState;
 		if (state == SqueezyState.EJECT)

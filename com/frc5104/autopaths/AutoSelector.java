@@ -1,5 +1,7 @@
 package com.frc5104.autopaths;
 
+import com.frc5104.main.subsystems.Elevator.Stage;
+
 import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.wpilibj.DoubleSolenoid;
 import edu.wpi.first.wpilibj.DriverStation;
@@ -9,25 +11,42 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 public class AutoSelector {
 
 	public enum AutonomousPaths {
-		Baseline (kSwitchEject),
-		CenterToLeft_NoElevator(kSwitchEject),
-		CenterToRight_NoElevator(kSwitchEject),
-		LeftToLeft_NoElevator(kSwitchEject),
-		RightToRight_NoElevator(kSwitchEject);
+		BaselineFresno (),
+		
+		CenterToLeft_NoElevator(),
+		CenterToRight_NoElevator(),
+		
+		LeftToLeft_NoElevator(),
+		
+		RightToRight_NoElevator(),
+		RightToRightScale(kScaleEject);
 		
 		double ejectEffort;
 		
+//		private AutonomousPaths(double ejectEffort, Elevator.Stage elevatorStage) {
+//			elevatorStage
+//		}
 		private AutonomousPaths(double ejectEffort) {
 			this.ejectEffort = ejectEffort;
+		}
+		private AutonomousPaths() {
+			this(kSwitchEject);
 		}
 		
 		public CommandGroup getPath(boolean eject) {
 			
 			CommandGroup autoPath;
-			if (eject) {
-				autoPath = new DropSqueezyRecording(toString(), squeezySolenoid, ejectEffort);
+
+			if (name() == AutonomousPaths.RightToRightScale.name()) {
+				System.out.println("Running Right To Right Scale!!!!");
+				autoPath = new RecordingElevatorSqueezy(toString(), squeezySolenoid, ejectEffort, Stage.kLowerScale);
 			} else {
-				autoPath = new Recording(toString());
+			
+				if (eject) {
+					autoPath = new DropSqueezyRecording(toString(), squeezySolenoid, ejectEffort);
+				} else {
+					autoPath = new Recording(toString());
+				}
 			}
 			
 			return autoPath;
@@ -52,7 +71,7 @@ public class AutoSelector {
 	public static CommandGroup getAuto(DoubleSolenoid squeezySol) {
 		squeezySolenoid = squeezySol;
 		
-		CommandGroup auto = AutonomousPaths.Baseline.getPath(false);
+		CommandGroup auto = AutonomousPaths.BaselineFresno.getPath(false);
 
 		Thread gameDataThread = new Thread() {
 			public void run() {
@@ -98,7 +117,7 @@ public class AutoSelector {
 				case "Left":
 					if (gameData.charAt(0) == 'L') {
 						System.out.println("Left to Left!");
-						auto = AutonomousPaths.LeftToLeft_NoElevator.getPath(false);
+						auto = AutonomousPaths.LeftToLeft_NoElevator.getPath(true);
 					} else if (gameData.charAt(1) == 'L') {
 						System.out.println("Left to Left Scale!");
 //						auto = AutonomousPaths.LeftToLeftScale.getPath(true);
@@ -106,17 +125,22 @@ public class AutoSelector {
 						
 					break;
 				case "Center":
-					if (gameData.charAt(0) == 'L')
+					if (gameData.charAt(0) == 'L') {
 						System.out.println("Center To Left!");
-//						auto = new Recording("CenterToLeft");
-					else if (gameData.charAt(0) == 'R')
+						auto = AutonomousPaths.CenterToLeft_NoElevator.getPath(true);
+					} else if (gameData.charAt(0) == 'R') {
 						System.out.println("Center To Right!");
-//						auto = new Recording("CenterToRight");
+						auto = AutonomousPaths.CenterToRight_NoElevator.getPath(true);
+					}
 					break;
 				case "Right":
-					if (gameData.charAt(0) == 'R')
+					if (gameData.charAt(1) == 'R') {
+						System.out.println("Right to Right Scale!");
+						auto = AutonomousPaths.RightToRightScale.getPath(true);
+					} else if (gameData.charAt(0) == 'R') {
 						System.out.println("Right To Right!");
-//						auto = new Recording("Right");
+						auto = AutonomousPaths.RightToRight_NoElevator.getPath(true);
+					}
 					break;
 				}
 			}
@@ -124,25 +148,17 @@ public class AutoSelector {
 			System.out.println("No Game Data Provided!");
 		}
 		
-		String[] paths = {
-				"Baseline",
-				"CenterToLeft_NoElevator",
-				"CenterToRight_NoElevator",
-				"LeftToLeft_NoElevator",
-				"RightToRight_NoElevator"
-		};
-		
 		//Left Position
-		if (gameData.charAt(0) == 'L')
-			auto = AutonomousPaths.LeftToLeft_NoElevator.getPath(true);
-		else 
-			auto = AutonomousPaths.LeftToLeft_NoElevator.getPath(false);
+//		if (gameData.charAt(0) == 'L')
+//			auto = AutonomousPaths.LeftToLeft_NoElevator.getPath(true);
+//		else 
+//			auto = AutonomousPaths.LeftToLeft_NoElevator.getPath(false);
 
 		//Center position
-		if (gameData.charAt(0) == 'L')
-			auto = AutonomousPaths.CenterToLeft_NoElevator.getPath(true);
-		else 
-			auto = AutonomousPaths.CenterToRight_NoElevator.getPath(true);
+//		if (gameData.charAt(0) == 'L')
+//			auto = AutonomousPaths.CenterToLeft_NoElevator.getPath(true);
+//		else 
+//			auto = AutonomousPaths.CenterToRight_NoElevator.getPath(true);
 
 		return auto;
 	}//CommandGroup

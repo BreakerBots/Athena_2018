@@ -29,6 +29,7 @@ import edu.wpi.first.wpilibj.DoubleSolenoid.Value;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.IterativeRobot;
 import edu.wpi.first.wpilibj.Servo;
+import edu.wpi.first.wpilibj.Solenoid;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.command.CommandGroup;
 import edu.wpi.first.wpilibj.command.Scheduler;
@@ -76,8 +77,9 @@ public class RobotRecorder extends IterativeRobot {
 //	Elevator elevator = null;
 	Elevator elevator = Elevator.getInstance();
 	
-	DoubleSolenoid ptoSol = new DoubleSolenoid(4, 5);
+	Solenoid ptoSol = new Solenoid(4);
 	Servo hookHolder = new Servo(0);
+	double hookStartingPosition = 0;
 	
 	DoubleSolenoid squeezyUpDown = new DoubleSolenoid(0, 1);
 	
@@ -91,9 +93,11 @@ public class RobotRecorder extends IterativeRobot {
 		
 		if (elevator != null)
 			elevator.initTable(null);
-		hookHolder.setPosition(0.8);
+		hookHolder.setPosition(hookStartingPosition);
 		
 		squeezyUpDown.set(DoubleSolenoid.Value.kReverse);
+		
+		ptoSol.set(true);
 		
 //		CameraServer.getInstance().startAutomaticCapture();
 		HMI.PutOnDashboard();
@@ -109,14 +113,15 @@ public class RobotRecorder extends IterativeRobot {
 	}//getDriveX
 	
 	public void teleopInit() {
+		hookHolder.setPosition(hookStartingPosition);
 		if (shifters != null)
 			shifters.shiftLow();
 		
 		recorderState = RecorderState.kUser;
 		
-		getBatteryVoltage();
+		ptoSol.set(true);
 		
-		hookHolder.set(0.8);
+		getBatteryVoltage();
 		
 	}//teleopInit
 	
@@ -152,7 +157,8 @@ public class RobotRecorder extends IterativeRobot {
 			}
 			break;
 		case kRecording:
-			System.out.println("Recording -- Delta: "+getDeltaTime());
+//			System.out.println("Recording -- Delta: "+getDeltaTime());
+			SmartDashboard.putNumber("recordingDelta", getDeltaTime());
 			userTeleop();
 			recorder.collectAtTime(System.currentTimeMillis());
 			
@@ -180,10 +186,13 @@ public class RobotRecorder extends IterativeRobot {
 		squeezy.forceState(SqueezyState.HOLDING);
 		squeezyUpDown.set(Value.kReverse);//UP
 		
+		elevator.calibrateBottom();
+		
 		auto = AutoSelector.getAuto(squeezyUpDown);
 		Scheduler.getInstance().add(auto);
 		
-		hookHolder.set(0.8);
+		hookHolder.setPosition(hookStartingPosition);
+		ptoSol.set(true);
 		
 //		autoStartTime = System.currentTimeMillis();
 		HMI.PutOnDashboard();
@@ -204,8 +213,8 @@ public class RobotRecorder extends IterativeRobot {
 //		System.out.println("Encoder Position: "+drive.getEncoderRight());
 		if (controller.getHeldEvent(HMI.kPtoHoldAndHookPressButton, 0.4)) { 
 			System.out.println("Switching PTO!");
-			ptoSol.set(ptoSol.get() == DoubleSolenoid.Value.kReverse ? DoubleSolenoid.Value.kForward : DoubleSolenoid.Value.kReverse);
-			if (ptoSol.get() == Value.kForward)
+			ptoSol.set(!ptoSol.get());
+			if (ptoSol.get())
 				controller.rumbleSoftFor(0.5, 0.2);
 			else
 				controller.rumbleHardFor(1, 0.2);
@@ -218,7 +227,13 @@ public class RobotRecorder extends IterativeRobot {
 			double x = getDriveX();
 			double y = getDriveY();
 			
-			drive.arcadeDrive(y*10/batteryVoltage,x*10/batteryVoltage);
+			//ONLY DAMPEN DRIVE IF WE ARE RECORDING!!!!
+			if (recorderState == RecorderState.kRecording) {
+				y *= 10/batteryVoltage;
+				x *= 10/batteryVoltage;
+			}
+			
+			drive.arcadeDrive(y, x);
 		}
 		
 		if (controller.getAxis(HMI.kDriveShift) > 0.6)
@@ -249,11 +264,12 @@ public class RobotRecorder extends IterativeRobot {
 			squeezyUpDown.set(DoubleSolenoid.Value.kForward);
 		}
 		if (controller.getPressed(HMI.kSqueezyUp)) {
-			if (!squeezy.isInState(SqueezyState.INTAKE)) {
+//			if (!squeezy.isInState(SqueezyState.INTAKE) && !squeezy.isInState(SqueezyState.MANUAL_OPEN)) {
+			if (!squeezy.getOpenLimitSwitch()) {
 				System.out.println("UP!");
 				squeezyUpDown.set(DoubleSolenoid.Value.kReverse);
 			} else {
-				System.out.println("Will not pull up squeezy in intake mode!!!");
+				System.out.println("Will not pull up squeezy if the limit switch is tripped!!!");
 				squeezy.forceState(SqueezyState.HOLDING);
 			}
 		}
@@ -359,10 +375,10 @@ public class RobotRecorder extends IterativeRobot {
 					flag = false;
 					break;
 				}
-			if (beginning == cols[0].size())
-				flag = false;
 			if (flag)
 				beginning++;
+			if (beginning == cols[0].size())
+				flag = false;
 		}
 		
 		end = oldData.get(0).size()-1;
@@ -422,7 +438,7 @@ public class RobotRecorder extends IterativeRobot {
 		
 		int waitMs = dtMs - thisMs;
 		
-		System.out.printf("Playback! File: %4dms   This: %4dms   Waiting: %4dms\n", dtMs, thisMs, waitMs);
+//		System.out.printf("Playback! File: %4dms   This: %4dms   Waiting: %4dms\n", dtMs, thisMs, waitMs);
 		
 		if (waitMs> 0){
 			Timer.delay(waitMs/1000.0);

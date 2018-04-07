@@ -32,6 +32,8 @@ public class Drive {
 
 	private Drive() {
 		drive.setDeadband(0);
+//		drive.setExpiration(0.1);
+		
 		talonLeftFollower.set(ControlMode.Follower, 11);
 		talonRightFollower.set(ControlMode.Follower, 13);
 		

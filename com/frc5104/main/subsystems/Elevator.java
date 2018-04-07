@@ -24,8 +24,8 @@ public class Elevator {
 		kBottom(0),
 		kPortal(-3000),
 		kSwitch(-5000),
-		kLowerScale(-13000),
-		kTop(-16500);
+		kLowerScale(-13500),
+		kTop(-13770);
 		
 		int position;
 		Stage (int position){
@@ -75,6 +75,7 @@ public class Elevator {
 		talon1.configForwardSoftLimitThreshold(SOFT_STOP_BOTTOM, 10);
 		
 		talon1.config_kP(0, 0.5, 10);
+		talon1.config_kI(0, 0.0001, 10);
 		talon1.config_IntegralZone(0, 2000, 10);
 		
 		currentStage = Stage.kBottom;
@@ -136,12 +137,13 @@ public class Elevator {
 //		vibrateIfApproaching();
 	}//userControl
 
-	private void update() {
+	public void update() {
+//		System.out.println("CurrentStage: "+currentStage.name());
 		if (controlMode == Control.kEffort) {
 			talon1.set(ControlMode.PercentOutput, effort);
 		} else if (controlMode == Control.kPosition) {
 			talon1.set(ControlMode.Position, currentStage.getCounts());
-			System.out.println("Elevator Effort: "+talon1.getMotorOutputPercent());
+//			System.out.println("Elevator Effort: "+talon1.getMotorOutputPercent());
 		} else if (controlMode == Control.kCalibrate) {
 			talon1.set(ControlMode.PercentOutput, 0.1);
 			if (talon1.getSensorCollection().isFwdLimitSwitchClosed()) {
@@ -195,8 +197,12 @@ public class Elevator {
 		return talon1.getClosedLoopError(0);
 	}//getError
 	
+	public void clearIaccum() {
+		talon1.setIntegralAccumulator(0, 0, 10);
+	}
+	
 	public boolean onTarget() {
-		return Math.abs(talon1.getSelectedSensorPosition(0) - currentStage.getCounts()) < 200;
+		return Math.abs(talon1.getSelectedSensorPosition(0) - currentStage.getCounts()) < 500;
 	}//onTarget
 	
 	public boolean getLowerLimit() {

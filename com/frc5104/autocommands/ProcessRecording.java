@@ -1,20 +1,15 @@
 package com.frc5104.autocommands;
 
-import java.lang.Thread;
-import java.lang.InterruptedException;
-
 import com.frc5104.logging.CSVFileReader;
 import com.frc5104.main.subsystems.Drive;
 import com.frc5104.main.subsystems.Elevator;
-import com.frc5104.main.subsystems.Elevator.Control;
-import com.frc5104.utilities.ControllerHandler;
+import com.frc5104.main.subsystems.Elevator.Stage;
 
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.GenericHID.RumbleType;
 import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.command.Command;
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
 public class ProcessRecording extends Command {
 
@@ -23,10 +18,16 @@ public class ProcessRecording extends Command {
 	
 	double batteryVoltage;
 	
-    public ProcessRecording(CSVFileReader reader) {
-    	src = reader;
-    	index = 0;
-    }//ProcessRecording
+	Stage elevatorStage;
+
+	public ProcessRecording(CSVFileReader reader, Stage elevatorStage) {
+		src = reader;
+		index = 0;
+	}//ProcessRecording
+
+	public ProcessRecording(CSVFileReader reader) {
+		this(reader, null);
+	}//ProcessRecording
 
     protected void initialize() {
     	getBatteryVoltage();
@@ -52,7 +53,7 @@ public class ProcessRecording extends Command {
 
 //    	boolean squeezyEject = src.get("squeezyEject", index) == 1.0;
 
-    	System.out.printf("Playback! File: %4dms   This: %4dms   Waiting: %dms\n", dtMs, thisMs, waitMs);
+//    	System.out.printf("Playback! File: %4dms   This: %4dms   Waiting: %dms\n", dtMs, thisMs, waitMs);
 
 		if (waitMs> 0){
 			Timer.delay(waitMs/1000.0);
@@ -70,9 +71,12 @@ public class ProcessRecording extends Command {
     }//isFinished
 
     protected void end() {
+    	System.out.println("Finished Recording");
     	Drive.getInstance().arcadeDrive(0, 0);
-    	if (Elevator.getInstance().controlMode() == Control.kEffort)
-    		Elevator.getInstance().setEffort(0);
+//    	if (Elevator.getInstance().controlMode() == Control.kEffort)
+//    		Elevator.getInstance().setEffort(0);
+//    	if (elevatorStage != null)
+//		Elevator.getInstance().goTo(elevatorStage);
     }
 
     protected void interrupted() {
