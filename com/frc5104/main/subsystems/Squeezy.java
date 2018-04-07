@@ -10,6 +10,23 @@ import edu.wpi.first.networktables.NetworkTableInstance;
 
 public class Squeezy {
 	
+	private class PriorityCounter {
+		private int counter = 0;
+		
+		public boolean getLow() {
+			return counter % 75 == 0;
+		}
+		public boolean getMedium() {
+			return counter % 50 == 0;
+		}
+		public boolean getHigh() {
+			return counter % 20 == 0;
+		}
+		public void count() {
+			counter++;
+		}
+	}//PriorityCounter
+	
 	public static final int MAIN_ID = 21;
 	public static final int LEFT_ID = 22;
 	public static final int RIGHT_ID = 23;
@@ -239,9 +256,7 @@ public class Squeezy {
 			break;
 		}//switch
 		
-		postSqueezerData();
-		postState();
-		postUltrasonicData();
+		postData();
 		
 	}//updateState
 	
@@ -369,53 +384,57 @@ public class Squeezy {
 		}
 		table = inst;
 	}//initTable
-	public void postUltrasonicData() {
+	
+	PriorityCounter networkTablePriorityCounter = new PriorityCounter();
+	public void postData() {
 		if (table != null) {
-			setBoolean("sensors/detect_box", sensors.detectBox());
-			setBoolean("sensors/detect_box_gone", sensors.detectBoxGone());
-			setBoolean("sensors/detect_box_held", sensors.detectBoxHeld());
 			
-			double[] dists = sensors.getDistances();
-			
-			setDouble("ultrasonic/center", dists[0]);
-			setDouble("ultrasonic/left", dists[1]);
-			setDouble("ultrasonic/right", dists[2]);
-		}
-	}//postUltrasonicData	
-	public void postState() {
-		if (table != null) {
-			setString("prevState", prevState.toString());
-			setString("state", state.toString());
-		}
-	}//updateTable
-	public void postSqueezerData() {
-		if (table != null) {
-			setDouble("debug/voltage_squeezer", squeezer.getMotorOutputVoltage());
-			setDouble("debug/voltage_leftspin", leftSpin.getMotorOutputVoltage());
-			setDouble("debug/voltage_rightspin", rightSpin.getMotorOutputVoltage());
-			
-			setDouble("debug/current_squeezer", squeezer.getOutputCurrent());
-			setDouble("debug/current_leftspin", leftSpin.getOutputCurrent());
-			setDouble("debug/current_rightspin", rightSpin.getOutputCurrent());
-			
-			//Adding 1 to the hopefully non-negative encoder position should eliminate 1/0
-			setDouble("pos_rel", getRelativeEncoderPosition());
-			setDouble("vel_rel", getRelativeEncoderVelocity());
-			setDouble("pos", getEncoderPosition());
-			setDouble("vel", getEncoderVelocity());
-			
-			setDouble("in-out", getEncoderPosition()/1000);
-			setBoolean("Up", false);
-			
-			setBoolean("debug/state_Eject", state == SqueezyState.EJECT);
-			setBoolean("debug/state_Intake", state == SqueezyState.INTAKE);
-			
-			setBoolean("DetectedBox", sensors.detectBox());
-			setBoolean("BoxHeld", sensors.detectBoxHeld());
+			if (networkTablePriorityCounter.getLow()) {
+				setBoolean("sensors/detect_box", sensors.detectBox());
+				setBoolean("sensors/detect_box_gone", sensors.detectBoxGone());
+				setBoolean("sensors/detect_box_held", sensors.detectBoxHeld());
+				
+				double[] dists = sensors.getDistances();
+				
+				setDouble("ultrasonic/center", dists[0]);
+				setDouble("ultrasonic/left", dists[1]);
+				setDouble("ultrasonic/right", dists[2]);
+	
+				setString("prevState", prevState.toString());
+				setString("state", state.toString());
+			}
 
-			setBoolean("debug/limit-fwd", squeezer.getSensorCollection().isFwdLimitSwitchClosed());
-			setBoolean("debug/limit-rev", squeezer.getSensorCollection().isRevLimitSwitchClosed());
+			if (networkTablePriorityCounter.getLow()) {
+				setDouble("debug/voltage_squeezer", squeezer.getMotorOutputVoltage());
+				setDouble("debug/voltage_leftspin", leftSpin.getMotorOutputVoltage());
+				setDouble("debug/voltage_rightspin", rightSpin.getMotorOutputVoltage());
+				
+				setDouble("debug/current_squeezer", squeezer.getOutputCurrent());
+				setDouble("debug/current_leftspin", leftSpin.getOutputCurrent());
+				setDouble("debug/current_rightspin", rightSpin.getOutputCurrent());
+			}
 			
+			if (networkTablePriorityCounter.getMedium()) {
+				//Adding 1 to the hopefully non-negative encoder position should eliminate 1/0
+				setDouble("pos_rel", getRelativeEncoderPosition());
+				setDouble("vel_rel", getRelativeEncoderVelocity());
+				setDouble("pos", getEncoderPosition());
+				setDouble("vel", getEncoderVelocity());
+				
+				setDouble("in-out", getEncoderPosition()/1000);
+				setBoolean("Up", false);
+				
+				setBoolean("debug/state_Eject", state == SqueezyState.EJECT);
+				setBoolean("debug/state_Intake", state == SqueezyState.INTAKE);
+				
+				setBoolean("DetectedBox", sensors.detectBox());
+				setBoolean("BoxHeld", sensors.detectBoxHeld());
+	
+				setBoolean("debug/limit-fwd", squeezer.getSensorCollection().isFwdLimitSwitchClosed());
+				setBoolean("debug/limit-rev", squeezer.getSensorCollection().isRevLimitSwitchClosed());
+			}
+			
+			networkTablePriorityCounter.count();
 		}
 	}//postSqueezerData
 	

@@ -179,9 +179,7 @@ public class Robot extends IterativeRobot {
 	public void robotPeriodic() {
 		squeezySensors.updateSensors();
 		
-		squeezy.postSqueezerData();
-		squeezy.postState();
-		squeezy.postUltrasonicData();
+		squeezy.postData();
 		
 		elevator.updateTables();
 	}//robotPeriodic
