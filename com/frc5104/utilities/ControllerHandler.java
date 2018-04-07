@@ -1,6 +1,7 @@
 package com.frc5104.utilities;
 
 import edu.wpi.first.wpilibj.GenericHID.RumbleType;
+import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Joystick;
 
 public class ControllerHandler {
@@ -13,8 +14,8 @@ public class ControllerHandler {
 	} private ControllerHandler() {  }
 	
 	//Start
-	
-	private Joystick controller = new Joystick(0);
+	private final int joyIndex = 0;
+	private Joystick controller = new Joystick(joyIndex);
 
 	//Normal Buttons
 	public enum Control { 
@@ -42,12 +43,15 @@ public class ControllerHandler {
 	private long softTarget; private boolean softTimer = false;
 	
 	public void update() {
+		//A single binary number representing the on/off state of each button
+		int buttons = DriverStation.getInstance().getStickButtons(joyIndex);
+		
 		//Normal Buttons
 		for (int i = 0; i < Slots.length; i++) {
 			Pressed[i] = false;
 			Released[i] = false;
 			
-			Val[i] = Type[i] == 1 ? controller.getRawButton(Slots[i]) : (Type[i] == 2 ? (controller.getRawAxis(Slots[i]) <= Deadzones[i] ? false : true) : (controller.getPOV() == Slots[i]));
+			Val[i] = Type[i] == 1 ? ((buttons & 1 << (Slots[i]-1)) != 0) : (Type[i] == 2 ? (controller.getRawAxis(Slots[i]) <= Deadzones[i] ? false : true) : (controller.getPOV() == Slots[i]));
 			
 			if (Val[i] != LastVal[i]) {
 				LastVal[i] = Val[i];
