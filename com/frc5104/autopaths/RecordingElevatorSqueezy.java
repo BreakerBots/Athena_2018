@@ -25,7 +25,7 @@ public class RecordingElevatorSqueezy extends CommandGroup {
 		reader.readFile();
     	
     	elevator(Stage.kBottom);
-    	addSequential(new ProcessRecording(reader, Stage.kLowerScale));
+    	addSequential(new ProcessRecording(reader));
     	addSequential(new MoveElevator(stage));
     	addSequential(new DropSqueezy(squeezySol));
     	addSequential(new EjectSqueezy(ejectEffort));

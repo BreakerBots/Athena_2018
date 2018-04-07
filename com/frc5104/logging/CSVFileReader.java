@@ -82,6 +82,10 @@ public class CSVFileReader {
 	}//readLine
 	*/
 	
+	public String name () {
+		return file.getName();
+	}//name
+	
 	public double get(String key, int index) {
 		return map.get(key).get(index);
 	}//get by key

@@ -18,15 +18,14 @@ public class ProcessRecording extends Command {
 	
 	double batteryVoltage;
 	
-	Stage elevatorStage;
-
-	public ProcessRecording(CSVFileReader reader, Stage elevatorStage) {
-		src = reader;
-		index = 0;
-	}//ProcessRecording
+	//---- Debug ----//
+	double totalThisMs = 0,
+		   totalDtMs = 0,
+		   totalWaitMs = 0;
 
 	public ProcessRecording(CSVFileReader reader) {
-		this(reader, null);
+		src = reader;
+		index = 0;
 	}//ProcessRecording
 
     protected void initialize() {
@@ -35,7 +34,6 @@ public class ProcessRecording extends Command {
     	System.out.println("Reading has "+src.size()+" points.");
     }
 
-    private long playbackLastTime = 0;
     private int last2Time = 0;
     protected void execute() {
     	
@@ -54,6 +52,10 @@ public class ProcessRecording extends Command {
 //    	boolean squeezyEject = src.get("squeezyEject", index) == 1.0;
 
 //    	System.out.printf("Playback! File: %4dms   This: %4dms   Waiting: %dms\n", dtMs, thisMs, waitMs);
+    	
+    	totalThisMs += thisMs;
+    	totalDtMs	+= dtMs;
+    	totalWaitMs += waitMs;
 
 		if (waitMs> 0){
 			Timer.delay(waitMs/1000.0);
@@ -71,7 +73,8 @@ public class ProcessRecording extends Command {
     }//isFinished
 
     protected void end() {
-    	System.out.println("Finished Recording");
+    	System.out.printf("Finished Playback {%s} Count: %3d  Averages{PlaybackDt: %3d  RecordingDt: %3d  WaitDt: %3d\n",
+    		src.name(), src.size(),  totalThisMs/src.size(), totalDtMs/src.size(), totalWaitMs/src.size());
     	Drive.getInstance().arcadeDrive(0, 0);
 //    	if (Elevator.getInstance().controlMode() == Control.kEffort)
 //    		Elevator.getInstance().setEffort(0);
