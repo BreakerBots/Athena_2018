@@ -23,6 +23,7 @@ import com.frc5104.utilities.Deadband;
 import com.frc5104.utilities.HMI;
 import com.frc5104.utilities.TalonFactory;
 
+import edu.wpi.cscore.UsbCamera;
 import edu.wpi.first.wpilibj.CameraServer;
 import edu.wpi.first.wpilibj.DoubleSolenoid;
 import edu.wpi.first.wpilibj.DoubleSolenoid.Value;
@@ -99,7 +100,9 @@ public class RobotRecorder extends IterativeRobot {
 		
 		ptoSol.set(true);
 		
-//		CameraServer.getInstance().startAutomaticCapture();
+		UsbCamera cam = CameraServer.getInstance().startAutomaticCapture();
+		cam.setResolution(640, 480);
+		cam.setFPS(60);
 		HMI.PutOnDashboard();
 
 	}//robotInit
