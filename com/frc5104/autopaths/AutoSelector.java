@@ -143,6 +143,15 @@ public class AutoSelector {
 //						auto = AutonomousPaths.RightToRightScale.getPath(true);
 //					}
 					break;
+				case "RightToRightScale":
+					if (gameData.charAt(1) == 'R') {
+						System.out.println("Right to Right Scale!");
+						auto = AutonomousPaths.RightToRightScale.getPath(true);
+					} else if (gameData.charAt(0) == 'R') {
+						System.out.println("Right to Right Switch!");
+						auto = AutonomousPaths.RightToRight.getPath(true);
+					}
+					break;
 				}
 			}
 		} else { //else return default auto (new Baseline()) 
