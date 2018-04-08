@@ -191,6 +191,7 @@ public class RobotRecorder extends IterativeRobot {
 //		elevator.calibrateBottom();
 		
 		auto = AutoSelector.getAuto(squeezyUpDown);
+		Scheduler.getInstance().removeAll();
 		Scheduler.getInstance().add(auto);
 		
 		hookHolder.setPosition(hookStartingPosition);
