@@ -99,9 +99,9 @@ public class RobotRecorder extends IterativeRobot {
 		
 		ptoSol.set(true);
 		
-		UsbCamera cam = CameraServer.getInstance().startAutomaticCapture();
-		cam.setResolution(320, 240);
-		cam.setFPS(60);
+//		UsbCamera cam = CameraServer.getInstance().startAutomaticCapture();
+//		cam.setResolution(320, 240);
+//		cam.setFPS(60);
 		HMI.PutOnDashboard();
 
 	}//robotInit
@@ -191,6 +191,7 @@ public class RobotRecorder extends IterativeRobot {
 //		elevator.calibrateBottom();
 		
 		auto = AutoSelector.getAuto(squeezyUpDown);
+		Scheduler.getInstance().removeAll();
 		Scheduler.getInstance().add(auto);
 		
 		hookHolder.setPosition(hookStartingPosition);
@@ -198,6 +199,9 @@ public class RobotRecorder extends IterativeRobot {
 		
 //		autoStartTime = System.currentTimeMillis();
 		HMI.PutOnDashboard();
+		
+		Timer.delay(1);
+		
 	}//autonomousInit
 	
 	public void autonomousPeriodic() {
@@ -435,8 +439,9 @@ public class RobotRecorder extends IterativeRobot {
 		
 		int dtMs = (int) reader.get("time", playbackIndex);
 		if (last2Time != 0) {
-			last2Time = dtMs;
+			int temp = dtMs;
 			dtMs = dtMs - last2Time;
+			last2Time = temp;
 		} else
 			last2Time = dtMs;
 		double x = reader.get("joy_x", playbackIndex);
