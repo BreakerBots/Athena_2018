@@ -87,7 +87,10 @@ public class CSVFileReader {
 	}//name
 	
 	public double get(String key, int index) {
-		return map.get(key).get(index);
+		if (map.containsKey(key))
+			return map.get(key).get(index);
+		else
+			return 0;
 	}//get by key
 	
 	public int size() {
