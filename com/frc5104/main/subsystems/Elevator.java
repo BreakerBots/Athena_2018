@@ -152,6 +152,7 @@ public class Elevator {
 				
 				calibrated = true;
 				controlMode = Control.kPosition;
+				clearIaccum();
 				update();
 			}
 		}
