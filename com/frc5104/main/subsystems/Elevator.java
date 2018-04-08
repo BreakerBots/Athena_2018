@@ -74,8 +74,8 @@ public class Elevator {
 		talon1.configForwardSoftLimitEnable(false, 10);
 		talon1.configForwardSoftLimitThreshold(SOFT_STOP_BOTTOM, 10);
 		
-		talon1.config_kP(0, 0.5, 10);
-		talon1.config_kI(0, 0.0001, 10);
+		talon1.config_kP(0, 0.3, 10);
+		talon1.config_kI(0, 0.001, 10);
 		talon1.config_IntegralZone(0, 2000, 10);
 		
 		currentStage = Stage.kBottom;

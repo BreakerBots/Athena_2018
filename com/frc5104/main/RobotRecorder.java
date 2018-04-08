@@ -252,11 +252,15 @@ public class RobotRecorder extends IterativeRobot {
 //			elevator.setEffort(controller.getAxis(HMI.kElevatorUpDown));
 			elevator.userControl();
 			
-			if (controller.getPressed(HMI.kElevatorToggleBottomSwitch)) {
-				if (elevator.getStage() == Elevator.Stage.kBottom) {
-					elevator.goTo(Stage.kSwitch);
-				} else
-					elevator.goTo(Stage.kBottom);
+			if (controller.getPressed(HMI.kElevatorDown)) {
+//				if (elevator.getStage() == Elevator.Stage.kBottom) {
+//					elevator.goTo(Stage.kSwitch);
+//				} else
+//					elevator.goTo(Stage.kBottom);
+				elevator.goDown();
+			}
+			if (controller.getPressed(HMI.kElevatorUp)) {
+				elevator.goUp();
 			}
 		}
 
