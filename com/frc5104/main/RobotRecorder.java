@@ -12,7 +12,6 @@ import com.frc5104.logging.Column;
 import com.frc5104.logging.LogDouble;
 import com.frc5104.main.subsystems.Drive;
 import com.frc5104.main.subsystems.Elevator;
-import com.frc5104.main.subsystems.Elevator.Stage;
 import com.frc5104.main.subsystems.Shifters;
 import com.frc5104.main.subsystems.Squeezy;
 import com.frc5104.main.subsystems.Squeezy.SqueezyState;
@@ -100,9 +99,9 @@ public class RobotRecorder extends IterativeRobot {
 		
 		ptoSol.set(true);
 		
-		UsbCamera cam = CameraServer.getInstance().startAutomaticCapture();
-		cam.setResolution(320, 240);
-		cam.setFPS(60);
+//		UsbCamera cam = CameraServer.getInstance().startAutomaticCapture();
+//		cam.setResolution(320, 240);
+//		cam.setFPS(60);
 		HMI.PutOnDashboard();
 
 	}//robotInit
@@ -199,6 +198,9 @@ public class RobotRecorder extends IterativeRobot {
 		
 //		autoStartTime = System.currentTimeMillis();
 		HMI.PutOnDashboard();
+		
+		Timer.delay(1);
+		
 	}//autonomousInit
 	
 	public void autonomousPeriodic() {
