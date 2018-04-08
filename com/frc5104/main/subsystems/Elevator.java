@@ -25,7 +25,7 @@ public class Elevator {
 	
 	public enum Stage {
 		kBottom(0),
-		kPortal(-3000),
+//		kPortal(-3000),
 		kSwitch(-5000),
 		kLowerScale(-13500),
 		kTop(-13770);
