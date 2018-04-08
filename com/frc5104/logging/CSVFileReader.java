@@ -93,6 +93,10 @@ public class CSVFileReader {
 			return 0;
 	}//get by key
 	
+	public boolean hasKey(String key) {
+		return map.containsKey(key);
+	}//hasKey
+	
 	public int size() {
 //		return size;
 		return map.get("time").size();
