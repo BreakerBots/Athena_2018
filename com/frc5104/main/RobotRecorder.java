@@ -456,7 +456,7 @@ public class RobotRecorder extends IterativeRobot {
 
 		boolean playbackSqueezy = false;
 		
-		if (playbackSqueezy) {
+		if (playbackSqueezy && reader.hasKey("buttons")) {
 			//Squeezy Up Down
 			if (button == HMI.kSqueezyUp) {
 				squeezyUpDown.set(Value.kReverse);
