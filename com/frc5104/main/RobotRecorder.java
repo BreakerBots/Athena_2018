@@ -436,8 +436,9 @@ public class RobotRecorder extends IterativeRobot {
 		
 		int dtMs = (int) reader.get("time", playbackIndex);
 		if (last2Time != 0) {
-			last2Time = dtMs;
+			int temp = dtMs;
 			dtMs = dtMs - last2Time;
+			last2Time = temp;
 		} else
 			last2Time = dtMs;
 		double x = reader.get("joy_x", playbackIndex);
