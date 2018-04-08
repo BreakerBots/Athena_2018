@@ -13,6 +13,9 @@ import edu.wpi.first.networktables.NetworkTableInstance;
 
 public class Elevator {
 
+	public static final double kMaxDownPidEffort = 0.4;
+	public static final double kDownScalar = 0.5;
+	
 	public static final int SOFT_STOP_BOTTOM = 0;
 	public static final int SOFT_STOP_TOP = -16150;
 	
@@ -77,6 +80,8 @@ public class Elevator {
 		talon1.config_kP(0, 0.3, 10);
 		talon1.config_kI(0, 0.001, 10);
 		talon1.config_IntegralZone(0, 2000, 10);
+		
+		talon1.configNominalOutputForward(kMaxDownPidEffort, 10);
 		
 		currentStage = Stage.kBottom;
 //		calibrateBottom();
@@ -172,7 +177,9 @@ public class Elevator {
 	public void update() {
 //		System.out.println("CurrentStage: "+currentStage.name());
 		if (controlMode == Control.kEffort) {
-			talon1.set(ControlMode.PercentOutput, effort);
+			double output = effort;
+			if (output > 0) output *= kDownScalar;
+			talon1.set(ControlMode.PercentOutput, output);
 		} else if (controlMode == Control.kPosition) {
 			talon1.set(ControlMode.Position, currentStage.getCounts());
 //			System.out.println("Elevator Effort: "+talon1.getMotorOutputPercent());
