@@ -108,16 +108,48 @@ public class Elevator {
 	}//setPosition
 	
 	public void goUp() {
-		int newStage = currentStage.ordinal() + 1;
+		//If we're trying to hold a position already, go to the next highest one
+		int newStage = currentStage.ordinal();
+		if (controlMode == Control.kPosition) {
+			newStage++;
+		} else if (controlMode == Control.kEffort) {
+			int currentPos = getEncoderPosition();
+			newStage = 0;
+			while (newStage < Stage.values().length) {
+				if (currentPos > Stage.values()[newStage].position)
+					break;
+				else
+					newStage++;
+			}
+		}
+		
 		if (newStage >= Stage.values().length)
 			newStage = Stage.values().length - 1;
+		else if (newStage < 0)
+			newStage = 0;
 		
 		goTo(Stage.values()[newStage]);
 	}//moveUp
 	
 	public void goDown() {
-		int newStage = currentStage.ordinal() - 1;
-		if (newStage < 0)
+		//If we're trying to hold a position already, go to the next lower one
+		int newStage = currentStage.ordinal();
+		if (controlMode == Control.kPosition) {
+			newStage--;
+		} else if (controlMode == Control.kEffort) {
+			int currentPos = getEncoderPosition();
+			newStage = Stage.values().length - 1;
+			while (newStage >= 0) {
+				if (currentPos < Stage.values()[newStage].position)
+					break;
+				else
+					newStage--;
+			}
+		}
+		
+		if (newStage >= Stage.values().length)
+			newStage = Stage.values().length - 1;
+		else if (newStage < 0)
 			newStage = 0;
 		
 		goTo(Stage.values()[newStage]);
