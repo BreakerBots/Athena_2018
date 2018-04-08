@@ -12,7 +12,6 @@ import com.frc5104.logging.Column;
 import com.frc5104.logging.LogDouble;
 import com.frc5104.main.subsystems.Drive;
 import com.frc5104.main.subsystems.Elevator;
-import com.frc5104.main.subsystems.Elevator.Stage;
 import com.frc5104.main.subsystems.Shifters;
 import com.frc5104.main.subsystems.Squeezy;
 import com.frc5104.main.subsystems.Squeezy.SqueezyState;
@@ -443,6 +442,7 @@ public class RobotRecorder extends IterativeRobot {
 		double x = reader.get("joy_x", playbackIndex);
 		double y = reader.get("joy_y", playbackIndex);
 		double elev = reader.get("elevator_effort", playbackIndex);
+		Control button = Control.values()[(int) reader.get("buttons", playbackIndex)];
 		
 		int waitMs = dtMs - thisMs;
 		
@@ -453,6 +453,40 @@ public class RobotRecorder extends IterativeRobot {
 		}
 		
 		getDeltaTime(); //Reset Delta Time
+
+		boolean playbackSqueezy = false;
+		
+		if (playbackSqueezy) {
+			//Squeezy Up Down
+			if (button == HMI.kSqueezyUp) {
+				squeezyUpDown.set(Value.kReverse);
+			} else if (button == HMI.kSqueezyDown) {
+				squeezyUpDown.set(Value.kForward);
+			}
+			
+			//Squeezy Open Close
+			else if (button == HMI.kSqueezyOpen) {
+				squeezy.forceState(SqueezyState.MANUAL_OPEN);
+			} else if (button == HMI.kSqueezyClose) {
+				squeezy.forceState(SqueezyState.MANUAL_CLOSE);
+			}
+			
+			//Squeezy Eject Neutral Intake
+			else if (button == HMI.kSqueezyEject) {
+				squeezy.forceState(SqueezyState.EJECT);
+			} else if (button == HMI.kSqueezyNeutral) {
+				squeezy.forceState(SqueezyState.EMPTY);
+			} else if (button == HMI.kSqueezyIntake) {
+				squeezy.forceState(SqueezyState.INTAKE);
+			}
+			
+			//Elevator Up Down
+			else if (button == HMI.kElevatorUp) {
+				elevator.goUp();
+			} else if (button == HMI.kElevatorDown) {
+				elevator.goDown();
+			}
+		}//playbackSqueezy
 
 		drive.arcadeDrive(y*10/batteryVoltage, x*10/batteryVoltage);
 		boolean driveElevator = false;
