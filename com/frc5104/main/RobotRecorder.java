@@ -101,7 +101,7 @@ public class RobotRecorder extends IterativeRobot {
 		ptoSol.set(true);
 		
 		UsbCamera cam = CameraServer.getInstance().startAutomaticCapture();
-		cam.setResolution(640, 480);
+		cam.setResolution(320, 240);
 		cam.setFPS(60);
 		HMI.PutOnDashboard();
 
