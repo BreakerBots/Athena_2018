@@ -32,6 +32,7 @@ public class HMI {
 	public static final Control kSqueezyEject = Control.LB;
 	public static final Control kSqueezyNeutral = Control.B;
 	public static final Control kSqueezyIntake = Control.X;
+	public static final Control kSqueezyKnock = Control.LT;
 	
 	public static final Control kElevatorDown = Control.A;
 	public static final Control kElevatorUp = Control.RB;

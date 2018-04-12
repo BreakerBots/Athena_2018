@@ -152,7 +152,8 @@ public class Squeezy {
 		case HOLDING:
 			if (squeezer.getSensorCollection().isRevLimitSwitchClosed())
 				state = SqueezyState.INTAKE;
-			if (getEncoderPosition() > kHasCubePosition) {
+//			if (getEncoderPosition() > kHasCubePosition) {
+			if (controller.getPressed(HMI.kSqueezyKnock)) {
 				leftUnjam = sensors.getDistances()[1] > sensors.getDistances()[2];
 				ejectTime = System.currentTimeMillis();
 				state = SqueezyState.TILT_UNJAM;

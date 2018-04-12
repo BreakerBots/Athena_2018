@@ -107,11 +107,11 @@ public class RobotRecorder extends IterativeRobot {
 	}//robotInit
 	
 	public double getDriveX() {
-		return Deadband.getDefault().get(controller.getAxis(HMI.kDriveX));
+		return -Deadband.getDefault().get(controller.getAxis(HMI.kDriveX));
 	}//getDriveX
 
 	public double getDriveY() {
-		return -Deadband.getDefault().get(controller.getAxis(HMI.kDriveY));
+		return Deadband.getDefault().get(controller.getAxis(HMI.kDriveY));
 	}//getDriveX
 	
 	public void teleopInit() {
@@ -447,7 +447,11 @@ public class RobotRecorder extends IterativeRobot {
 		double x = reader.get("joy_x", playbackIndex);
 		double y = reader.get("joy_y", playbackIndex);
 		double elev = reader.get("elevator_effort", playbackIndex);
-		Control button = Control.values()[(int) reader.get("buttons", playbackIndex)];
+
+		int raw_button = (int)reader.get("buttons", playbackIndex);
+		Control button = null;
+		if (raw_button != -1)
+			button = Control.values()[raw_button];
 		
 		int waitMs = dtMs - thisMs;
 		
