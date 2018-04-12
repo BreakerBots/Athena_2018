@@ -242,7 +242,7 @@ public class RobotRecorder extends IterativeRobot {
 				x *= 10/batteryVoltage;
 			}
 			
-			drive.arcadeDrive(y, x);
+			drive.pidDrive(y, x);
 		}
 		
 		if (controller.getAxis(HMI.kDriveShift) > 0.6)
