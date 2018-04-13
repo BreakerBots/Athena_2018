@@ -125,6 +125,7 @@ public class RobotRecorder extends IterativeRobot {
 		
 		getBatteryVoltage();
 		
+		drive.reset();
 	}//teleopInit
 	
 	public void teleopPeriodic() {
