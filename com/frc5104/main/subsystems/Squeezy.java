@@ -36,7 +36,7 @@ public class Squeezy {
 	//For Opening/Closing Arms
 	static final double kHoldEffort = -0.25;
 	static final double kShootSqueezeEffort = -0.05;
-	static final double kCloseEffort = -0.30;
+	static final double kCloseEffort = -0.60;
 	static final double kOpenEffort  = 0.25;
 	
 	//For Spinning Wheels
@@ -142,7 +142,7 @@ public class Squeezy {
 //				bool = bool && pos < -60000;
 			grabbedSensor.update(bool);
 				
-			if (grabbedSensor.get(20)) {
+			if (grabbedSensor.get(10)) {
 				state = SqueezyState.HOLDING;
 				controller.rumbleHardFor(0.5, 0.5);
 			}
@@ -362,7 +362,8 @@ public class Squeezy {
 		setSpinners(kPinchEffort);
 	}//spinPinch
 	private void spinUnjam() {
-		setSpinners(kIntakeEffort, leftUnjam?-1:1);
+//		setSpinners(kIntakeEffort, leftUnjam?-1:1);
+		setSpinners(2*kIntakeEffort);
 	}//spinUnjam
 	
 	private void open() {
